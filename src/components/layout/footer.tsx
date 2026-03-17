@@ -1,6 +1,6 @@
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
-import { Shield, Award, Globe2 } from 'lucide-react';
+
 import { Logo } from '@/components/ui/logo';
 import { getTranslations } from 'next-intl/server';
 
@@ -23,11 +23,7 @@ const footerLinkKeys = {
   ],
 } as const;
 
-const trustSignalKeys = [
-  { icon: Shield, key: 'pdpl' as const },
-  { icon: Award, key: 'zatca' as const },
-  { icon: Globe2, key: 'bilingual' as const },
-];
+
 
 export async function Footer({ className }: { className?: string }) {
   const t = await getTranslations();
@@ -40,26 +36,7 @@ export async function Footer({ className }: { className?: string }) {
       )}
     >
       {/* Gradient top accent */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-
-      {/* Trust signals bar */}
-      <div className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
-            {trustSignalKeys.map((signal) => {
-              const Icon = signal.icon;
-              return (
-                <div key={signal.key} className="flex items-center gap-2.5 text-muted-foreground">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                    <Icon className="h-4.5 w-4.5 text-primary" />
-                  </div>
-                  <span className="text-sm font-semibold">{t(`trust.${signal.key}`)}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+      <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/40 to-transparent" />
 
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">

@@ -4,6 +4,8 @@ import { getTranslations, getLocale } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CreditCard } from 'lucide-react';
+import { Link } from '@/i18n/navigation';
+import { SubscriptionManagerButton } from '@/components/features/admin/subscription-manager';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -26,7 +28,7 @@ export default async function AdminSubscriptionsPage({
 
   let query = db(supabase)
     .from('subscriptions')
-    .select('id, user_id, tier, status, starts_at, ends_at, amount, created_at')
+    .select('id, user_id, tier, is_active, payment_status, starts_at, expires_at, final_price, created_at, profiles:user_id(full_name)')
     .order('created_at', { ascending: false })
     .limit(50);
 
@@ -43,10 +45,10 @@ export default async function AdminSubscriptionsPage({
     { count: businessCount },
     { count: enterpriseCount },
   ] = await Promise.all([
-    db(supabase).from('subscriptions').select('*', { count: 'exact', head: true }).eq('tier', 'starter').eq('status', 'active'),
-    db(supabase).from('subscriptions').select('*', { count: 'exact', head: true }).eq('tier', 'pro').eq('status', 'active'),
-    db(supabase).from('subscriptions').select('*', { count: 'exact', head: true }).eq('tier', 'business').eq('status', 'active'),
-    db(supabase).from('subscriptions').select('*', { count: 'exact', head: true }).eq('tier', 'enterprise').eq('status', 'active'),
+    db(supabase).from('subscriptions').select('*', { count: 'exact', head: true }).eq('tier', 'starter').eq('is_active', true),
+    db(supabase).from('subscriptions').select('*', { count: 'exact', head: true }).eq('tier', 'pro').eq('is_active', true),
+    db(supabase).from('subscriptions').select('*', { count: 'exact', head: true }).eq('tier', 'business').eq('is_active', true),
+    db(supabase).from('subscriptions').select('*', { count: 'exact', head: true }).eq('tier', 'enterprise').eq('is_active', true),
   ]);
 
   const tiers = ['all', 'starter', 'pro', 'business', 'enterprise'];
@@ -124,8 +126,8 @@ export default async function AdminSubscriptionsPage({
                     <Badge variant={(sub.tier as string) as 'starter' | 'pro' | 'business' | 'enterprise'}>
                       {t(`subscriptionTier.${sub.tier as string}`)}
                     </Badge>
-                    <Badge variant={sub.status === 'active' ? 'active' : sub.status === 'expired' ? 'warning' : 'secondary'}>
-                      {t(`subscriptionStatus.${sub.status as string}`)}
+                    <Badge variant={sub.is_active ? 'active' : 'warning'}>
+                      {sub.is_active ? t('subscriptionStatus.active') : t('subscriptionStatus.expired')}
                     </Badge>
                   </div>
                 </div>
@@ -133,19 +135,42 @@ export default async function AdminSubscriptionsPage({
               <CardContent>
                 <div className="flex items-center justify-between text-sm">
                   <div className="space-y-1">
+                    {(() => {
+                      const profiles = (sub as Record<string, unknown>).profiles as Record<string, string> | null;
+                      const name = profiles?.full_name ?? null;
+                      if (!name) return null;
+                      return (
+                        <p>
+                          <Link
+                            href={`/admin/users/${sub.user_id as string}`}
+                            className="text-primary hover:underline font-medium"
+                          >
+                            {name}
+                          </Link>
+                        </p>
+                      );
+                    })()}
                     <p>
                       <span className="text-muted-foreground">{t('subscriptionsPage.amountLabel')} </span>
-                      <span className="font-semibold">{Number(sub.amount ?? 0).toLocaleString(locale)} {t('sar')}</span>
+                      <span className="font-semibold">{Number(sub.final_price ?? 0).toLocaleString(locale)} {t('sar')}</span>
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {sub.starts_at ? new Date(sub.starts_at as string).toLocaleDateString(locale) : '—'}
                       {' ← '}
-                      {sub.ends_at ? new Date(sub.ends_at as string).toLocaleDateString(locale) : '—'}
+                      {sub.expires_at ? new Date(sub.expires_at as string).toLocaleDateString(locale) : '—'}
                     </p>
                   </div>
-                  <time className="text-xs text-muted-foreground">
-                    {new Date(sub.created_at as string).toLocaleDateString(locale)}
-                  </time>
+                  <div className="flex items-center gap-3">
+                    <SubscriptionManagerButton
+                      userId={sub.user_id as string}
+                      currentTier={sub.tier as string}
+                      currentStatus={sub.is_active ? 'active' : 'expired'}
+                      subscriptionId={sub.id as string}
+                    />
+                    <time className="text-xs text-muted-foreground">
+                      {new Date(sub.created_at as string).toLocaleDateString(locale)}
+                    </time>
+                  </div>
                 </div>
               </CardContent>
             </Card>

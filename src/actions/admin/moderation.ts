@@ -78,7 +78,7 @@ export async function approvePost(
   // Fetch post
   const { data: post, error: fetchError } = await db(adminClient)
     .from(table)
-    .select('id, status, user_id')
+    .select('id, status')
     .eq('id', postId)
     .single();
 
@@ -88,7 +88,7 @@ export async function approvePost(
   // Update status → published
   const { error: updateError } = await db(adminClient)
     .from(table)
-    .update({ status: 'published' })
+    .update({ status: 'published', approved_by: auth.adminId, approved_at: new Date().toISOString() })
     .eq('id', postId);
 
   if (updateError) return { data: null, error: t('approveError') };
@@ -121,7 +121,7 @@ export async function rejectPost(
   // Fetch post
   const { data: post, error: fetchError } = await db(adminClient)
     .from(table)
-    .select('id, status, user_id')
+    .select('id, status')
     .eq('id', postId)
     .single();
 
@@ -173,4 +173,71 @@ export async function toggleReviewVisibility(
   revalidatePath('/admin/reviews');
 
   return { data: { hidden: hide }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// EDIT POST (admin can edit any post)
+// ---------------------------------------------------------------------------
+export async function adminEditPost(
+  postId: string,
+  postType: 'project' | 'product' | 'rfq',
+  updates: {
+    title_ar?: string;
+    title_en?: string;
+    description_ar?: string;
+    description_en?: string;
+  },
+): Promise<ActionResult<{ updated: boolean }>> {
+  const t = await getTranslations('actions.adminModeration');
+  const auth = await verifyAdmin();
+  if ('error' in auth) return { data: null, error: auth.error };
+
+  const adminClient = createAdminClient();
+  const table = postType === 'project' ? 'projects' : postType === 'product' ? 'products' : 'rfqs';
+
+  // Build update object only with provided fields
+  const updateData: Record<string, string> = {};
+  if (updates.title_ar !== undefined) updateData.title_ar = updates.title_ar;
+  if (updates.title_en !== undefined) updateData.title_en = updates.title_en;
+  if (updates.description_ar !== undefined) updateData.description_ar = updates.description_ar;
+  if (updates.description_en !== undefined) updateData.description_en = updates.description_en;
+
+  if (Object.keys(updateData).length === 0) {
+    return { data: null, error: t('noChanges') };
+  }
+
+  const { error: updateError } = await db(adminClient)
+    .from(table)
+    .update(updateData)
+    .eq('id', postId);
+
+  if (updateError) return { data: null, error: t('editError') };
+
+  await logAudit(auth.adminId, 'edit_post', postType, postId, updateData);
+  revalidatePath('/admin/posts');
+
+  return { data: { updated: true }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// GET POST DETAILS (for edit page)
+// ---------------------------------------------------------------------------
+export async function getPostDetails(
+  postId: string,
+  postType: 'project' | 'product' | 'rfq',
+): Promise<ActionResult<Record<string, unknown>>> {
+  const auth = await verifyAdmin();
+  if ('error' in auth) return { data: null, error: auth.error };
+
+  const adminClient = createAdminClient();
+  const table = postType === 'project' ? 'projects' : postType === 'product' ? 'products' : 'rfqs';
+
+  const { data, error } = await db(adminClient)
+    .from(table)
+    .select('*')
+    .eq('id', postId)
+    .single();
+
+  if (error || !data) return { data: null, error: 'Post not found' };
+  return { data, error: null };
 }

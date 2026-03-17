@@ -17,8 +17,8 @@ export function CTASection() {
   return (
     <section className="relative py-24 overflow-hidden">
       {/* Gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary-dark to-primary" />
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+      <div className="absolute inset-0 bg-linear-to-br from-primary via-primary-dark to-primary" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-size-[4rem_4rem]" />
 
       {/* Floating decorative shapes */}
       {!prefersReduced && (
@@ -27,17 +27,17 @@ export function CTASection() {
             duration={7}
             delay={0}
             distance={16}
-            className="absolute top-[20%] start-[10%] pointer-events-none"
+            className="absolute top-[20%] inset-s-[10%] pointer-events-none"
           >
-            <div className="h-16 w-16 rounded-full bg-white/[0.06]" />
+            <div className="h-16 w-16 rounded-full bg-white/6" />
           </FloatingElement>
           <FloatingElement
             duration={9}
             delay={1.5}
             distance={12}
-            className="absolute bottom-[25%] end-[8%] pointer-events-none"
+            className="absolute bottom-[25%] inset-e-[8%] pointer-events-none"
           >
-            <div className="h-20 w-20 rounded-2xl bg-white/[0.04] rotate-12" />
+            <div className="h-20 w-20 rounded-2xl bg-white/4 rotate-12" />
           </FloatingElement>
         </>
       )}

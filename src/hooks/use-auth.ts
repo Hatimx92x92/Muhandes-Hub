@@ -44,14 +44,32 @@ export function useAuth() {
 
   const fetchProfile = useCallback(
     async (userId: string) => {
-      const { data } = await (supabase as unknown as { from: (t: string) => { select: (c: string) => { eq: (f: string, v: string) => { single: () => Promise<{ data: UserProfile | null }> } } } })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = supabase as any;
+      const { data: profileData } = await db
         .from('profiles')
         .select(
-          'id, role, full_name, email, phone, profile_type, company_name_ar, company_name_en, avatar_url, logo_url, city, cr_number, website, bio_ar, bio_en, verification_status, subscription_tier, subscription_expires_at, is_admin',
+          'id, role, full_name, email, phone, profile_type, company_name_ar, company_name_en, avatar_url, logo_url, city, cr_number, website, bio_ar, bio_en, verification_status, is_admin',
         )
         .eq('id', userId)
         .single();
-      setProfile(data ?? null);
+
+      const { data: subData } = await db
+        .from('subscriptions')
+        .select('tier, expires_at')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .single();
+
+      if (profileData) {
+        setProfile({
+          ...profileData,
+          subscription_tier: subData?.tier ?? 'starter',
+          subscription_expires_at: subData?.expires_at ?? null,
+        });
+      } else {
+        setProfile(null);
+      }
     },
     [supabase],
   );

@@ -31,7 +31,7 @@ export default async function DashboardLayout({
       select: (c: string) => {
         eq: (f: string, v: string) => {
           single: () => Promise<{
-            data: { role: string; full_name: string; avatar_url: string | null } | null;
+            data: { role: string; full_name: string; avatar_url: string | null; is_admin: boolean } | null;
           }>;
         };
       };
@@ -40,7 +40,7 @@ export default async function DashboardLayout({
 
   const { data: profile } = await db
     .from('profiles')
-    .select('role, full_name, avatar_url')
+    .select('role, full_name, avatar_url, is_admin')
     .eq('id', user.id)
     .single();
 
@@ -64,7 +64,7 @@ export default async function DashboardLayout({
 
         {/* Main area */}
         <div className="flex flex-1 flex-col">
-          <Topbar userName={userName} userAvatar={userAvatar} notificationCount={notificationCount} />
+          <Topbar userName={userName} userAvatar={userAvatar} notificationCount={notificationCount} isAdmin={!!profile?.is_admin} />
           <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
         </div>
 

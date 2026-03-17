@@ -65,7 +65,7 @@ export async function addClient(
   // Role check — buyer cannot access CRM
   const { data: profile } = await db(supabase)
     .from('profiles')
-    .select('role, subscription_tier')
+    .select('role')
     .eq('id', user.id)
     .single();
 
@@ -74,7 +74,13 @@ export async function addClient(
   }
 
   // Tier limit
-  const tier = (profile.subscription_tier as string) || 'starter';
+  const { data: sub } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .single();
+  const tier = (sub?.tier as string) || 'starter';
   const limits = TIER_LIMITS[tier as keyof typeof TIER_LIMITS];
   if (limits && limits.crmClients !== Infinity) {
     const { count } = await db(supabase)

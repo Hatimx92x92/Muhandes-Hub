@@ -51,6 +51,14 @@ export default async function PartnerProfilePage({
 
   if (!partner) notFound();
 
+  const { data: partnerSub } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', id)
+    .eq('is_active', true)
+    .single();
+  const partnerTier = partnerSub?.tier || 'starter';
+
   const { data: projects } = partner.role === 'contractor'
     ? await db(supabase)
         .from('projects')
@@ -107,9 +115,9 @@ export default async function PartnerProfilePage({
                   <Badge variant={partner.role === 'contractor' ? 'info' : 'warning'}>
                     {partner.role === 'contractor' ? t('contractor') : t('supplier')}
                   </Badge>
-                  {partner.subscription_tier && (
-                    <Badge variant={partner.subscription_tier as 'starter' | 'pro' | 'business' | 'enterprise'}>
-                      <Shield className="me-1 h-3 w-3" />{partner.subscription_tier}
+                  {partnerTier && partnerTier !== 'starter' && (
+                    <Badge variant={partnerTier as 'pro' | 'business' | 'enterprise'}>
+                      <Shield className="me-1 h-3 w-3" />{partnerTier}
                     </Badge>
                   )}
                   {partner.city && (

@@ -55,7 +55,7 @@ export async function createQuotation(
   // 2. Role check — contractor or supplier
   const { data: profile } = await db(supabase)
     .from('profiles')
-    .select('role, subscription_tier, company_name_ar')
+    .select('role, company_name_ar')
     .eq('id', user.id)
     .single();
 
@@ -64,7 +64,13 @@ export async function createQuotation(
   }
 
   // 3. Tier limit check (monthly quotation count)
-  const tier = (profile.subscription_tier || 'starter') as keyof typeof TIER_LIMITS;
+  const { data: sub } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .single();
+  const tier = (sub?.tier || 'starter') as keyof typeof TIER_LIMITS;
   const monthlyLimit = TIER_LIMITS[tier]?.quotationsPerMonth ?? 3;
 
   if (monthlyLimit !== Infinity) {
@@ -260,13 +266,14 @@ export async function acceptQuotation(quotationId: string): Promise<ActionResult
   if (updateError) return { data: null, error: t('genericError') };
 
   // Get sender tier for commission
-  const { data: sender } = await db(supabase)
-    .from('profiles')
-    .select('subscription_tier')
-    .eq('id', quotation.sender_id)
+  const { data: senderSub } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', quotation.sender_id)
+    .eq('is_active', true)
     .single();
 
-  const tier = sender?.subscription_tier || 'starter';
+  const tier = senderSub?.tier || 'starter';
   const commissionRate = COMMISSION_RATES[tier] ?? 0.02;
   const commissionAmount = quotation.total * commissionRate;
   const commissionVat = commissionAmount * VAT_RATE;
@@ -276,8 +283,8 @@ export async function acceptQuotation(quotationId: string): Promise<ActionResult
     .from('deals')
     .insert({
       title_slug: `deal-${quotation.number}`,
-      deal_type: 'DEAL-PRODUCT',
-      trigger_source: 'quotation_accepted',
+      deal_type: 'deal_product',
+      trigger_source: 'inquiry_quotation',
       quotation_id: quotationId,
       seller_id: quotation.sender_id,
       buyer_id: user.id,

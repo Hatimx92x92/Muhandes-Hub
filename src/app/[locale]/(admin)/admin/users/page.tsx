@@ -39,7 +39,7 @@ export default async function AdminUsersPage({
   // Build query
   let query = db(supabase)
     .from('profiles')
-    .select('id, full_name_ar, full_name_en, email, company_name_ar, company_name_en, role, subscription_tier, verification_status, is_admin, created_at')
+    .select('id, full_name, company_name_ar, company_name_en, role, verification_status, is_admin, created_at')
     .order('created_at', { ascending: false })
     .limit(100);
 
@@ -48,13 +48,13 @@ export default async function AdminUsersPage({
   }
 
   if (search) {
-    query = query.or(`email.ilike.%${search}%,company_name_ar.ilike.%${search}%,company_name_en.ilike.%${search}%`);
+    query = query.or(`full_name.ilike.%${search}%,company_name_ar.ilike.%${search}%,company_name_en.ilike.%${search}%`);
   }
 
   const { data: users } = await query;
   const items = (users ?? []) as Record<string, unknown>[];
 
-  const statuses = ['active', 'pending_approval', 'pending_documents', 'banned', 'restricted'];
+  const statuses = ['active', 'pending_approval', 'pending_documents', 'pending_payment', 'pending_email', 'banned', 'restricted'];
 
   return (
     <div className="space-y-6">
@@ -90,48 +90,47 @@ export default async function AdminUsersPage({
       ) : (
         <div className="space-y-3">
           {items.map((u) => (
-            <Card key={u.id as string}>
-              <CardContent className="flex flex-wrap items-center justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate font-medium">
-                      {(u.full_name_ar as string) ?? (u.full_name_en as string) ?? t('noName')}
+            <Link key={u.id as string} href={`/admin/users/${u.id as string}`}>
+              <Card className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/20 cursor-pointer">
+                <CardContent className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate font-medium">
+                        {(u.full_name as string) ?? t('noName')}
+                      </p>
+                      {!!u.is_admin && (
+                        <Badge variant="info">
+                          <Shield className="me-1 h-3 w-3" />
+                          {t('adminBadge')}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="truncate text-sm text-muted-foreground">
+                      {(u.company_name_ar as string) ?? (u.company_name_en as string) ?? ''}
                     </p>
-                    {!!u.is_admin && (
-                      <Badge variant="info">
-                        <Shield className="me-1 h-3 w-3" />
-                        {t('adminBadge')}
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      <Badge variant={(u.role as string) === 'project_owner' ? 'project_owner' : (u.role as string) === 'contractor' ? 'contractor' : (u.role as string) === 'supplier' ? 'supplier' : 'buyer'}>
+                        {t(`roleLabels.${u.role as string}`)}
                       </Badge>
-                    )}
-                  </div>
-                  <p className="truncate text-sm text-muted-foreground">{u.email as string}</p>
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    <Badge variant={(u.role as string) === 'project_owner' ? 'project_owner' : (u.role as string) === 'contractor' ? 'contractor' : (u.role as string) === 'supplier' ? 'supplier' : 'buyer'}>
-                      {t(`roleLabels.${u.role as string}`)}
-                    </Badge>
-                    <Badge variant={STATUS_VARIANTS[u.verification_status as string] ?? 'secondary'}>
-                      {t(`userStatus.${u.verification_status as string}`)}
-                    </Badge>
-                    {!!u.subscription_tier && (
-                      <Badge variant={(u.subscription_tier as string) as 'starter' | 'pro' | 'business' | 'enterprise'}>
-                        {u.subscription_tier as string}
+                      <Badge variant={STATUS_VARIANTS[u.verification_status as string] ?? 'secondary'}>
+                        {t(`userStatus.${u.verification_status as string}`)}
                       </Badge>
-                    )}
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-2 text-sm">
-                  <time className="text-muted-foreground">
-                    {new Date(u.created_at as string).toLocaleDateString(locale)}
-                  </time>
-                  <AdminUserActions
-                    userId={u.id as string}
-                    currentStatus={u.verification_status as string}
-                    isAdmin={!!u.is_admin}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="flex items-center gap-2 text-sm">
+                    <time className="text-muted-foreground">
+                      {new Date(u.created_at as string).toLocaleDateString(locale)}
+                    </time>
+                    <AdminUserActions
+                      userId={u.id as string}
+                      currentStatus={u.verification_status as string}
+                      isAdmin={!!u.is_admin}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}

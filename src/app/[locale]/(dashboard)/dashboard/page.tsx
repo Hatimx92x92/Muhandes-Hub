@@ -167,7 +167,7 @@ export default async function DashboardPage() {
     from: (t: string) => {
       select: (c: string) => {
         eq: (f: string, v: string) => {
-          single: () => Promise<{ data: { role: string; full_name: string; subscription_tier: string } | null }>;
+          single: () => Promise<{ data: { role: string; full_name: string } | null }>;
         };
       };
     };
@@ -175,7 +175,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await db
     .from('profiles')
-    .select('role, full_name, subscription_tier')
+    .select('role, full_name')
     .eq('id', user.id)
     .single();
 

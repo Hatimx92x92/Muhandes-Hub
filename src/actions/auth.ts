@@ -76,7 +76,7 @@ export async function login(
   if (user) {
     const { data: profile } = await db(supabase)
       .from('profiles')
-      .select('verification_status, role, tier')
+      .select('verification_status, role, is_admin')
       .eq('id', user.id)
       .single();
 
@@ -107,6 +107,12 @@ export async function login(
     if (status === 'pending_approval') {
       revalidatePath('/', 'layout');
       return { data: { redirectTo: '/verify/pending-approval' }, error: null };
+    }
+
+    // Admin users go to admin panel
+    if (profile?.is_admin) {
+      revalidatePath('/', 'layout');
+      return { data: { redirectTo: '/admin' }, error: null };
     }
   }
 

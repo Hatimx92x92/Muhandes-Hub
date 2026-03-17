@@ -100,6 +100,7 @@ export async function createProject(
     .single();
 
   if (insertErr || !project) {
+    console.error('Project insert error:', insertErr);
     return { data: null, error: t('createError') };
   }
 

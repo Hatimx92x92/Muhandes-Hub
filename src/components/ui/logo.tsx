@@ -64,7 +64,7 @@ export function Logo({ size = 'md', showText = true, className }: LogoProps) {
       {showText && (
         <span className="flex flex-col">
           <span className={cn(s.text, 'font-bold text-foreground leading-tight')}>
-            Muqawil HUB
+            Muhaned Hub
           </span>
           <span className={cn(s.sub, 'font-medium text-muted-foreground leading-none -mt-0.5')}>
             Saudi Construction B2B

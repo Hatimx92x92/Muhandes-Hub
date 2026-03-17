@@ -70,13 +70,32 @@ export default async function BidComparisonPage({
   if (contractorIds.length > 0) {
     const { data: profiles } = await db(supabase)
       .from('profiles')
-      .select('id, full_name, company_name_ar, subscription_tier, classification')
+      .select('id, full_name, company_name_ar')
       .in('id', contractorIds);
+
+    // Get subscription tiers for contractors
+    const { data: subs } = await db(supabase)
+      .from('subscriptions')
+      .select('user_id, tier')
+      .in('user_id', contractorIds)
+      .eq('is_active', true);
+
+    const subMap: Record<string, string> = {};
+    if (subs) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const s of subs as any[]) {
+        subMap[s.user_id] = s.tier;
+      }
+    }
 
     if (profiles) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       for (const p of profiles as any[]) {
-        contractors[p.id] = p;
+        contractors[p.id] = {
+          ...p,
+          subscription_tier: subMap[p.id] || 'starter',
+          classification: '',
+        };
       }
     }
   }

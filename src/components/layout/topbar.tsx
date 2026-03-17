@@ -4,7 +4,7 @@ import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { logout } from '@/actions/auth';
-import { Bell, User, LogOut, ChevronDown } from 'lucide-react';
+import { Bell, User, LogOut, ChevronDown, Shield } from 'lucide-react';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { LocaleSwitcher } from './locale-switcher';
 
@@ -19,12 +19,15 @@ interface TopbarProps {
   userAvatar?: string;
   /** Unread notification count */
   notificationCount?: number;
+  /** Whether user is admin */
+  isAdmin?: boolean;
   className?: string;
 }
 
 export function Topbar({
   userName,
   notificationCount = 0,
+  isAdmin = false,
   className,
 }: TopbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -58,7 +61,7 @@ export function Topbar({
             M
           </div>
           <span className="text-sm font-semibold text-foreground hidden sm:block">
-            Muqawil HUB
+            Muhaned Hub
           </span>
         </Link>
       </div>
@@ -75,7 +78,7 @@ export function Topbar({
         >
           <Bell className="h-5 w-5" />
           {notificationCount > 0 && (
-            <span className="absolute -top-0.5 -end-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground animate-bounce-subtle">
+            <span className="absolute -top-0.5 -inset-e-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground animate-bounce-subtle">
               {notificationCount > 99 ? '99+' : notificationCount}
             </span>
           )}
@@ -91,7 +94,7 @@ export function Topbar({
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
               <User className="h-4 w-4" />
             </div>
-            <span className="hidden sm:block text-sm font-medium text-foreground max-w-[120px] truncate">
+            <span className="hidden sm:block text-sm font-medium text-foreground max-w-30 truncate">
               {userName}
             </span>
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -99,8 +102,21 @@ export function Topbar({
 
           {/* Dropdown */}
           {menuOpen && (
-            <div className="absolute end-0 top-full mt-1.5 w-48 rounded-xl border border-border bg-card shadow-xl z-50 animate-scale-in">
+            <div className="absolute inset-e-0 top-full mt-1.5 w-48 rounded-xl border border-border bg-card shadow-xl z-50 animate-scale-in">
               <div className="p-1.5">
+                {isAdmin && (
+                  <>
+                    <Link
+                      href="/admin"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+                    >
+                      <Shield className="h-4 w-4" />
+                      {t('adminPanel')}
+                    </Link>
+                    <hr className="my-1 border-border" />
+                  </>
+                )}
                 <Link
                   href="/dashboard/profile"
                   onClick={() => setMenuOpen(false)}

@@ -213,13 +213,14 @@ export async function createCommissionForDeal(params: {
   const supabase = await createClient();
 
   // Get seller tier
-  const { data: seller } = await db(supabase)
-    .from('profiles')
-    .select('subscription_tier')
-    .eq('id', params.sellerId)
+  const { data: sellerSub } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', params.sellerId)
+    .eq('is_active', true)
     .single();
 
-  const tier = (seller?.subscription_tier || 'starter') as string;
+  const tier = (sellerSub?.tier || 'starter') as string;
   const rate = COMMISSION_RATES[tier] ?? 0.02;
 
   // Business/Enterprise: 0% commission

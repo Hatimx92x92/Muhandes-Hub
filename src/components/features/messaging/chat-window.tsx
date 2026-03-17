@@ -104,7 +104,7 @@ export function ChatWindow({
                     : 'bg-muted text-foreground rounded-es-sm',
                 )}
               >
-                <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                <p className="whitespace-pre-wrap wrap-break-word">{msg.content}</p>
                 <p
                   className={cn(
                     'text-[10px] mt-1',

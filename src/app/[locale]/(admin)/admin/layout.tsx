@@ -12,7 +12,9 @@ import {
   Star,
   Settings,
   ClipboardList,
-  ChevronRight,
+  BarChart3,
+  Inbox,
+  MessageSquare,
 } from 'lucide-react';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,6 +30,9 @@ const adminNav = [
   { href: '/admin/commissions', labelKey: 'commissions', icon: Banknote },
   { href: '/admin/subscriptions', labelKey: 'subscriptions', icon: CreditCard },
   { href: '/admin/reviews', labelKey: 'reviews', icon: Star },
+  { href: '/admin/analytics', labelKey: 'analytics', icon: BarChart3 },
+  { href: '/admin/contacts', labelKey: 'contacts', icon: Inbox },
+  { href: '/admin/messages', labelKey: 'messages', icon: MessageSquare },
   { href: '/admin/settings', labelKey: 'settings', icon: Settings },
   { href: '/admin/audit-log', labelKey: 'auditLog', icon: ClipboardList },
 ];
@@ -46,7 +51,7 @@ export default async function AdminLayout({
 
   const { data: profile } = await db(supabase)
     .from('profiles')
-    .select('is_admin, full_name_ar, full_name_en')
+    .select('is_admin, full_name')
     .eq('id', user.id)
     .single();
 
@@ -75,15 +80,9 @@ export default async function AdminLayout({
         </nav>
         <div className="mt-auto border-t border-border p-4">
           <p className="truncate text-sm font-medium">
-            {profile.full_name_ar ?? profile.full_name_en ?? t('admin')}
+            {profile.full_name ?? t('admin')}
           </p>
-          <Link
-            href="/dashboard"
-            className="mt-2 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <span>{t('backToDashboard')}</span>
-            <ChevronRight className="h-3 w-3 rtl:rotate-180" />
-          </Link>
+          <p className="mt-1 text-xs text-muted-foreground">{t('adminPanel')}</p>
         </div>
       </aside>
 

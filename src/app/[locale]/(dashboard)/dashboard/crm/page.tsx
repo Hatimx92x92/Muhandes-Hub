@@ -46,7 +46,7 @@ export default async function CRMPage({
   // Check role — buyer excluded from CRM
   const { data: profile } = await db(supabase)
     .from('profiles')
-    .select('role, subscription_tier')
+    .select('role')
     .eq('id', user.id)
     .single();
 

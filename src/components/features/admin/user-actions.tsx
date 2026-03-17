@@ -27,7 +27,7 @@ export function AdminUserActions({ userId, currentStatus, isAdmin }: AdminUserAc
   };
 
   return (
-    <div className="flex flex-wrap gap-1">
+    <div className="flex flex-wrap gap-1" onClick={(e) => e.stopPropagation()}>
       {(currentStatus === 'pending_approval' || currentStatus === 'pending_documents') && (
         <Button
           size="sm"

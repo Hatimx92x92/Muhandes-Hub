@@ -302,13 +302,14 @@ export async function acceptRFQResponse(responseId: string): Promise<ActionResul
   const dealValue = pricingData.total || 0;
 
   // Get supplier tier for commission
-  const { data: supplier } = await db(supabase)
-    .from('profiles')
-    .select('subscription_tier')
-    .eq('id', response.supplier_id)
+  const { data: supplierSub } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', response.supplier_id)
+    .eq('is_active', true)
     .single();
 
-  const tier = supplier?.subscription_tier || 'starter';
+  const tier = supplierSub?.tier || 'starter';
   const commissionRates: Record<string, number> = { starter: 0.02, pro: 0.01, business: 0, enterprise: 0 };
   const commRate = commissionRates[tier] ?? 0.02;
 
@@ -317,8 +318,8 @@ export async function acceptRFQResponse(responseId: string): Promise<ActionResul
     .from('deals')
     .insert({
       title_slug: `deal-rfq-${rfq.title_ar?.slice(0, 20) || response.rfq_id}`,
-      deal_type: 'DEAL-PRODUCT',
-      trigger_source: 'rfq_response_accepted',
+      deal_type: 'deal_product',
+      trigger_source: 'rfq_response',
       rfq_response_id: responseId,
       project_id: rfq.project_id || null,
       seller_id: response.supplier_id,

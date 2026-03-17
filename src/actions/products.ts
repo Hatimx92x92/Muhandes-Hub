@@ -45,7 +45,7 @@ export async function createProduct(
   // 2. Role check — supplier only
   const { data: profile } = await db(supabase)
     .from('profiles')
-    .select('role, subscription_tier')
+    .select('role')
     .eq('id', user.id)
     .single();
 
@@ -54,7 +54,14 @@ export async function createProduct(
   }
 
   // 3. Tier limit check
-  const tier = profile.subscription_tier || 'starter';
+  const { data: subscription } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .single();
+
+  const tier = (subscription?.tier || 'starter') as keyof typeof TIER_LIMITS;
   const limits = TIER_LIMITS[tier];
   if (limits) {
     const { count } = await db(supabase)
@@ -364,7 +371,7 @@ export async function bulkImportProducts(
   // 2. Role + tier check
   const { data: profile } = await db(supabase)
     .from('profiles')
-    .select('role, subscription_tier')
+    .select('role')
     .eq('id', user.id)
     .single();
 
@@ -372,7 +379,14 @@ export async function bulkImportProducts(
     return { data: null, error: t('suppliersOnlyImport') };
   }
 
-  const tier = (profile.subscription_tier || 'starter') as string;
+  const { data: sub } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .single();
+
+  const tier = (sub?.tier || 'starter') as string;
   if (!['business', 'enterprise'].includes(tier)) {
     return { data: null, error: t('bulkImportTierRequired') };
   }

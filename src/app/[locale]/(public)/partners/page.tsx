@@ -28,7 +28,7 @@ export default async function PartnersPage({
 
   let query = db(supabase)
     .from('profiles')
-    .select('id, full_name, company_name_ar, company_name_en, avatar_url, role, city, subscription_tier, bio_ar, bio_en, created_at')
+    .select('id, full_name, company_name_ar, company_name_en, avatar_url, role, city, bio_ar, bio_en, created_at')
     .in('role', ['contractor', 'supplier'])
     .eq('status', 'active')
     .order('created_at', { ascending: false });
@@ -46,6 +46,17 @@ export default async function PartnersPage({
   }
 
   const { data: partners } = await query;
+
+  // Fetch subscription tiers for all partners
+  const partnerIds = (partners ?? []).map((p: any) => p.id);
+  const { data: subs } = partnerIds.length > 0
+    ? await db(supabase)
+        .from('subscriptions')
+        .select('user_id, tier')
+        .in('user_id', partnerIds)
+        .eq('is_active', true)
+    : { data: [] };
+  const tierMap = new Map((subs ?? []).map((s: any) => [s.user_id, s.tier]));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
@@ -131,10 +142,10 @@ export default async function PartnersPage({
                   {partner.city && (
                     <Badge variant="secondary">{partner.city}</Badge>
                   )}
-                  {partner.subscription_tier && partner.subscription_tier !== 'starter' && (
-                    <Badge variant={partner.subscription_tier as 'pro' | 'business' | 'enterprise'}>
+                  {tierMap.get(partner.id) && tierMap.get(partner.id) !== 'starter' && (
+                    <Badge variant={tierMap.get(partner.id) as 'pro' | 'business' | 'enterprise'}>
                       <Shield className="me-1 h-3 w-3" />
-                      {partner.subscription_tier}
+                      {tierMap.get(partner.id)}
                     </Badge>
                   )}
                 </div>

@@ -57,9 +57,17 @@ export default async function PublicProductDetailPage({
 
   const { data: supplier } = await db(supabase)
     .from('profiles')
-    .select('id, full_name, company_name_ar, company_name_en, avatar_url, subscription_tier')
+    .select('id, full_name, company_name_ar, company_name_en, avatar_url')
     .eq('id', product.supplier_id)
     .single();
+
+  const { data: supplierSub } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', product.supplier_id)
+    .eq('is_active', true)
+    .single();
+  const supplierTier = supplierSub?.tier || 'starter';
 
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -220,13 +228,13 @@ export default async function PublicProductDetailPage({
                         ? (supplier.company_name_ar || supplier.full_name)
                         : (supplier.company_name_en || supplier.company_name_ar || supplier.full_name)}
                     </p>
-                    {supplier.subscription_tier && (
+                    {supplierTier && supplierTier !== 'starter' && (
                       <Badge
-                        variant={supplier.subscription_tier as 'starter' | 'pro' | 'business' | 'enterprise'}
+                        variant={supplierTier as 'pro' | 'business' | 'enterprise'}
                         className="mt-1"
                       >
                         <Shield className="me-1 h-3 w-3" />
-                        {supplier.subscription_tier}
+                        {supplierTier}
                       </Badge>
                     )}
                   </div>

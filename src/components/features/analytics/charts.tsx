@@ -27,7 +27,7 @@ export function BarChart({ data, height = 200, barColor = 'var(--color-primary)'
 
   if (data.length === 0) {
     return (
-      <div className={cn('flex items-center justify-center h-[200px] text-sm text-muted-foreground', className)}>
+      <div className={cn('flex items-center justify-center h-50 text-sm text-muted-foreground', className)}>
         {t('noData')}
       </div>
     );
@@ -93,7 +93,7 @@ export function LineChart({ data, height = 200, lineColor = 'var(--color-primary
 
   if (data.length === 0) {
     return (
-      <div className={cn('flex items-center justify-center h-[200px] text-sm text-muted-foreground', className)}>
+      <div className={cn('flex items-center justify-center h-50 text-sm text-muted-foreground', className)}>
         {t('noData')}
       </div>
     );

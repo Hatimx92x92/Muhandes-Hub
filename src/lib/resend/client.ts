@@ -12,8 +12,8 @@ interface EmailParams {
   footer?: { ar: string; en: string };
 }
 
-const FROM_EMAIL = 'Muqawil HUB <noreply@muqawilhub.com>';
-const APP_NAME = 'Muqawil HUB | مقاول هب';
+const FROM_EMAIL = 'Muhaned Hub <noreply@muqawilhub.com>';
+const APP_NAME = 'Muhaned Hub | منصة مهندس';
 
 /**
  * Send a bilingual email via Resend.

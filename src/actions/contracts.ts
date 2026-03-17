@@ -63,13 +63,14 @@ export async function createContract(
   }
 
   // Tier limit check
-  const { data: profile } = await db(supabase)
-    .from('profiles')
-    .select('subscription_tier')
-    .eq('id', user.id)
+  const { data: sub } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
     .single();
 
-  const tier = (profile?.subscription_tier as string) || 'starter';
+  const tier = (sub?.tier as string) || 'starter';
   const limits = TIER_LIMITS[tier as keyof typeof TIER_LIMITS];
 
   if (limits) {

@@ -69,9 +69,14 @@ export async function middleware(request: NextRequest) {
   if (strippedPath.startsWith('/dashboard') && user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('verification_status, role, tier')
+      .select('verification_status, role, is_admin')
       .eq('id', user.id)
-      .single() as { data: { verification_status: string; role: string; tier: string } | null };
+      .single() as { data: { verification_status: string; role: string; is_admin: boolean } | null };
+
+    // Admin users should only use /admin/* — redirect away from /dashboard
+    if (profile?.is_admin) {
+      return localeRedirect('/admin');
+    }
 
     if (profile) {
       const status = profile.verification_status;
@@ -118,11 +123,21 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Auth pages: redirect to dashboard if already logged in
+  // Auth pages: redirect to dashboard/admin if already logged in
   if (
     (strippedPath === '/login' || strippedPath === '/register' || strippedPath === '/forgot-password') &&
     user
   ) {
+    // Check if admin — redirect to admin panel instead of dashboard
+    const { data: authProfile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single() as { data: { is_admin: boolean } | null };
+
+    if (authProfile?.is_admin) {
+      return localeRedirect('/admin');
+    }
     return localeRedirect('/dashboard');
   }
 

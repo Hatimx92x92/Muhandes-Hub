@@ -3,8 +3,9 @@ import { redirect } from 'next/navigation';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText } from 'lucide-react';
+import { FileText, Pencil } from 'lucide-react';
 import { AdminPostActions } from '@/components/features/admin/post-actions';
+import { Link } from '@/i18n/navigation';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -26,16 +27,34 @@ export default async function AdminPostsPage({
   const statusFilter = params.status ?? 'pending';
   const typeFilter = params.type ?? 'all';
 
-  // Fetch posts from all 3 tables in parallel
-  const buildQuery = (table: string) => {
+  // Fetch posts from all 3 tables in parallel — each table has different column names
+  const buildProjectQuery = () => {
     let query = db(supabase)
-      .from(table)
-      .select('id, title_ar, title_en, status, created_at, user_id')
+      .from('projects')
+      .select('id, title_ar, title_en, status, created_at, owner_id')
       .order('created_at', { ascending: false })
       .limit(50);
-    if (statusFilter !== 'all') {
-      query = query.eq('status', statusFilter);
-    }
+    if (statusFilter !== 'all') query = query.eq('status', statusFilter);
+    return query;
+  };
+
+  const buildProductQuery = () => {
+    let query = db(supabase)
+      .from('products')
+      .select('id, name_ar, name_en, status, created_at, supplier_id')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (statusFilter !== 'all') query = query.eq('status', statusFilter);
+    return query;
+  };
+
+  const buildRfqQuery = () => {
+    let query = db(supabase)
+      .from('rfqs')
+      .select('id, title_ar, title_en, status, created_at, poster_id')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (statusFilter !== 'all') query = query.eq('status', statusFilter);
     return query;
   };
 
@@ -44,17 +63,26 @@ export default async function AdminPostsPage({
     { data: products },
     { data: rfqs },
   ] = await Promise.all([
-    typeFilter === 'all' || typeFilter === 'project' ? buildQuery('projects') : Promise.resolve({ data: [] }),
-    typeFilter === 'all' || typeFilter === 'product' ? buildQuery('products') : Promise.resolve({ data: [] }),
-    typeFilter === 'all' || typeFilter === 'rfq' ? buildQuery('rfqs') : Promise.resolve({ data: [] }),
+    typeFilter === 'all' || typeFilter === 'project' ? buildProjectQuery() : Promise.resolve({ data: [] }),
+    typeFilter === 'all' || typeFilter === 'product' ? buildProductQuery() : Promise.resolve({ data: [] }),
+    typeFilter === 'all' || typeFilter === 'rfq' ? buildRfqQuery() : Promise.resolve({ data: [] }),
   ]);
 
-  // Merge and tag with type
-  type PostItem = { id: string; title_ar: string; title_en: string; status: string; created_at: string; user_id: string; type: string };
+  // Merge and normalize to common shape
+  type PostItem = { id: string; title_ar: string; title_en: string; status: string; created_at: string; type: string };
   const allPosts: PostItem[] = [
-    ...(projects ?? []).map((p: Record<string, unknown>) => ({ ...p, type: 'project' } as PostItem)),
-    ...(products ?? []).map((p: Record<string, unknown>) => ({ ...p, type: 'product' } as PostItem)),
-    ...(rfqs ?? []).map((p: Record<string, unknown>) => ({ ...p, type: 'rfq' } as PostItem)),
+    ...(projects ?? []).map((p: Record<string, unknown>) => ({
+      id: p.id as string, title_ar: p.title_ar as string, title_en: p.title_en as string,
+      status: p.status as string, created_at: p.created_at as string, type: 'project',
+    })),
+    ...(products ?? []).map((p: Record<string, unknown>) => ({
+      id: p.id as string, title_ar: p.name_ar as string, title_en: p.name_en as string,
+      status: p.status as string, created_at: p.created_at as string, type: 'product',
+    })),
+    ...(rfqs ?? []).map((p: Record<string, unknown>) => ({
+      id: p.id as string, title_ar: p.title_ar as string, title_en: p.title_en as string,
+      status: p.status as string, created_at: p.created_at as string, type: 'rfq',
+    })),
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const statuses = ['pending', 'published', 'rejected', 'all'];
@@ -143,12 +171,21 @@ export default async function AdminPostsPage({
                   <time className="text-xs text-muted-foreground">
                     {new Date(post.created_at).toLocaleDateString(locale)}
                   </time>
-                  {post.status === 'pending' && (
-                    <AdminPostActions
-                      postId={post.id}
-                      postType={post.type as 'project' | 'product' | 'rfq'}
-                    />
-                  )}
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/admin/posts/${post.type}-${post.id}/edit`}
+                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+                    >
+                      <Pencil className="h-3 w-3" />
+                      {t('postEdit.editPost')}
+                    </Link>
+                    {post.status === 'pending' && (
+                      <AdminPostActions
+                        postId={post.id}
+                        postType={post.type as 'project' | 'product' | 'rfq'}
+                      />
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

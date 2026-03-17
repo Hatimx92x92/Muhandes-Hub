@@ -27,7 +27,7 @@ export default async function AdminDealsPage({
 
   let query = db(supabase)
     .from('deals')
-    .select('id, deal_type, status, total_value, created_at, buyer_id, seller_id')
+    .select('id, deal_type, status, value, created_at, buyer_id, seller_id')
     .order('created_at', { ascending: false })
     .limit(50);
 
@@ -96,7 +96,7 @@ export default async function AdminDealsPage({
                     <p>
                       <span className="text-muted-foreground">{t('dealsPage.valueLabel')} </span>
                       <span className="font-semibold">
-                        {Number(deal.total_value ?? 0).toLocaleString(locale)} {t('sar')}
+                        {Number(deal.value ?? 0).toLocaleString(locale)} {t('sar')}
                       </span>
                     </p>
                     <time className="text-xs text-muted-foreground">
@@ -104,7 +104,7 @@ export default async function AdminDealsPage({
                     </time>
                   </div>
                   <Link
-                    href={`/dashboard/deals/${deal.id}`}
+                    href={`/admin/deals/${deal.id}`}
                     className="text-sm text-primary hover:underline"
                   >
                     {t('viewDetails')}

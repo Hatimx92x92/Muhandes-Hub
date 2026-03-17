@@ -47,13 +47,13 @@ export function MobileNav({ links }: { links: NavLink[] }) {
           {/* Panel */}
           <div
             className={cn(
-              'fixed inset-y-0 start-0 z-50 w-72 bg-background border-e border-border shadow-2xl',
+              'fixed inset-y-0 inset-s-0 z-50 w-72 bg-background border-e border-border shadow-2xl',
               'animate-slide-in-start',
             )}
           >
             <div className="flex h-16 items-center justify-between px-4 border-b border-border">
               <span className="text-lg font-bold text-foreground">
-                Muqawil HUB
+                Muhaned Hub
               </span>
               <button
                 type="button"
@@ -87,7 +87,7 @@ export function MobileNav({ links }: { links: NavLink[] }) {
               <Link
                 href="/register"
                 onClick={close}
-                className="rounded-xl bg-gradient-to-r from-primary to-primary-dark px-3 py-2.5 text-sm font-bold text-primary-foreground shadow-md text-center transition-all duration-200 hover:shadow-lg"
+                className="rounded-xl bg-linear-to-r from-primary to-primary-dark px-3 py-2.5 text-sm font-bold text-primary-foreground shadow-md text-center transition-all duration-200 hover:shadow-lg"
               >
                 {t('register')}
               </Link>

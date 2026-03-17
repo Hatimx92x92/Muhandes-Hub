@@ -3,9 +3,10 @@ import { redirect } from 'next/navigation';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Tag } from 'lucide-react';
+import { Settings, Tag, Megaphone } from 'lucide-react';
 import { SettingsForm } from '@/components/features/admin/settings-form';
 import { CouponForm } from '@/components/features/admin/coupon-form';
+import { AnnouncementForm } from '@/components/features/admin/announcement-form';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -126,6 +127,28 @@ export default async function AdminSettingsPage() {
           </CardHeader>
           <CardContent>
             <CouponForm />
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Announcements */}
+      <section className="space-y-4">
+        <h2 className="flex items-center gap-2 text-lg font-semibold">
+          <Megaphone className="h-5 w-5" />
+          {t('settingsPage.announcements')}
+        </h2>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t('settingsPage.platformAnnouncement')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AnnouncementForm
+              currentAnnouncement={
+                (settings as Record<string, unknown>[])?.find(
+                  (s) => s.key === 'announcement',
+                )?.value as { message_ar?: string; message_en?: string; is_active?: boolean } | undefined
+              }
+            />
           </CardContent>
         </Card>
       </section>

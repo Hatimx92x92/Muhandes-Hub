@@ -6,7 +6,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Muqawil HUB | مقاول هب';
+export const alt = 'Muhaned Hub | منصة مهندس';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -54,7 +54,7 @@ export default async function Image() {
             marginBottom: '8px',
           }}
         >
-          مقاول هب
+          منصة مهندس
         </div>
 
         {/* English Title */}
@@ -67,7 +67,7 @@ export default async function Image() {
             marginBottom: '24px',
           }}
         >
-          Muqawil HUB
+          Muhaned Hub
         </div>
 
         {/* Tagline */}

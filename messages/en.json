@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "Muqawil HUB",
-    "appNameEn": "Muqawil HUB",
+    "appName": "Muhaned Hub",
+    "appNameEn": "Muhaned Hub",
     "loading": "Loading...",
     "error": "An error occurred",
     "retry": "Try again",
@@ -34,7 +34,7 @@
     "viewAll": "View all",
     "learnMore": "Learn more",
     "getStarted": "Get started",
-    "copyright": "© {year} Muqawil HUB. All rights reserved.",
+    "copyright": "© {year} Muhaned Hub. All rights reserved.",
     "saudiArabia": "Saudi Arabia",
     "vat15": "15% VAT",
     "saudiVat": "Saudi Arabia | 15% VAT"
@@ -67,7 +67,8 @@
     "contact": "Contact Us",
     "terms": "Terms & Conditions",
     "privacy": "Privacy Policy",
-    "cookies": "Cookie Policy"
+    "cookies": "Cookie Policy",
+    "adminPanel": "Admin Panel"
   },
   "locale": {
     "switchToEn": "Switch to English",
@@ -83,7 +84,7 @@
   },
   "home": {
     "trustBadge": "100% Saudi Platform — ZATCA & PDPL Compliant",
-    "heading1": "Muqawil HUB",
+    "heading1": "Muhaned Hub",
     "heading2": "Saudi Construction Industry Platform",
     "subheading": "A comprehensive digital ecosystem connecting project owners, contractors, suppliers, and buyers — ensuring efficient and reliable project execution.",
     "ctaPrimary": "Get Started for Free",
@@ -188,7 +189,7 @@
     },
     "register": {
       "title": "Create New Account",
-      "description": "Join Muqawil HUB and start your journey in the construction industry",
+      "description": "Join Muhaned Hub and start your journey in the construction industry",
       "hasAccount": "Already have an account?",
       "login": "Login"
     },
@@ -342,7 +343,7 @@
       "partyASignature": "Party A Signature",
       "partyBSignature": "Party B Signature",
       "notSignedYet": "Not signed yet",
-      "verifiedVia": "This verification was performed via Muqawil HUB"
+      "verifiedVia": "This verification was performed via Muhaned Hub"
     }
   },
   "dashboard": {
@@ -428,7 +429,8 @@
       "delivery": "Delivery",
       "product": "product",
       "free": "Free",
-      "unlimited": "Unlimited"
+      "unlimited": "Unlimited",
+      "shortlisted": "Shortlisted"
     },
     "error": {
       "title": "Error Occurred",
@@ -1024,7 +1026,10 @@
       "subscriptions": "Subscriptions",
       "reviews": "Reviews",
       "auditLog": "Audit Log",
-      "settings": "Settings"
+      "settings": "Settings",
+      "analytics": "Analytics",
+      "contacts": "Contact Submissions",
+      "messages": "Messages"
     },
     "actions": {
       "approvePost": "Approve Post",
@@ -1209,7 +1214,16 @@
       "usages": "Usage:",
       "activeCoupon": "Active",
       "inactiveCoupon": "Inactive",
-      "addNewCoupon": "Add New Coupon"
+      "addNewCoupon": "Add New Coupon",
+      "announcements": "Announcements",
+      "platformAnnouncement": "Platform Announcement",
+      "announcementAr": "Announcement (Arabic)",
+      "announcementEn": "Announcement (English)",
+      "announcementArPlaceholder": "اكتب الإعلان بالعربية",
+      "announcementEnPlaceholder": "Write announcement in English",
+      "announcementActive": "Show announcement to users",
+      "announcementSaved": "Announcement saved",
+      "saveAnnouncement": "Save Announcement"
     },
     "auditLogPage": {
       "title": "Audit Log",
@@ -1221,6 +1235,179 @@
       "prev": "Previous",
       "next": "Next",
       "pageOf": "Page {page} of {total}"
+    },
+    "userDetail": {
+      "title": "User Details",
+      "backToUsers": "Back to Users",
+      "authInfo": "Account Information",
+      "email": "Email",
+      "phone": "Phone",
+      "provider": "Sign-in Method",
+      "emailVerified": "Email Verified",
+      "lastSignIn": "Last Sign In",
+      "createdAt": "Created At",
+      "yes": "Yes",
+      "no": "No",
+      "never": "Never signed in",
+      "profileInfo": "Profile Information",
+      "fullName": "Full Name",
+      "companyName": "Company Name",
+      "role": "Role",
+      "profileType": "Account Type",
+      "crNumber": "CR Number",
+      "vatNumber": "VAT Number",
+      "website": "Website",
+      "city": "City",
+      "verificationStatus": "Verification Status",
+      "subscriptionInfo": "Subscription Information",
+      "currentTier": "Current Plan",
+      "subscriptionStatus": "Subscription Status",
+      "amount": "Amount",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "noSubscription": "No subscription",
+      "activitySummary": "Activity Summary",
+      "totalDeals": "Deals",
+      "avgRating": "Rating",
+      "totalReviews": "Reviews",
+      "totalProjects": "Projects",
+      "totalProducts": "Products",
+      "totalBids": "Bids",
+      "verificationDocs": "Verification Documents",
+      "docType": "Document Type",
+      "docStatus": "Status",
+      "uploadedAt": "Uploaded At",
+      "reviewedAt": "Reviewed At",
+      "adminNotes": "Admin Notes",
+      "noDocs": "No documents",
+      "viewFile": "View File",
+      "actions": "Actions",
+      "sendMessage": "Send Message",
+      "sendEmail": "Send Email",
+      "changePlan": "Change Plan",
+      "recentActivity": "Recent Activity",
+      "noActivity": "No activity",
+      "company": "Company",
+      "personal": "Personal",
+      "notProvided": "Not provided"
+    },
+    "analyticsPage": {
+      "title": "Analytics",
+      "subtitle": "Platform statistics and analytics",
+      "userGrowth": "User Growth",
+      "usersByRole": "Users by Role",
+      "registrationFunnel": "Registration Funnel",
+      "signups": "Signups",
+      "emailVerified": "Email Verified",
+      "paid": "Paid",
+      "docsUploaded": "Docs Uploaded",
+      "approved": "Approved",
+      "revenueOverview": "Revenue Overview",
+      "revenueByTier": "Revenue by Tier",
+      "engagementMetrics": "Engagement Metrics",
+      "postsPerDay": "Posts/Day",
+      "dealsPerWeek": "Deals/Week",
+      "bidsPerWeek": "Bids/Week",
+      "messagesPerDay": "Messages/Day",
+      "conversionRates": "Conversion Rates",
+      "bidToDeal": "Bid to Deal",
+      "freeToPayd": "Free to Paid",
+      "churnRate": "Churn Rate",
+      "last7Days": "Last 7 Days",
+      "last30Days": "Last 30 Days",
+      "last90Days": "Last 90 Days",
+      "allTime": "All Time",
+      "totalRevenue": "Total Revenue",
+      "commissionRevenue": "Commission Revenue",
+      "subscriptionRevenue": "Subscription Revenue",
+      "activeUsers": "Active Users",
+      "newUsersThisMonth": "New Users This Month",
+      "totalUsers": "Total Users",
+      "deals": "Deals",
+      "projects": "Projects",
+      "products": "Products",
+      "bids": "Bids",
+      "incompleteRegistrations": "Incomplete Registrations",
+      "export": "Export CSV"
+    },
+    "contactsPage": {
+      "title": "Contact Submissions",
+      "subtitle": "Manage contact form submissions",
+      "noContacts": "No contact submissions",
+      "noContactsDesc": "No contact form submissions received yet",
+      "markRead": "Mark as Read",
+      "markUnread": "Mark as Unread",
+      "delete": "Delete",
+      "reply": "Reply",
+      "read": "Read",
+      "unread": "Unread",
+      "company": "Company:",
+      "roleInterest": "Role Interest:",
+      "receivedAt": "Received:",
+      "deleteConfirm": "Are you sure you want to delete this submission?"
+    },
+    "messagesPage": {
+      "title": "Admin Messages",
+      "subtitle": "Conversations with users",
+      "noConversations": "No conversations",
+      "noConversationsDesc": "No conversations started yet",
+      "sendMessage": "Send Message",
+      "typeMessage": "Type your message...",
+      "newConversation": "New Conversation",
+      "selectUser": "Select User",
+      "unreadCount": "{count} unread"
+    },
+    "subscriptionManager": {
+      "title": "Manage User Subscription",
+      "currentPlan": "Current Plan",
+      "newTier": "New Plan",
+      "selectTier": "Select Plan",
+      "extendDays": "Extend (days)",
+      "reason": "Reason",
+      "changePlan": "Change Plan",
+      "cancelSubscription": "Cancel Subscription",
+      "extendSubscription": "Extend Subscription",
+      "confirmChange": "Change the subscription plan?",
+      "confirmCancel": "Cancel the subscription?",
+      "success": "Subscription updated successfully",
+      "error": "Error updating subscription"
+    },
+    "postEdit": {
+      "title": "Edit Post",
+      "editPost": "Edit",
+      "save": "Save Changes",
+      "cancel": "Cancel",
+      "titleAr": "Title (Arabic)",
+      "titleEn": "Title (English)",
+      "descriptionAr": "Description (Arabic)",
+      "descriptionEn": "Description (English)",
+      "budget": "Budget",
+      "deadline": "Deadline",
+      "success": "Post updated successfully",
+      "error": "Error updating post"
+    },
+    "emailComposer": {
+      "title": "Send Email",
+      "to": "To",
+      "subject": "Subject",
+      "body": "Message Body",
+      "send": "Send",
+      "cancel": "Cancel",
+      "success": "Email sent successfully",
+      "error": "Error sending email",
+      "templates": "Quick Templates",
+      "completeRegistration": "Complete Registration",
+      "accountStatus": "Account Status",
+      "customMessage": "Custom Message"
+    },
+    "auditActions": {
+      "edit_post": "Edit Post",
+      "change_subscription": "Change Subscription",
+      "cancel_subscription": "Cancel Subscription",
+      "extend_subscription": "Extend Subscription",
+      "send_admin_email": "Send Admin Email",
+      "mark_contact_read": "Mark Contact Read",
+      "delete_contact": "Delete Contact"
     }
   },
   "public": {
@@ -2143,7 +2330,7 @@
     "privacy": {
       "title": "Privacy Policy",
       "lastUpdated": "Last updated: January 1, 2025",
-      "intro": "At Muqawil HUB, we are committed to protecting your privacy and personal data in accordance with the Personal Data Protection Law (PDPL) of Saudi Arabia.",
+      "intro": "At Muhaned Hub, we are committed to protecting your privacy and personal data in accordance with the Personal Data Protection Law (PDPL) of Saudi Arabia.",
       "dataCollection": {
         "title": "Data We Collect",
         "item1": "Registration data: Name, email, phone number, company name",
@@ -2190,7 +2377,7 @@
     "terms": {
       "title": "Terms & Conditions",
       "lastUpdated": "Last updated: January 1, 2025",
-      "intro": "By using Muqawil HUB, you agree to comply with these terms and conditions. Please read them carefully.",
+      "intro": "By using Muhaned Hub, you agree to comply with these terms and conditions. Please read them carefully.",
       "registration": {
         "title": "Registration & Account",
         "item1": "You must be at least 18 years old to create an account",
@@ -2238,7 +2425,7 @@
     "cookies": {
       "title": "Cookie Policy",
       "lastUpdated": "Last updated: January 1, 2025",
-      "intro": "This document explains how Muqawil HUB uses cookies and similar technologies.",
+      "intro": "This document explains how Muhaned Hub uses cookies and similar technologies.",
       "whatAreCookies": {
         "title": "What Are Cookies?",
         "description": "Cookies are small text files stored on your device when you visit a website. They help remember your preferences and improve your browsing experience."
@@ -2274,13 +2461,13 @@
   },
   "metadata": {
     "home": {
-      "title": "Muqawil HUB — Saudi Construction Industry Platform",
+      "title": "Muhaned Hub — Saudi Construction Industry Platform",
       "description": "A comprehensive digital ecosystem connecting project owners, contractors, suppliers, and buyers in the Saudi construction industry. Get started for free.",
-      "ogTitle": "Muqawil HUB — Construction Industry Platform",
+      "ogTitle": "Muhaned Hub — Construction Industry Platform",
       "ogDescription": "A comprehensive digital ecosystem for construction — projects, contracts, quotations, and deal management."
     },
     "default": {
-      "title": "Muqawil HUB",
+      "title": "Muhaned Hub",
       "description": "Comprehensive digital platform for the Saudi construction industry"
     }
   },
@@ -2639,7 +2826,9 @@
       "notPending": "Post is not in pending status",
       "approveError": "Failed to approve post",
       "rejectError": "Failed to reject post",
-      "toggleReviewError": "Failed to update review"
+      "toggleReviewError": "Failed to update review",
+      "editError": "Failed to update post",
+      "noChanges": "No changes to save"
     },
     "adminSettings": {
       "mustLogin": "You must be logged in",
@@ -2660,7 +2849,31 @@
       "banError": "Failed to ban user",
       "unbanError": "Failed to unban user",
       "restrictError": "Failed to restrict user",
-      "unrestrictError": "Failed to unrestrict user"
+      "unrestrictError": "Failed to unrestrict user",
+      "userNotFound": "User not found"
+    },
+    "adminSubscriptions": {
+      "mustLogin": "You must be logged in",
+      "adminOnly": "Unauthorized — admins only",
+      "notFound": "Subscription not found",
+      "changeError": "Failed to change subscription",
+      "updateError": "Failed to update subscription",
+      "createError": "Failed to create subscription",
+      "cancelError": "Failed to cancel subscription",
+      "extendError": "Failed to extend subscription",
+      "invalidDays": "Days must be between 1 and 365",
+      "noSubscription": "No subscription found for this user"
+    },
+    "adminContact": {
+      "mustLogin": "You must be logged in",
+      "adminOnly": "Unauthorized — admins only",
+      "sendError": "Failed to send email",
+      "allFieldsRequired": "All fields are required",
+      "updateError": "Failed to update submission",
+      "markReadError": "Failed to update submission",
+      "deleteError": "Failed to delete submission",
+      "fetchError": "Failed to load contact submissions",
+      "userNotFound": "User not found"
     }
   }
 }

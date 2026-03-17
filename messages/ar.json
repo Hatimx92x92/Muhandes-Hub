@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "مقاول هب",
-    "appNameEn": "Muqawil HUB",
+    "appName": "منصة مهندس",
+    "appNameEn": "Muhaned Hub",
     "loading": "جارٍ التحميل...",
     "error": "حدث خطأ",
     "retry": "إعادة المحاولة",
@@ -34,7 +34,7 @@
     "viewAll": "عرض الكل",
     "learnMore": "اعرف المزيد",
     "getStarted": "ابدأ الآن",
-    "copyright": "© {year} Muqawil HUB. جميع الحقوق محفوظة.",
+    "copyright": "© {year} Muhaned Hub. جميع الحقوق محفوظة.",
     "saudiArabia": "المملكة العربية السعودية",
     "vat15": "ضريبة القيمة المضافة 15%",
     "saudiVat": "المملكة العربية السعودية | ضريبة القيمة المضافة 15%"
@@ -67,7 +67,8 @@
     "contact": "اتصل بنا",
     "terms": "الشروط والأحكام",
     "privacy": "سياسة الخصوصية",
-    "cookies": "سياسة ملفات تعريف الارتباط"
+    "cookies": "سياسة ملفات تعريف الارتباط",
+    "adminPanel": "لوحة الإدارة"
   },
   "locale": {
     "switchToEn": "Switch to English",
@@ -83,7 +84,7 @@
   },
   "home": {
     "trustBadge": "منصة سعودية 100% — متوافقة مع ZATCA و PDPL",
-    "heading1": "منصة مقاول هب",
+    "heading1": "منصة مهندس",
     "heading2": "لقطاع الإنشاءات في السعودية",
     "subheading": "منظومة رقمية متكاملة تربط أصحاب المشاريع والمقاولين والموردين والمشترين — لضمان تنفيذ المشاريع بكفاءة وموثوقية عالية.",
     "ctaPrimary": "ابدأ الآن مجاناً",
@@ -188,7 +189,7 @@
     },
     "register": {
       "title": "إنشاء حساب جديد",
-      "description": "انضم إلى منصة مقاول هب وابدأ رحلتك في قطاع الإنشاءات",
+      "description": "انضم إلى منصة مهندس وابدأ رحلتك في قطاع الإنشاءات",
       "hasAccount": "لديك حساب بالفعل؟",
       "login": "تسجيل الدخول"
     },
@@ -342,7 +343,7 @@
       "partyASignature": "توقيع الطرف الأول",
       "partyBSignature": "توقيع الطرف الثاني",
       "notSignedYet": "لم يتم التوقيع بعد",
-      "verifiedVia": "هذا التحقق تم عبر منصة مقاول هب"
+      "verifiedVia": "هذا التحقق تم عبر منصة مهندس"
     }
   },
   "dashboard": {
@@ -428,7 +429,8 @@
       "delivery": "التسليم",
       "product": "منتج",
       "free": "مجاناً",
-      "unlimited": "غير محدود"
+      "unlimited": "غير محدود",
+      "shortlisted": "في القائمة المختصرة"
     },
     "error": {
       "title": "حدث خطأ",
@@ -1024,7 +1026,10 @@
       "subscriptions": "الاشتراكات",
       "reviews": "التقييمات",
       "auditLog": "سجل المراجعة",
-      "settings": "الإعدادات"
+      "settings": "الإعدادات",
+      "analytics": "التحليلات",
+      "contacts": "رسائل التواصل",
+      "messages": "المحادثات"
     },
     "actions": {
       "approvePost": "اعتماد منشور",
@@ -1209,7 +1214,16 @@
       "usages": "الاستخدامات:",
       "activeCoupon": "مفعّل",
       "inactiveCoupon": "معطّل",
-      "addNewCoupon": "إضافة كوبون جديد"
+      "addNewCoupon": "إضافة كوبون جديد",
+      "announcements": "الإعلانات",
+      "platformAnnouncement": "إعلان المنصة",
+      "announcementAr": "الإعلان (عربي)",
+      "announcementEn": "الإعلان (إنجليزي)",
+      "announcementArPlaceholder": "اكتب الإعلان بالعربية",
+      "announcementEnPlaceholder": "Write announcement in English",
+      "announcementActive": "عرض الإعلان للمستخدمين",
+      "announcementSaved": "تم حفظ الإعلان",
+      "saveAnnouncement": "حفظ الإعلان"
     },
     "auditLogPage": {
       "title": "سجل العمليات",
@@ -1221,6 +1235,179 @@
       "prev": "السابق",
       "next": "التالي",
       "pageOf": "صفحة {page} من {total}"
+    },
+    "userDetail": {
+      "title": "تفاصيل المستخدم",
+      "backToUsers": "العودة لقائمة المستخدمين",
+      "authInfo": "معلومات الحساب",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "provider": "طريقة التسجيل",
+      "emailVerified": "البريد مفعّل",
+      "lastSignIn": "آخر تسجيل دخول",
+      "createdAt": "تاريخ الإنشاء",
+      "yes": "نعم",
+      "no": "لا",
+      "never": "لم يسجل دخول بعد",
+      "profileInfo": "معلومات الملف الشخصي",
+      "fullName": "الاسم الكامل",
+      "companyName": "اسم الشركة",
+      "role": "الدور",
+      "profileType": "نوع الحساب",
+      "crNumber": "رقم السجل التجاري",
+      "vatNumber": "الرقم الضريبي",
+      "website": "الموقع الإلكتروني",
+      "city": "المدينة",
+      "verificationStatus": "حالة التوثيق",
+      "subscriptionInfo": "معلومات الاشتراك",
+      "currentTier": "الباقة الحالية",
+      "subscriptionStatus": "حالة الاشتراك",
+      "amount": "المبلغ",
+      "startDate": "تاريخ البداية",
+      "endDate": "تاريخ الانتهاء",
+      "noSubscription": "لا يوجد اشتراك",
+      "activitySummary": "ملخص النشاط",
+      "totalDeals": "الصفقات",
+      "avgRating": "التقييم",
+      "totalReviews": "التقييمات",
+      "totalProjects": "المشاريع",
+      "totalProducts": "المنتجات",
+      "totalBids": "العروض",
+      "verificationDocs": "مستندات التوثيق",
+      "docType": "نوع المستند",
+      "docStatus": "الحالة",
+      "uploadedAt": "تاريخ الرفع",
+      "reviewedAt": "تاريخ المراجعة",
+      "adminNotes": "ملاحظات المشرف",
+      "noDocs": "لا توجد مستندات",
+      "viewFile": "عرض الملف",
+      "actions": "الإجراءات",
+      "sendMessage": "إرسال رسالة",
+      "sendEmail": "إرسال بريد",
+      "changePlan": "تغيير الباقة",
+      "recentActivity": "آخر النشاطات",
+      "noActivity": "لا توجد نشاطات",
+      "company": "شركة",
+      "personal": "شخصي",
+      "notProvided": "غير متوفر"
+    },
+    "analyticsPage": {
+      "title": "التحليلات",
+      "subtitle": "إحصائيات وتحليلات المنصة",
+      "userGrowth": "نمو المستخدمين",
+      "usersByRole": "المستخدمون حسب الدور",
+      "registrationFunnel": "قمع التسجيل",
+      "signups": "تسجيل",
+      "emailVerified": "تفعيل البريد",
+      "paid": "الدفع",
+      "docsUploaded": "رفع المستندات",
+      "approved": "موافق عليه",
+      "revenueOverview": "نظرة على الإيرادات",
+      "revenueByTier": "الإيرادات حسب الباقة",
+      "engagementMetrics": "مؤشرات التفاعل",
+      "postsPerDay": "المنشورات يومياً",
+      "dealsPerWeek": "الصفقات أسبوعياً",
+      "bidsPerWeek": "العروض أسبوعياً",
+      "messagesPerDay": "الرسائل يومياً",
+      "conversionRates": "معدلات التحويل",
+      "bidToDeal": "عرض إلى صفقة",
+      "freeToPayd": "مجاني إلى مدفوع",
+      "churnRate": "معدل المغادرة",
+      "last7Days": "آخر 7 أيام",
+      "last30Days": "آخر 30 يوم",
+      "last90Days": "آخر 90 يوم",
+      "allTime": "كل الأوقات",
+      "totalRevenue": "إجمالي الإيرادات",
+      "commissionRevenue": "إيرادات العمولات",
+      "subscriptionRevenue": "إيرادات الاشتراكات",
+      "activeUsers": "مستخدمون نشطون",
+      "newUsersThisMonth": "مستخدمون جدد هذا الشهر",
+      "totalUsers": "إجمالي المستخدمين",
+      "deals": "الصفقات",
+      "projects": "المشاريع",
+      "products": "المنتجات",
+      "bids": "العروض",
+      "incompleteRegistrations": "تسجيلات غير مكتملة",
+      "export": "تصدير CSV"
+    },
+    "contactsPage": {
+      "title": "رسائل التواصل",
+      "subtitle": "إدارة رسائل نموذج التواصل",
+      "noContacts": "لا توجد رسائل تواصل",
+      "noContactsDesc": "لم يتم استلام أي رسائل تواصل بعد",
+      "markRead": "تحديد كمقروء",
+      "markUnread": "تحديد كغير مقروء",
+      "delete": "حذف",
+      "reply": "رد",
+      "read": "مقروء",
+      "unread": "غير مقروء",
+      "company": "الشركة:",
+      "roleInterest": "الدور المهتم به:",
+      "receivedAt": "تاريخ الاستلام:",
+      "deleteConfirm": "هل أنت متأكد من حذف هذه الرسالة؟"
+    },
+    "messagesPage": {
+      "title": "رسائل المشرف",
+      "subtitle": "المحادثات مع المستخدمين",
+      "noConversations": "لا توجد محادثات",
+      "noConversationsDesc": "لم تبدأ أي محادثة بعد",
+      "sendMessage": "إرسال رسالة",
+      "typeMessage": "اكتب رسالتك...",
+      "newConversation": "محادثة جديدة",
+      "selectUser": "اختر المستخدم",
+      "unreadCount": "{count} غير مقروءة"
+    },
+    "subscriptionManager": {
+      "title": "إدارة اشتراك المستخدم",
+      "currentPlan": "الباقة الحالية",
+      "newTier": "الباقة الجديدة",
+      "selectTier": "اختر الباقة",
+      "extendDays": "تمديد (بالأيام)",
+      "reason": "السبب",
+      "changePlan": "تغيير الباقة",
+      "cancelSubscription": "إلغاء الاشتراك",
+      "extendSubscription": "تمديد الاشتراك",
+      "confirmChange": "هل تريد تغيير الباقة؟",
+      "confirmCancel": "هل تريد إلغاء الاشتراك؟",
+      "success": "تم تحديث الاشتراك بنجاح",
+      "error": "حدث خطأ أثناء تحديث الاشتراك"
+    },
+    "postEdit": {
+      "title": "تعديل المنشور",
+      "editPost": "تعديل",
+      "save": "حفظ التعديلات",
+      "cancel": "إلغاء",
+      "titleAr": "العنوان (عربي)",
+      "titleEn": "العنوان (إنجليزي)",
+      "descriptionAr": "الوصف (عربي)",
+      "descriptionEn": "الوصف (إنجليزي)",
+      "budget": "الميزانية",
+      "deadline": "الموعد النهائي",
+      "success": "تم تحديث المنشور بنجاح",
+      "error": "حدث خطأ أثناء تحديث المنشور"
+    },
+    "emailComposer": {
+      "title": "إرسال بريد إلكتروني",
+      "to": "إلى",
+      "subject": "الموضوع",
+      "body": "نص الرسالة",
+      "send": "إرسال",
+      "cancel": "إلغاء",
+      "success": "تم إرسال البريد بنجاح",
+      "error": "حدث خطأ أثناء إرسال البريد",
+      "templates": "قوالب جاهزة",
+      "completeRegistration": "إكمال التسجيل",
+      "accountStatus": "حالة الحساب",
+      "customMessage": "رسالة مخصصة"
+    },
+    "auditActions": {
+      "edit_post": "تعديل منشور",
+      "change_subscription": "تغيير اشتراك",
+      "cancel_subscription": "إلغاء اشتراك",
+      "extend_subscription": "تمديد اشتراك",
+      "send_admin_email": "إرسال بريد إلكتروني",
+      "mark_contact_read": "تحديد رسالة كمقروء",
+      "delete_contact": "حذف رسالة تواصل"
     }
   },
   "public": {
@@ -2143,7 +2330,7 @@
     "privacy": {
       "title": "سياسة الخصوصية",
       "lastUpdated": "آخر تحديث: 1 يناير 2025",
-      "intro": "نلتزم في مقاول هب بحماية خصوصيتك وبياناتك الشخصية وفقاً لنظام حماية البيانات الشخصية (PDPL) في المملكة العربية السعودية.",
+      "intro": "نلتزم في منصة مهندس بحماية خصوصيتك وبياناتك الشخصية وفقاً لنظام حماية البيانات الشخصية (PDPL) في المملكة العربية السعودية.",
       "dataCollection": {
         "title": "البيانات التي نجمعها",
         "item1": "بيانات التسجيل: الاسم، البريد الإلكتروني، رقم الهاتف، اسم الشركة",
@@ -2190,7 +2377,7 @@
     "terms": {
       "title": "الشروط والأحكام",
       "lastUpdated": "آخر تحديث: 1 يناير 2025",
-      "intro": "باستخدامك لمنصة مقاول هب، فإنك توافق على الالتزام بهذه الشروط والأحكام. يرجى قراءتها بعناية.",
+      "intro": "باستخدامك لمنصة مهندس، فإنك توافق على الالتزام بهذه الشروط والأحكام. يرجى قراءتها بعناية.",
       "registration": {
         "title": "التسجيل والحساب",
         "item1": "يجب أن يكون عمرك 18 عاماً على الأقل لإنشاء حساب",
@@ -2238,7 +2425,7 @@
     "cookies": {
       "title": "سياسة ملفات تعريف الارتباط",
       "lastUpdated": "آخر تحديث: 1 يناير 2025",
-      "intro": "يوضح هذا المستند كيفية استخدام منصة مقاول هب لملفات تعريف الارتباط (الكوكيز) والتقنيات المشابهة.",
+      "intro": "يوضح هذا المستند كيفية استخدام منصة مهندس لملفات تعريف الارتباط (الكوكيز) والتقنيات المشابهة.",
       "whatAreCookies": {
         "title": "ما هي ملفات تعريف الارتباط؟",
         "description": "ملفات تعريف الارتباط هي ملفات نصية صغيرة يتم تخزينها على جهازك عند زيارة موقع ويب. تساعد هذه الملفات في تذكر تفضيلاتك وتحسين تجربة الاستخدام."
@@ -2274,13 +2461,13 @@
   },
   "metadata": {
     "home": {
-      "title": "مقاول هب — منصة قطاع الإنشاءات في السعودية | Muqawil HUB",
+      "title": "منصة مهندس — منصة قطاع الإنشاءات في السعودية | Muhaned Hub",
       "description": "منظومة رقمية متكاملة تربط أصحاب المشاريع والمقاولين والموردين والمشترين في قطاع الإنشاءات السعودي. ابدأ الآن مجاناً.",
-      "ogTitle": "مقاول هب — منصة قطاع الإنشاءات | Muqawil HUB",
+      "ogTitle": "منصة مهندس — منصة قطاع الإنشاءات | Muhaned Hub",
       "ogDescription": "منظومة رقمية متكاملة لقطاع الإنشاءات — مشاريع، عقود، عروض أسعار، وإدارة صفقات."
     },
     "default": {
-      "title": "Muqawil HUB | مقاول هب",
+      "title": "Muhaned Hub | منصة مهندس",
       "description": "منصة رقمية متكاملة لقطاع الإنشاءات في المملكة العربية السعودية"
     }
   },
@@ -2639,7 +2826,9 @@
       "notPending": "المنشور ليس بحالة انتظار",
       "approveError": "فشل في اعتماد المنشور",
       "rejectError": "فشل في رفض المنشور",
-      "toggleReviewError": "فشل في تحديث التقييم"
+      "toggleReviewError": "فشل في تحديث التقييم",
+      "editError": "فشل في تحديث المنشور",
+      "noChanges": "لا توجد تغييرات لحفظها"
     },
     "adminSettings": {
       "mustLogin": "يجب تسجيل الدخول",
@@ -2660,7 +2849,31 @@
       "banError": "فشل في حظر المستخدم",
       "unbanError": "فشل في إلغاء حظر المستخدم",
       "restrictError": "فشل في تقييد المستخدم",
-      "unrestrictError": "فشل في إلغاء تقييد المستخدم"
+      "unrestrictError": "فشل في إلغاء تقييد المستخدم",
+      "userNotFound": "المستخدم غير موجود"
+    },
+    "adminSubscriptions": {
+      "mustLogin": "يجب تسجيل الدخول",
+      "adminOnly": "غير مصرح — المشرفون فقط",
+      "notFound": "الاشتراك غير موجود",
+      "changeError": "فشل في تغيير الاشتراك",
+      "updateError": "فشل في تحديث الاشتراك",
+      "createError": "فشل في إنشاء الاشتراك",
+      "cancelError": "فشل في إلغاء الاشتراك",
+      "extendError": "فشل في تمديد الاشتراك",
+      "invalidDays": "يجب أن تكون الأيام بين 1 و 365",
+      "noSubscription": "لا يوجد اشتراك لهذا المستخدم"
+    },
+    "adminContact": {
+      "mustLogin": "يجب تسجيل الدخول",
+      "adminOnly": "غير مصرح — المشرفون فقط",
+      "sendError": "فشل في إرسال البريد",
+      "allFieldsRequired": "جميع الحقول مطلوبة",
+      "updateError": "فشل في تحديث الرسالة",
+      "markReadError": "فشل في تحديث الرسالة",
+      "deleteError": "فشل في حذف الرسالة",
+      "fetchError": "فشل في تحميل رسائل التواصل",
+      "userNotFound": "المستخدم غير موجود"
     }
   }
 }

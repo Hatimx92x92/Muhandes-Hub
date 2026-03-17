@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
-import { Inter, IBM_Plex_Sans_Arabic } from 'next/font/google';
+import { Inter, IBM_Plex_Sans_Arabic, Geist } from 'next/font/google';
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { getLocale } from 'next-intl/server';
 import './globals.css';
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const inter = Inter({
   variable: '--font-inter',
@@ -19,8 +22,8 @@ const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Muqawil HUB | مقاول هب',
-    template: '%s | Muqawil HUB',
+    default: 'Muhaned Hub | منصة مهندس',
+    template: '%s | Muhaned Hub',
   },
   description:
     'Bilingual B2B marketplace for the Saudi construction industry — connecting project owners, contractors, suppliers & buyers. | منصة رقمية متكاملة لقطاع الإنشاءات في المملكة العربية السعودية',
@@ -32,14 +35,14 @@ export const metadata: Metadata = {
     'suppliers',
     'مقاولات',
     'المملكة العربية السعودية',
-    'مقاول هب',
+    'منصة مهندس',
   ],
-  authors: [{ name: 'Muqawil HUB' }],
+  authors: [{ name: 'Muhaned Hub' }],
   openGraph: {
     type: 'website',
     locale: 'ar_SA',
     alternateLocale: 'en_US',
-    siteName: 'Muqawil HUB',
+    siteName: 'Muhaned Hub',
   },
 };
 
@@ -52,7 +55,7 @@ export default async function RootLayout({
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   return (
-    <html lang={locale} dir={dir} suppressHydrationWarning>
+    <html lang={locale} dir={dir} suppressHydrationWarning className={cn("font-sans", geist.variable)}>
       <body
         className={`${inter.variable} ${ibmPlexSansArabic.variable} antialiased`}
       >

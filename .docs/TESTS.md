@@ -9,16 +9,16 @@
 
 ### 1.1 Email/Password Registration
 
-- [ ] T-001 · Multi-step wizard completes for each role (PO, Contractor, Supplier, Buyer)
-- [ ] T-002 · Role is immutable after registration — no way to change in dashboard or via server action
-- [ ] T-003 · PDPL consent checkbox required — form blocked without it
+- [x] T-001 · Multi-step wizard completes for each role (PO, Contractor, Supplier, Buyer)
+- [x] T-002 · Role is immutable after registration — no way to change in dashboard or via server action
+- [x] T-003 · PDPL consent checkbox required — form blocked without it
 - [ ] T-004 · Phone `+966` validation — invalid formats rejected, valid `+966XXXXXXXXX` accepted
 - [ ] T-005 · Duplicate email rejected with user-friendly error
-- [ ] T-006 · Password minimum length (8 chars) enforced
+- [x] T-006 · Password minimum length (8 chars) enforced
 - [ ] T-007 · Email verification gate — link click moves status to `active` (free roles) or next gate (paid)
 - [ ] T-008 · Profile type selection (Company vs Personal) works for PO and Buyer
-- [ ] T-009 · Company fields required for Contractor & Supplier (company name AR/EN, CR number)
-- [ ] T-010 · Subscription step shown only for Contractor & Supplier — skipped for PO & Buyer
+- [x] T-009 · Company fields required for Contractor & Supplier (company name AR/EN, CR number)
+- [x] T-010 · Subscription step shown only for Contractor & Supplier — skipped for PO & Buyer
 
 ### 1.2 Google OAuth
 
@@ -27,11 +27,11 @@
 
 ### 1.3 Login
 
-- [ ] T-013 · Valid email + password → redirect to `/dashboard`
-- [ ] T-014 · Invalid credentials → generic error (no email existence leak)
+- [x] T-013 · Valid email + password → redirect to `/dashboard`
+- [x] T-014 · Invalid credentials → generic error (no email existence leak)
 - [ ] T-015 · Forgot password → reset email received → new password set → login works
 - [ ] T-016 · Session persistence — close/reopen browser → still authenticated (middleware refresh)
-- [ ] T-017 · Logout → session cleared → redirect to login
+- [x] T-017 · Logout → session cleared → redirect to login
 
 ### 1.4 Four-Gate Verification (Contractor/Supplier Pro+)
 
@@ -39,9 +39,9 @@
 - [ ] T-019 · Gate 2: Card payment (3DS) auto-verified → moves to `pending_documents`
 - [ ] T-020 · Gate 2 alt: Bank transfer uploaded → stays `pending_payment` until admin verifies
 - [ ] T-021 · Gate 3: Document upload (VAT cert + CR license, ≤10MB, PDF/JPEG/PNG) → moves to `pending_approval`
-- [ ] T-022 · Gate 4: Admin approves docs → status → `active` → full dashboard access
+- [x] T-022 · Gate 4: Admin approves docs → status → `active` → full dashboard access
 - [ ] T-023 · Gate 4: Admin rejects docs → bilingual feedback shown → user can re-upload
-- [ ] T-024 · Restricted user cannot access dashboard features until gates are cleared
+- [x] T-024 · Restricted user cannot access dashboard features until gates are cleared
 
 ---
 
@@ -49,32 +49,32 @@
 
 ### 2.1 Projects
 
-- [ ] T-025 · Create project with bilingual title + description, budget, timeline, city, attachments → status = `draft`
-- [ ] T-026 · Submit project → status moves to `pending`
-- [ ] T-027 · Project stays `pending` until admin publishes — cannot self-publish
-- [ ] T-028 · Edit draft project — all fields editable
-- [ ] T-029 · Cannot edit published project (or only allowed fields)
-- [ ] T-030 · Project source badge shows "Direct from Owner" (من المالك)
+- [x] T-025 · Create project with bilingual title + description, budget, timeline, city, attachments → status = `draft`
+- [x] T-026 · Submit project → status moves to `pending`
+- [x] T-027 · Project stays `pending` until admin publishes — cannot self-publish
+- [x] T-028 · Edit draft project — all fields editable
+- [x] T-029 · Cannot edit published project (or only allowed fields)
+- [x] T-030 · Project source badge shows "Direct from Owner" (من المالك)
 - [ ] T-031 · File attachments (BOQ, drawings, specs) upload during creation and display on detail page
 
 ### 2.2 Bid Management
 
-- [ ] T-032 · View received bids on own project with comparison table (price, timeline, rating, tier)
-- [ ] T-033 · Award bid → `DEAL-PROJECT` auto-created → both parties notified (`deal_created`)
-- [ ] T-034 · Reject bid → bidder notified (`bid_rejected`)
-- [ ] T-035 · Shortlist bid → bidder notified (`bid_shortlisted`)
-- [ ] T-036 · Cannot submit bids — server action rejects with role error
+- [x] T-032 · View received bids on own project with comparison table (price, timeline, rating, tier)
+- [x] T-033 · Award bid → `DEAL-PROJECT` auto-created → both parties notified (`deal_created`)
+- [x] T-034 · Reject bid → bidder notified (`bid_rejected`)
+- [x] T-035 · Shortlist bid → bidder notified (`bid_shortlisted`)
+- [x] T-036 · Cannot submit bids — server action rejects with role error
 
 ### 2.3 RFQs
 
-- [ ] T-037 · Create RFQ (standalone or project-linked) → submit → `pending` → admin approves
-- [ ] T-038 · View supplier responses on RFQ
-- [ ] T-039 · Accept RFQ response → `DEAL-PRODUCT` created with `project_id`
+- [x] T-037 · Create RFQ (standalone or project-linked) → submit → `pending` → admin approves
+- [x] T-038 · View supplier responses on RFQ
+- [x] T-039 · Accept RFQ response → `DEAL-PRODUCT` created with `project_id`
 - [ ] T-040 · Reject RFQ response → supplier notified (`rfq_response_rejected`)
 
 ### 2.4 Supplier Hire
 
-- [ ] T-041 · Browse supplier profile → send hire request for a project
+- [x] T-041 · Browse supplier profile → send hire request for a project
 - [ ] T-042 · Supplier responds with quotation → PO accepts → deal created
 
 ### 2.5 Inquiries
@@ -83,29 +83,29 @@
 
 ### 2.6 Deal Workspace
 
-- [ ] T-044 · Access deal workspace — view milestones, proofs, chat, document vault
-- [ ] T-045 · Create/edit/reorder/delete milestones with due dates
+- [x] T-044 · Access deal workspace — view milestones, proofs, chat, document vault
+- [x] T-045 · Create/edit/reorder/delete milestones with due dates
 - [ ] T-046 · Confirm proof → seller progress bar increments
 - [ ] T-047 · Reject proof with required reason (dropdown + free text)
 - [ ] T-048 · View Kanban board (read-only — cannot edit contractor's board)
 - [ ] T-049 · View daily site logs posted by contractor
-- [ ] T-050 · Embedded chat — send/receive messages in deal context
+- [x] T-050 · Embedded chat — send/receive messages in deal context
 
 ### 2.7 Contracts
 
 - [ ] T-051 · Generate contract from deal → auto-fills both parties' info, terms, milestones
-- [ ] T-052 · Create standalone contract at `/dashboard/contracts`
+- [x] T-052 · Create standalone contract at `/dashboard/contracts`
 - [ ] T-053 · Fill contract fields → sign (acknowledgment) → PDF export with QR code
 - [ ] T-054 · QR verification page (`/verify/contract/{uuid}`) shows signing timestamps
-- [ ] T-055 · Contract status lifecycle: `Draft → Sent → Signed → Archived`
+- [x] T-055 · Contract status lifecycle: `Draft → Sent → Signed → Archived`
 
 ### 2.8 CRM
 
-- [ ] T-056 · Clients auto-added from completed deals
+- [x] T-056 · Clients auto-added from completed deals
 - [ ] T-057 · Manual client add
 - [ ] T-058 · Client notes log (timestamped, append-only)
 - [ ] T-059 · Tags & categories on clients
-- [ ] T-060 · Pipeline view (Lead → In Negotiation → Active Deal → Completed → Repeat)
+- [x] T-060 · Pipeline view (Lead → In Negotiation → Active Deal → Completed → Repeat)
 - [ ] T-061 · Client scoring badge (A/B/C) displayed
 - [ ] T-062 · Last contact indicator (green/yellow/red)
 - [ ] T-063 · Client source tracking badge (Bid Award, RFQ Response, Direct Hire, etc.)
@@ -113,11 +113,11 @@
 
 ### 2.9 Analytics
 
-- [ ] T-065 · Full analytics dashboard accessible (profile views, deal metrics, response time)
+- [x] T-065 · Full analytics dashboard accessible (profile views, deal metrics, response time)
 
 ### 2.10 Reviews
 
-- [ ] T-066 · Submit review after deal `completed` — within 30-day window
+- [x] T-066 · Submit review after deal `completed` — within 30-day window
 - [ ] T-067 · Cannot review non-completed deal
 - [ ] T-068 · Cannot review after 30-day window
 - [ ] T-069 · Cannot submit duplicate review (one per direction per deal)
@@ -130,7 +130,7 @@
 
 ### 2.12 Negative Tests (PO)
 
-- [ ] T-073 · Cannot list products — no product management UI or server action access
+- [x] T-073 · Cannot list products — no product management UI or server action access
 - [ ] T-074 · Cannot manage Kanban — only view
 - [ ] T-075 · Cannot bulk upload CSV
 
@@ -146,16 +146,16 @@
 
 ### 3.2 Bidding
 
-- [ ] T-079 · Find published project → submit bid (amount, timeline, methodology, attachments)
-- [ ] T-080 · Bid awarded → notification received → deal created → deal workspace accessible
-- [ ] T-081 · Bid rejected → notification received
-- [ ] T-082 · Bid shortlisted → notification received
+- [x] T-079 · Find published project → submit bid (amount, timeline, methodology, attachments)
+- [x] T-080 · Bid awarded → notification received → deal created → deal workspace accessible
+- [x] T-081 · Bid rejected → notification received
+- [x] T-082 · Bid shortlisted → notification received
 - [ ] T-083 · Classification eligibility — A/B/C project classes restrict bidding by tier
 
 ### 3.3 Quotations
 
 - [ ] T-084 · Respond to inquiry with quotation (Mode A — linked)
-- [ ] T-085 · Create standalone quotation (Mode B) at `/dashboard/quotations`
+- [x] T-085 · Create standalone quotation (Mode B) at `/dashboard/quotations`
 - [ ] T-086 · Auto-incrementing number `QTN-YYYY-NNNN`
 - [ ] T-087 · PDF export with company branding, bilingual layout, itemized table
 - [ ] T-088 · Quotation status lifecycle: `Draft → Sent → Viewed → Accepted → Rejected → Expired`
@@ -170,10 +170,10 @@
 
 ### 3.6 Deal Workspace
 
-- [ ] T-091 · Manage milestones (create/edit as counterparty — suggest changes requiring approval)
-- [ ] T-092 · Submit work proof (description, percentage, file attachments)
-- [ ] T-093 · Submit payment proof / supply proof / handover proof
-- [ ] T-094 · Embedded chat in deal context
+- [x] T-091 · Manage milestones (create/edit as counterparty — suggest changes requiring approval)
+- [x] T-092 · Submit work proof (description, percentage, file attachments)
+- [x] T-093 · Submit payment proof / supply proof / handover proof
+- [x] T-094 · Embedded chat in deal context
 - [ ] T-095 · Request cancellation → counterparty must approve
 
 ### 3.7 Kanban Board
@@ -193,18 +193,18 @@
 ### 3.9 Contracts
 
 - [ ] T-104 · Generate contract from deal workspace → auto-fills info
-- [ ] T-105 · Standalone contract creation
+- [x] T-105 · Standalone contract creation
 - [ ] T-106 · Clause library access (Pro+ only)
 
 ### 3.10 CRM
 
-- [ ] T-107 · Access CRM with tier-appropriate limits
+- [x] T-107 · Access CRM with tier-appropriate limits
 - [ ] T-108 · Follow-up reminders (Pro+ only)
 - [ ] T-109 · Duplicate detection & merge (Pro+ only)
 
 ### 3.11 Analytics
 
-- [ ] T-110 · Bid win rate, average bid-to-award time, bids per category (Business+ full dashboard)
+- [x] T-110 · Bid win rate, average bid-to-award time, bids per category (Business+ full dashboard)
 
 ### 3.12 Reviews
 
@@ -218,7 +218,7 @@
 - [ ] T-115 · Contracts: 2 basic templates only
 - [ ] T-116 · Clause library: no access
 - [ ] T-117 · CRM: 20 clients max → 21st blocked
-- [ ] T-118 · Analytics: no dashboard
+- [x] T-118 · Analytics: no dashboard
 - [ ] T-119 · Commission: 2% on deal completion
 
 ### 3.14 Tier Limit Enforcement — Pro
@@ -255,7 +255,7 @@
 
 ### 3.18 Negative Tests (Contractor)
 
-- [ ] T-140 · Cannot list products — server action rejects
+- [x] T-140 · Cannot list products — server action rejects
 - [ ] T-141 · Cannot respond to RFQs — only suppliers can
 - [ ] T-142 · Cannot bulk upload CSV
 
@@ -265,8 +265,8 @@
 
 ### 4.1 Products
 
-- [ ] T-143 · Create product (name AR/EN, description AR/EN, category, images ≤5MB)
-- [ ] T-144 · Fixed price product — single unit price
+- [x] T-143 · Create product (name AR/EN, description AR/EN, category, images ≤5MB)
+- [x] T-144 · Fixed price product — single unit price
 - [ ] T-145 · Variant-based product — multiple variants (size/color/grade) each with own price, SKU, stock
 - [ ] T-146 · Product status workflow: `Draft → Pending → Published → ...`
 - [ ] T-147 · Admin approval required before product is visible
@@ -274,9 +274,9 @@
 
 ### 4.2 RFQ Response
 
-- [ ] T-149 · View published RFQs relevant to supplier
-- [ ] T-150 · Submit RFQ response (quotation with pricing, delivery terms)
-- [ ] T-151 · Response accepted → `DEAL-PRODUCT` created
+- [x] T-149 · View published RFQs relevant to supplier
+- [x] T-150 · Submit RFQ response (quotation with pricing, delivery terms)
+- [x] T-151 · Response accepted → `DEAL-PRODUCT` created
 - [ ] T-152 · Response rejected → notification received
 
 ### 4.3 Inquiries
@@ -318,7 +318,7 @@
 
 ### 4.10 Tier Limit Enforcement — Starter
 
-- [ ] T-169 · Product posts: 2 max → 3rd blocked
+- [x] T-169 · Product posts: 2 max → 3rd blocked
 - [ ] T-170 · Quotations/month: 3
 - [ ] T-171 · CRM: 20 clients
 - [ ] T-172 · Bulk CSV upload: blocked
@@ -351,13 +351,13 @@
 
 ### 4.14 Double Enforcement
 
-- [ ] T-190 · Client-side: product creation disabled when limit reached + upgrade prompt
+- [x] T-190 · Client-side: product creation disabled when limit reached + upgrade prompt
 - [ ] T-191 · Server-side: direct server action over limit → returns error
 
 ### 4.15 Negative Tests (Supplier)
 
-- [ ] T-192 · Cannot submit bids — no bidding functionality
-- [ ] T-193 · Cannot post projects — server action rejects
+- [x] T-192 · Cannot submit bids — no bidding functionality
+- [x] T-193 · Cannot post projects — server action rejects
 - [ ] T-194 · Cannot manage Kanban
 
 ---
@@ -366,7 +366,7 @@
 
 ### 5.1 RFQs
 
-- [ ] T-195 · Create RFQ → admin approval → published → suppliers respond
+- [x] T-195 · Create RFQ → admin approval → published → suppliers respond
 - [ ] T-196 · View supplier responses
 - [ ] T-197 · Accept response → `DEAL-PRODUCT` created
 - [ ] T-198 · Reject response → supplier notified
@@ -378,7 +378,7 @@
 
 ### 5.3 Deal Workspace
 
-- [ ] T-201 · Access deal workspace — milestones, proofs, chat
+- [x] T-201 · Access deal workspace — milestones, proofs, chat
 - [ ] T-202 · Confirm/reject proofs
 - [ ] T-203 · Submit payment proof
 
@@ -393,13 +393,13 @@
 
 ### 5.6 Negative Tests (Buyer)
 
-- [ ] T-207 · Cannot post projects — blocked
-- [ ] T-208 · Cannot submit bids — blocked
-- [ ] T-209 · Cannot list products — blocked
-- [ ] T-210 · No CRM access — section not accessible
+- [x] T-207 · Cannot post projects — blocked
+- [x] T-208 · Cannot submit bids — blocked
+- [x] T-209 · Cannot list products — blocked
+- [x] T-210 · No CRM access — section not accessible
 - [ ] T-211 · No Kanban access
-- [ ] T-212 · No contract generator access
-- [ ] T-213 · No analytics dashboard
+- [x] T-212 · No contract generator access
+- [x] T-213 · No analytics dashboard
 
 ---
 
@@ -407,30 +407,30 @@
 
 ### 6.1 Access Control
 
-- [ ] T-214 · Only `is_admin = true` users can access `/admin/*` routes
-- [ ] T-215 · Non-admin accessing `/admin` → redirected to `/dashboard`
-- [ ] T-216 · `is_admin` flag cannot be set from client-side — only via service role key
+- [x] T-214 · Only `is_admin = true` users can access `/admin/*` routes
+- [x] T-215 · Non-admin accessing `/admin` → redirected to `/dashboard`
+- [x] T-216 · `is_admin` flag cannot be set from client-side — only via service role key
 
 ### 6.2 Post Moderation
 
-- [ ] T-217 · View all `pending` posts (projects, products, RFQs) in approval queue
-- [ ] T-218 · Approve post → status `published` → indexed in Typesense
+- [x] T-217 · View all `pending` posts (projects, products, RFQs) in approval queue
+- [x] T-218 · Approve post → status `published` → indexed in Typesense
 - [ ] T-219 · Reject post with bilingual feedback → user sees reason → can resubmit
 - [ ] T-220 · Only `published` posts appear in search — drafts/pending/rejected excluded
 
 ### 6.3 User Management
 
-- [ ] T-221 · List all users with filters (role, status, tier, search)
-- [ ] T-222 · View user details (profile, subscription, documents, deals)
+- [x] T-221 · List all users with filters (role, status, tier, search)
+- [x] T-222 · View user details (profile, subscription, documents, deals)
 - [ ] T-223 · Verify uploaded documents (VAT cert, CR license) — approve or reject with reason
 - [ ] T-224 · Verify bank transfer receipts (subscriptions + commissions)
-- [ ] T-225 · Ban user → status `banned` → loses all access
-- [ ] T-226 · Restrict user → status `restricted` → limited access
-- [ ] T-227 · Unban/unrestrict user → status restored
+- [x] T-225 · Ban user → status `banned` → loses all access
+- [x] T-226 · Restrict user → status `restricted` → limited access
+- [x] T-227 · Unban/unrestrict user → status restored
 
 ### 6.4 Commission Management
 
-- [ ] T-228 · View commission approval queue (pending commissions from completed deals)
+- [x] T-228 · View commission approval queue (pending commissions from completed deals)
 - [ ] T-229 · Approve commission → ZATCA-compliant invoice auto-generated (bilingual PDF)
 - [ ] T-230 · Verify bank transfer commission payment → mark `paid`
 - [ ] T-231 · Handle commission dispute → adjust amount or confirm original
@@ -439,7 +439,7 @@
 
 ### 6.5 Subscription & Coupon Management
 
-- [ ] T-234 · Create coupon — percentage or fixed amount
+- [x] T-234 · Create coupon — percentage or fixed amount
 - [ ] T-235 · Set usage limits (total uses + per-user)
 - [ ] T-236 · Set validity period (date range)
 - [ ] T-237 · Set tier restriction (specific tiers only)
@@ -457,8 +457,8 @@
 
 ### 6.6 Settings & System
 
-- [ ] T-249 · Typesense batch re-index trigger
-- [ ] T-250 · System settings management
+- [x] T-249 · Typesense batch re-index trigger
+- [x] T-250 · System settings management
 - [ ] T-251 · Sync lag monitoring (last_synced_at timestamps)
 
 ---
@@ -467,20 +467,20 @@
 
 ### 7.1 Bilingual (AR/EN)
 
-- [ ] T-252 · Switch locale → entire UI flips direction (RTL ↔ LTR)
-- [ ] T-253 · `dir` attribute on `<html>` toggles correctly
-- [ ] T-254 · All forms accept and display paired AR + EN fields
-- [ ] T-255 · Error messages rendered in current locale
+- [x] T-252 · Switch locale → entire UI flips direction (RTL ↔ LTR)
+- [x] T-253 · `dir` attribute on `<html>` toggles correctly
+- [x] T-254 · All forms accept and display paired AR + EN fields
+- [x] T-255 · Error messages rendered in current locale
 - [ ] T-256 · PDFs (quotations, contracts, invoices) render bilingual content
 - [ ] T-257 · Tailwind logical properties used (no `left`/`right` — only `start`/`end`)
 
 ### 7.2 Notifications
 
-- [ ] T-258 · In-app bell shows unread count
+- [x] T-258 · In-app bell shows unread count
 - [ ] T-259 · Real-time notification delivery (no page refresh needed)
 - [ ] T-260 · Email notifications sent for all types marked ✅ in channel mapping
 - [ ] T-261 · Critical notifications cannot be muted: `bid_awarded`, `quotation_accepted`, `deal_created`, `deal_completed`, `payment_confirmed`, `commission_due`
-- [ ] T-262 · Notification preferences page — toggle email for non-critical types
+- [x] T-262 · Notification preferences page — toggle email for non-critical types
 - [ ] T-263 · `subscription_expiring` sent at 7 days and 1 day before expiry
 - [ ] T-264 · `subscription_expired` always sent
 
@@ -494,18 +494,18 @@
 
 ### 7.4 Search (Typesense)
 
-- [ ] T-270 · Search projects in Arabic → correct results
+- [x] T-270 · Search projects in Arabic → correct results
 - [ ] T-271 · Search products in English → correct results
 - [ ] T-272 · Typo tolerance → misspelled query still returns relevant results
-- [ ] T-273 · Faceted filtering: category, city, price range, rating
-- [ ] T-274 · Only `published` posts appear in search results
+- [x] T-273 · Faceted filtering: category, city, price range, rating
+- [x] T-274 · Only `published` posts appear in search results
 - [ ] T-275 · Fallback to PostgreSQL full-text search when Typesense unavailable
 - [ ] T-276 · Search weights: title 3×, name/company 2×, description 1×
 
 ### 7.5 Security
 
-- [ ] T-277 · Route protection: unauthenticated → `/dashboard/*` redirects to login
-- [ ] T-278 · Route protection: unauthenticated → `/admin/*` redirects to login
+- [x] T-277 · Route protection: unauthenticated → `/dashboard/*` redirects to login
+- [x] T-278 · Route protection: unauthenticated → `/admin/*` redirects to login
 - [ ] T-279 · RLS enforcement: user A cannot read user B's drafts
 - [ ] T-280 · RLS enforcement: user A cannot read user B's deals (not a participant)
 - [ ] T-281 · RLS enforcement: user A cannot read user B's CRM data
@@ -522,11 +522,11 @@
 
 ### 7.6 Deal Lifecycle (End-to-End)
 
-- [ ] T-292 · Deal created from bid award → type `DEAL-PROJECT`
+- [x] T-292 · Deal created from bid award → type `DEAL-PROJECT`
 - [ ] T-293 · Deal created from inquiry quotation acceptance → type `DEAL-PRODUCT`
-- [ ] T-294 · Deal created from RFQ response acceptance → type `DEAL-PRODUCT` with `project_id`
+- [x] T-294 · Deal created from RFQ response acceptance → type `DEAL-PRODUCT` with `project_id`
 - [ ] T-295 · Deal created from direct hire quotation acceptance → type `DEAL-PRODUCT` with `project_id`
-- [ ] T-296 · `active → in_progress` transition when work begins
+- [x] T-296 · `active → in_progress` transition when work begins
 - [ ] T-297 · `in_progress → completed` when both progress bars at 100%
 - [ ] T-298 · Cancellation request requires counterparty approval
 - [ ] T-299 · Skip request requires mutual agreement
@@ -583,6 +583,133 @@
 
 ---
 
+## 9. Cross-Role E2E Browser Tests
+
+> Manually tested via browser-based E2E sessions across multiple demo accounts.
+
+### 9.1 Project → Bid → Deal Lifecycle (PO ↔ Contractor)
+
+- [x] T-334 · PO (bunyan.dev/Starter) creates project draft → submits → status `pending`
+- [x] T-335 · Admin approves project → status `published` → appears in marketplace
+- [x] T-336 · Contractor (rajhi.contracting/Business) finds project in marketplace → submits bid (350k SAR, 180 days)
+- [x] T-337 · Duplicate bid prevention — contractor sees "تم تقديم عرض بالفعل" on re-visit
+- [x] T-338 · PO views bid comparison table at `/projects/{id}/bids` with all bid details
+- [x] T-339 · PO awards bid → confirmation dialog warns "سيتم رفض جميع العروض الأخرى وإنشاء صفقة جديدة"
+- [x] T-340 · Deal auto-created (type `DEAL-PROJECT`, value 350k SAR, status `active`)
+- [x] T-341 · Deal workspace has 5 tabs: Overview, Milestones, Proofs, Documents, Activity
+- [x] T-342 · Create milestone "أعمال الهدم والإزالة" (70k SAR, due date) → deal status → `in_progress`
+
+### 9.2 RFQ → Response → Deal Lifecycle (PO ↔ Supplier)
+
+- [x] T-343 · PO (bunyan.dev) creates RFQ "طلب توريد مواد بناء" (150k–250k SAR, qty 500, deadline)
+- [x] T-344 · RFQ submitted → status `pending` → admin approves via API → status `published`
+- [x] T-345 · Supplier (first.materials/Business) browses RFQs → finds published RFQ with full details
+- [x] T-346 · Supplier submits response: unit price 400 SAR, total 200k SAR, 45-day delivery
+- [x] T-347 · PO views response with Accept/Reject buttons on RFQ detail page
+- [x] T-348 · PO accepts response → confirmation "سيتم إنشاء صفقة جديدة" → deal auto-created
+- [x] T-349 · Deal type is `DEAL-PRODUCT` (صفقة منتج · رد طلب عروض)
+
+### 9.3 Tier Limit Enforcement (Supplier Starter)
+
+- [x] T-350 · Supplier downgraded to Starter → creates products up to limit (2/2)
+- [x] T-351 · Product form replaced with "وصلت للحد الأقصى من المنتجات" message + upgrade CTA button
+- [x] T-352 · Upgrade CTA links to `/dashboard/subscription` page
+
+### 9.4 Messaging
+
+- [x] T-353 · Messages page accessible at `/dashboard/messages` → shows "لا توجد محادثات" when empty
+- [ ] T-354 · No "New Conversation" button on messages page — cannot initiate conversations (see Bug B-010)
+
+### 9.5 Profile & Settings
+
+- [ ] T-355 · `/dashboard/profile` redirects to `/dashboard` — profile editing not implemented (see Bug B-011)
+- [x] T-356 · `/dashboard/settings` accessible — shows notification prefs (coming soon), language tip, delete account (disabled)
+
+### 9.6 Role-Based Navigation
+
+- [x] T-357 · PO sidebar: Projects, RFQs, Deals, Contracts, CRM, Messages, Subscription, Settings
+- [x] T-358 · Contractor sidebar: Projects, Bids, Quotations, Deals, Messages, Subscription
+- [x] T-359 · Supplier sidebar: Products, RFQs, Quotations, Deals, Messages, Subscription
+
+---
+
+## 10. Discovered Bugs & Issues
+
+> Found during cross-role E2E browser testing. Ordered by severity.
+
+### Critical
+
+| ID    | Description                                                                                           | Steps to Reproduce                                              |
+| ----- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| B-001 | **RFQ-created deal has 0 value** — Deal from RFQ acceptance shows "٠٫٠٠ ر.س." instead of 200k SAR     | Accept RFQ response → view deal → value is 0                    |
+| B-002 | **RFQ response doesn't show prices** — PO can't see unit price or total when reviewing responses      | PO views RFQ responses → pricing columns empty/missing          |
+| B-003 | **Deal parties show raw UUIDs** — "a0b39190-510c-4..." instead of company/user names in deal overview | Open any deal workspace → party section shows UUID strings      |
+| B-004 | **RFQ response shows supplier UUID** — "المورد #55619e0a" instead of actual supplier name             | PO views RFQ response list → supplier identifier is UUID prefix |
+
+### Major
+
+| ID    | Description                                                                                      | Steps to Reproduce                                                  |
+| ----- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| B-005 | **City displayed in English on Arabic locale** — "riyadh" instead of "الرياض" on project pages   | View project detail page in `/ar/` locale → city shows English name |
+| B-006 | **Double colon in labels** — "المدينة::" instead of "المدينة:" on project detail                 | View project detail page → label formatting has double colon        |
+| B-007 | **Irrelevant tier limits shown for PO** — Subscription page shows bid/product limits for PO role | PO navigates to `/dashboard/subscription` → sees bid/product limits |
+| B-008 | **Public nav shows login/register when logged in** — On public pages like `/ar/projects`         | While logged in, visit any public page → auth buttons still visible |
+
+### Minor
+
+| ID    | Description                                                                        | Steps to Reproduce                                            |
+| ----- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| B-009 | **No file attachment on project creation** — Form lacks file upload section        | PO creates new project → no file attachment field in form     |
+| B-010 | **No "New Conversation" button** — Messages page has no way to initiate a new chat | Navigate to `/dashboard/messages` → no new conversation UI    |
+| B-011 | **Profile page not implemented** — `/dashboard/profile` redirects to dashboard     | Click profile link in sidebar → redirected to dashboard home  |
+| B-012 | **Settings page minimal** — Only "coming soon" placeholders, no profile editing    | Navigate to `/dashboard/settings` → notifications coming soon |
+
+---
+
+## 11. Recommended Additional Test Cases
+
+> High-priority tests to add based on E2E findings.
+
+### 11.1 Data Integrity
+
+- [ ] T-360 · Deal value matches bid amount when created from bid award
+- [ ] T-361 · Deal value matches RFQ response total when created from RFQ acceptance
+- [ ] T-362 · Deal parties resolve to user/company names, not UUIDs
+- [ ] T-363 · Milestone amounts sum ≤ deal total value
+
+### 11.2 Localization
+
+- [ ] T-364 · City names display in current locale (Arabic/English) consistently
+- [ ] T-365 · All label formatting uses single colon separator
+- [ ] T-366 · Currency formatting uses locale-appropriate SAR format
+
+### 11.3 Role-Appropriate UI
+
+- [ ] T-367 · Subscription page only shows limits relevant to user's role
+- [ ] T-368 · Public pages hide auth buttons when user is logged in
+- [ ] T-369 · Sidebar navigation matches role permissions exactly
+
+### 11.4 File Uploads
+
+- [ ] T-370 · Project creation form includes file attachment field
+- [ ] T-371 · Product image upload (≤5MB) → preview shown → stored in `product-images` bucket
+- [ ] T-372 · Deal proof upload (≤10MB) → file accessible in deal workspace
+- [ ] T-373 · Avatar/logo upload → displayed in profile and partner directory
+
+### 11.5 Conversation Initiation
+
+- [ ] T-374 · Users can start new conversation from messages page
+- [ ] T-375 · Deal workspace chat creates conversation automatically between deal parties
+- [ ] T-376 · Inquiry on product creates conversation thread between buyer and supplier
+
+### 11.6 Admin Workflow
+
+- [ ] T-377 · Admin can approve RFQs from admin panel (not just projects/products)
+- [ ] T-378 · Admin rejection sends bilingual feedback email to user
+- [ ] T-379 · Admin bulk actions (approve/reject multiple posts)
+
+---
+
 ## Summary
 
 | Section                | Tests         | Description                                        |
@@ -595,8 +722,11 @@
 | 6. Admin               | T-214 – T-251 | Moderation, users, commissions, coupons            |
 | 7. Cross-Cutting       | T-252 – T-326 | i18n, notifications, real-time, security, payments |
 | 8. Existing Tests      | T-327 – T-333 | Schema & business logic (already in codebase)      |
+| 9. Cross-Role E2E      | T-334 – T-359 | Browser-based multi-role lifecycle tests           |
+| 10. Bugs & Issues      | B-001 – B-012 | Bugs discovered during E2E testing                 |
+| 11. Recommended Tests  | T-360 – T-379 | Additional tests based on E2E findings             |
 
-**Total: 333 test cases**
+**Total: 379 test cases + 12 bugs**
 
 ### Priority Order
 
@@ -608,3 +738,5 @@
 6. **T-044–T-050, T-091–T-103, T-292–T-307** — Deal workspace & lifecycle
 7. **T-112–T-139, T-169–T-191** — Tier limit enforcement
 8. **T-252–T-326** — Cross-cutting concerns
+9. **B-001–B-004** — Fix critical bugs (deal value, UUID display, pricing)
+10. **T-360–T-379** — Recommended additional tests

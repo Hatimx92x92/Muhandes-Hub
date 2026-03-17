@@ -1,6 +1,41 @@
 {
   "version": 1,
   "skills": {
+    "architecture": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "e8b2e23ff67b7ce9610a09a4386b469e3dc03cf505028f0d1eb6c9b6c9a0a3f1"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "computedHash": "645b891da1edbae76ab79c7b088d4e73397464f8396edaf773c0e01971ce75d6"
+    },
+    "frontend-design": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "1a0073004e949e28811a83b2d77dbabfd4cf7bccb4546d3e7c61228a21e1ba59"
+    },
+    "next-intl-add-language": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "6b30075c5f43a4498782729f129c513ca28db37d93032a81a07e444d4db575c5"
+    },
+    "nextjs-app-router-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "04c1df896cc2c9ef824d618b95d21686c5b8e24e5cb32b3d6fe9d97d4b661536"
+    },
+    "radix-ui-design-system": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "b23f5827c7529afe632378efcf27ffb6daf50175a696ca080e6a1266074cfa25"
+    },
+    "react-best-practices": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "8add4a3567688e68bd80186f45b53bccc8d05ec075a5ff88f396de26e3e82110"
+    },
     "remotion": {
       "source": "sickn33/antigravity-awesome-skills",
       "sourceType": "github",
@@ -10,6 +45,66 @@
       "source": "sickn33/antigravity-awesome-skills",
       "sourceType": "github",
       "computedHash": "30c6fb3f007c158c24e279bc12744384dcb31d1c40bb4320adab32d5b385733e"
+    },
+    "seo-authority-builder": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "7b5b62dfd01d43f4ebcf0186ceec318a77c3fe186a9d248be380c476f4e932b3"
+    },
+    "seo-content-writer": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "f0fe96267cacf46daaac6f34c465ed9dadd804f697e6f7d3cdac45c0fe59ee47"
+    },
+    "seo-fundamentals": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "501abc50fa1363da6ffc8badf17f76a32891306b18178edb62aa8785c8daafd2"
+    },
+    "seo-meta-optimizer": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "ec2233f2816731f2d4141a1cad5bb65d4542ab2a4c0a611d92603af63806b0f1"
+    },
+    "seo-structure-architect": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "570eb5e85fec74e6a499522f515485564d827a065b898242d4f5f623c68e6c93"
+    },
+    "supabase-postgres-best-practices": {
+      "source": "supabase/agent-skills",
+      "sourceType": "github",
+      "computedHash": "e3ba3d760c5f4cc43b02a91fb8924f726c7818f95cc35d79d0a606ca622b72f5"
+    },
+    "tailwind-design-system": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "0fc7b79d08ee5168d46c6887014cbe5bd02f2c5e458858470e20fc8ecedefb46"
+    },
+    "ui-skills": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "f14e3d64b532b035ceda345c76bd5001235ca2efdc4ab9182ed91e10ddbd226d"
+    },
+    "ui-ux-designer": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "22679556473dfc3dae4747f2e367fab36ebf7898035cb4d7e4faaac4e937deb0"
+    },
+    "vitest": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "computedHash": "3cf0493db5554d6053369f3c3131a5a7a34f85d7e98aa1eb42114060fe25cc39"
+    },
+    "workflow-orchestration-patterns": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "9f11dc75bc37e192a7a9713e66cbad64db7183eab08e456758a1f4bd12dc89fc"
+    },
+    "zod": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "computedHash": "3307ca1bef37ac4f32264c971c2b54ca3191f4f248a820b2c1255fc045ceb125"
     }
   }
 }

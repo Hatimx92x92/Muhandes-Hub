@@ -30,7 +30,7 @@ export async function Header({ className }: { className?: string }) {
     <header
       className={cn(
         'sticky top-0 z-40 w-full border-b border-border/60',
-        'bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60',
+        'bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/60',
         'transition-all duration-300',
         className,
       )}
@@ -67,7 +67,7 @@ export async function Header({ className }: { className?: string }) {
           </Link>
           <Link
             href="/register"
-            className="inline-flex items-center rounded-xl bg-gradient-to-r from-primary to-primary-dark px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]"
+            className="inline-flex items-center rounded-xl bg-linear-to-r from-primary to-primary-dark px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]"
           >
             {t('register')}
           </Link>

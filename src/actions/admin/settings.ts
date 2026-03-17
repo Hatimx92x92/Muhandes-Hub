@@ -189,3 +189,40 @@ export async function toggleCouponStatus(
 
   return { data: { toggled: true }, error: null };
 }
+
+// ---------------------------------------------------------------------------
+// SAVE PLATFORM ANNOUNCEMENT
+// ---------------------------------------------------------------------------
+export async function savePlatformAnnouncement(
+  _prevState: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const t = await getTranslations('actions.adminSettings');
+  const auth = await verifyAdmin();
+  if ('error' in auth) return { data: null, error: auth.error };
+
+  const messageAr = formData.get('message_ar') as string;
+  const messageEn = formData.get('message_en') as string;
+  const isActive = formData.get('is_active') === 'true';
+
+  if (!messageAr && !messageEn) return { data: null, error: t('allFieldsRequired') };
+
+  const adminClient = createAdminClient();
+
+  await db(adminClient)
+    .from('platform_settings')
+    .upsert({
+      key: 'announcement',
+      value: { message_ar: messageAr, message_en: messageEn, is_active: isActive },
+      updated_by: auth.adminId,
+      updated_at: new Date().toISOString(),
+    });
+
+  await logAudit(auth.adminId, 'update_announcement', 'platform_settings', 'announcement', {
+    message_ar: messageAr,
+    is_active: isActive,
+  });
+
+  revalidatePath('/admin/settings');
+  return { data: undefined, error: null };
+}

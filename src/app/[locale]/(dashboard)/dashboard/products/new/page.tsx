@@ -25,7 +25,7 @@ export default async function NewProductPage() {
   // Supplier only
   const { data: profile } = await db(supabase)
     .from('profiles')
-    .select('role, subscription_tier')
+    .select('role')
     .eq('id', user.id)
     .single();
 
@@ -34,7 +34,14 @@ export default async function NewProductPage() {
   }
 
   // Tier limit pre-check
-  const tier = profile.subscription_tier || 'starter';
+  const { data: subscription } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .single();
+
+  const tier = (subscription?.tier || 'starter') as keyof typeof TIER_LIMITS;
   const limits = TIER_LIMITS[tier];
   const maxProducts = limits?.productPosts ?? 2;
 

@@ -44,7 +44,7 @@ export function MessageBubble({
         )}
       >
         {/* Message content */}
-        <p className="whitespace-pre-wrap break-words leading-relaxed">{content}</p>
+        <p className="whitespace-pre-wrap wrap-break-word leading-relaxed">{content}</p>
 
         {/* File attachment */}
         {fileUrl && fileName && (

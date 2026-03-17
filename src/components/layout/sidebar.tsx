@@ -116,7 +116,7 @@ export function Sidebar({ userRole, messageCount = 0, notificationCount = 0, cla
                   <span className="relative shrink-0">
                     <Icon className="h-5 w-5" />
                     {collapsed && badgeCount > 0 && (
-                      <span className="absolute -top-1.5 -end-1.5 flex h-3.5 min-w-[0.875rem] items-center justify-center rounded-full bg-destructive px-0.5 text-[8px] font-bold text-destructive-foreground animate-bounce-subtle">
+                      <span className="absolute -top-1.5 -inset-e-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-destructive px-0.5 text-[8px] font-bold text-destructive-foreground animate-bounce-subtle">
                         {badgeCount > 9 ? '9+' : badgeCount}
                       </span>
                     )}
@@ -125,7 +125,7 @@ export function Sidebar({ userRole, messageCount = 0, notificationCount = 0, cla
                     <>
                       <span className="flex-1">{t(item.labelKey)}</span>
                       {badgeCount > 0 && (
-                        <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
                           {badgeCount > 99 ? '99+' : badgeCount}
                         </span>
                       )}

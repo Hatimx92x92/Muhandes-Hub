@@ -712,6 +712,7 @@ Bug fixes, performance optimization, accessibility audit, responsive design veri
   - Commission calculation
   - Subscription limit enforcement
 - [x] Write RLS policy tests (via Supabase test helpers)
+- [x] Cross-role E2E browser tests (Project→Bid→Deal, RFQ→Response→Deal, tier limits) — see TESTS.md §9–§11
 
 #### 11.5 Production Deployment
 

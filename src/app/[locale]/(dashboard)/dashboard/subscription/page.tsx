@@ -87,11 +87,17 @@ export default async function SubscriptionPage() {
         eq: (f: string, v: string) => {
           single: () => Promise<{
             data: {
-              subscription_tier: string;
-              subscription_expires_at: string | null;
               role: string;
             } | null;
           }>;
+          eq: (f2: string, v2: boolean) => {
+            single: () => Promise<{
+              data: {
+                tier: string;
+                expires_at: string | null;
+              } | null;
+            }>;
+          };
         };
       };
     };
@@ -99,12 +105,19 @@ export default async function SubscriptionPage() {
 
   const { data: profile } = await db
     .from('profiles')
-    .select('subscription_tier, subscription_expires_at, role')
+    .select('role')
     .eq('id', user.id)
     .single();
 
-  const currentTier = (profile?.subscription_tier as SubscriptionTier) || 'starter';
-  const expiresAt = profile?.subscription_expires_at || null;
+  const { data: sub } = await db
+    .from('subscriptions')
+    .select('tier, expires_at')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .single();
+
+  const currentTier = (sub?.tier as SubscriptionTier) || 'starter';
+  const expiresAt = sub?.expires_at || null;
   const color = tierColors[currentTier] || tierColors.starter;
   const limits = TIER_LIMITS[currentTier] || TIER_LIMITS.starter;
 

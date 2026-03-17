@@ -146,7 +146,7 @@ export default async function PricingPage() {
               }`}
             >
               {tier.highlighted && (
-                <div className="absolute -top-3.5 start-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-primary-dark px-4 py-1 text-xs font-bold text-primary-foreground shadow-md">
+                <div className="absolute -top-3.5 inset-s-1/2 -translate-x-1/2 rounded-full bg-linear-to-r from-primary to-primary-dark px-4 py-1 text-xs font-bold text-primary-foreground shadow-md">
                   {t('mostPopular')}
                 </div>
               )}
@@ -169,7 +169,7 @@ export default async function PricingPage() {
                 href={`/register${tier.id !== 'starter' ? `?tier=${tier.id}` : ''}`}
                 className={`mt-6 inline-flex h-11 items-center justify-center rounded-xl px-4 text-sm font-bold transition-all duration-200 active:scale-[0.98] ${
                   tier.highlighted
-                    ? 'bg-gradient-to-r from-primary to-primary-dark text-primary-foreground shadow-md hover:shadow-lg hover:scale-[1.02]'
+                    ? 'bg-linear-to-r from-primary to-primary-dark text-primary-foreground shadow-md hover:shadow-lg hover:scale-[1.02]'
                     : tier.price === 0
                       ? 'bg-primary/10 text-primary hover:bg-primary/20'
                       : 'border-2 border-border text-foreground hover:bg-muted hover:border-primary/30'
@@ -210,7 +210,7 @@ export default async function PricingPage() {
                   <tr>
                     <td
                       colSpan={5}
-                      className="pt-6 pb-2 text-sm font-bold text-primary"
+                      className="pt-6 pb-2 ps-6 text-sm font-bold text-primary"
                     >
                       {section.title}
                     </td>
@@ -220,7 +220,7 @@ export default async function PricingPage() {
                       key={feature.label}
                       className="border-b border-border/50"
                     >
-                      <td className="py-3 pe-4 text-muted-foreground">
+                      <td className="py-3 ps-6 pe-4 text-muted-foreground">
                         {feature.label}
                       </td>
                       <td className="py-3 px-4 text-center">

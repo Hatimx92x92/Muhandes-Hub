@@ -59,7 +59,7 @@ export async function submitBid(
   // 2. Role check — contractor only
   const { data: profile } = await db(supabase)
     .from('profiles')
-    .select('role, subscription_tier, classification')
+    .select('role')
     .eq('id', user.id)
     .single();
 
@@ -68,7 +68,14 @@ export async function submitBid(
   }
 
   // 3. Tier limit check (monthly bid count)
-  const tier = (profile.subscription_tier || 'starter') as keyof typeof TIER_LIMITS;
+  const { data: subscription } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .single();
+
+  const tier = (subscription?.tier || 'starter') as keyof typeof TIER_LIMITS;
   const monthlyLimit = TIER_LIMITS[tier]?.bidsPerMonth ?? 10;
 
   if (monthlyLimit !== Infinity) {
@@ -318,13 +325,14 @@ export async function awardBid(bidId: string): Promise<ActionResult<{ bidId: str
   }
 
   // Get contractor tier for commission calculation
-  const { data: contractor } = await db(supabase)
-    .from('profiles')
-    .select('subscription_tier')
-    .eq('id', bid.contractor_id)
+  const { data: contractorSub } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', bid.contractor_id)
+    .eq('is_active', true)
     .single();
 
-  const tier = contractor?.subscription_tier || 'starter';
+  const tier = contractorSub?.tier || 'starter';
   const commissionRate = COMMISSION_RATES[tier] ?? 0.02;
   const commissionAmount = bid.amount * commissionRate;
   const commissionVat = commissionAmount * VAT_RATE; // ZATCA 15%
@@ -356,7 +364,7 @@ export async function awardBid(bidId: string): Promise<ActionResult<{ bidId: str
     .from('deals')
     .insert({
       title_slug: `deal-${project.title_ar?.slice(0, 30) || bid.project_id}`,
-      deal_type: 'DEAL-PROJECT',
+      deal_type: 'deal_project',
       trigger_source: 'bid_award',
       bid_id: bidId,
       project_id: bid.project_id,

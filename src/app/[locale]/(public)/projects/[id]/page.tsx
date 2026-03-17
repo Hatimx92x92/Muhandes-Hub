@@ -38,9 +38,17 @@ export default async function PublicProjectDetailPage({
 
   const { data: owner } = await db(supabase)
     .from('profiles')
-    .select('full_name, company_name_ar, company_name_en, avatar_url, subscription_tier')
+    .select('full_name, company_name_ar, company_name_en, avatar_url')
     .eq('id', project.owner_id)
     .single();
+
+  const { data: ownerSub } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', project.owner_id)
+    .eq('is_active', true)
+    .single();
+  const ownerTier = ownerSub?.tier || 'starter';
 
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -166,13 +174,13 @@ export default async function PublicProjectDetailPage({
                       ? (owner.company_name_ar || owner.full_name || t('defaultOwner'))
                       : (owner.company_name_en || owner.company_name_ar || owner.full_name || t('defaultOwner'))}
                   </p>
-                  {owner.subscription_tier && (
+                  {ownerTier && ownerTier !== 'starter' && (
                     <Badge
-                      variant={owner.subscription_tier as 'starter' | 'pro' | 'business' | 'enterprise'}
+                      variant={ownerTier as 'pro' | 'business' | 'enterprise'}
                       className="mt-1"
                     >
                       <Shield className="me-1 h-3 w-3" />
-                      {owner.subscription_tier}
+                      {ownerTier}
                     </Badge>
                   )}
                 </div>
