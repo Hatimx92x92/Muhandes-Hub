@@ -8,8 +8,8 @@ import { useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
-import { sendQuotation, acceptQuotation, rejectQuotation } from '@/actions/quotations';
-import { Send, Check, X } from 'lucide-react';
+import { sendQuotation, acceptQuotation, rejectQuotation, duplicateQuotation } from '@/actions/quotations';
+import { Send, Check, X, Copy } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // Send Button (for quotation owner, draft → sent)
@@ -84,6 +84,31 @@ export function RejectQuotationButton({ quotationId }: { quotationId: string }) 
     <Button onClick={handleReject} disabled={isPending} variant="destructive">
       <X className="h-4 w-4 me-1" />
       {isPending ? t('rejecting') : t('reject')}
+    </Button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Duplicate Button (for sender — creates a draft copy)
+// ---------------------------------------------------------------------------
+export function DuplicateQuotationButton({ quotationId }: { quotationId: string }) {
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+  const t = useTranslations('features.quotationActions');
+
+  const handleDuplicate = () => {
+    startTransition(async () => {
+      const result = await duplicateQuotation(quotationId);
+      if (result.data) {
+        router.push(`/dashboard/quotations/${result.data.id}`);
+      }
+    });
+  };
+
+  return (
+    <Button onClick={handleDuplicate} disabled={isPending} variant="outline" size="sm">
+      <Copy className="h-4 w-4 me-1" />
+      {isPending ? t('duplicating') : t('duplicate')}
     </Button>
   );
 }

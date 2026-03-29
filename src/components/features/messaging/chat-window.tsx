@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Chat Window Component
+// Muhandes HUB — Chat Window Component
 // Real-time messaging with typing indicators
 // =============================================================================
 

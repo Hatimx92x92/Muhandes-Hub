@@ -1,15 +1,34 @@
 // =============================================================================
-// Muqawil HUB — Product Zod Schemas
+// Muhandes HUB — Product Zod Schemas
 // =============================================================================
 
 import { z } from 'zod/v4';
 
 // ---------------------------------------------------------------------------
+// Bilingual pair helper: at least one locale must be provided
+// ---------------------------------------------------------------------------
+function bilingualPair(minLen: number, maxLen: number, label: string) {
+  return {
+    ar: z.string().max(maxLen).optional(),
+    en: z.string().max(maxLen).optional(),
+    refine: (arKey: string, enKey: string) => ({
+      check: (data: Record<string, unknown>) => {
+        const ar = (data[arKey] as string)?.trim();
+        const en = (data[enKey] as string)?.trim();
+        return (!!ar && ar.length >= minLen) || (!!en && en.length >= minLen);
+      },
+      message: `At least one language is required for ${label} (min ${minLen} characters)`,
+      path: [arKey],
+    }),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Variant Schema
 // ---------------------------------------------------------------------------
 export const ProductVariantSchema = z.object({
-  name_ar: z.string().min(1, 'Variant name in Arabic is required'),
-  name_en: z.string().min(1, 'Variant name in English is required'),
+  name_ar: z.string().max(200).optional(),
+  name_en: z.string().max(200).optional(),
   sku: z.string().optional(),
   price: z.coerce.number().min(0.01, 'Price is required'),
   stock_quantity: z.coerce.number().int().min(0).optional(),
@@ -21,11 +40,14 @@ export type ProductVariantInput = z.infer<typeof ProductVariantSchema>;
 // ---------------------------------------------------------------------------
 // Create Product Schema
 // ---------------------------------------------------------------------------
+const nameFields = bilingualPair(3, 200, 'product name');
+const descFields = bilingualPair(10, 5000, 'description');
+
 export const ProductSchema = z.object({
-  name_ar: z.string().min(3, 'Product name in Arabic required (min 3 characters)').max(200),
-  name_en: z.string().min(3, 'Product name in English required (min 3 chars)').max(200),
-  description_ar: z.string().min(10, 'Arabic description required (min 10 characters)').max(5000),
-  description_en: z.string().min(10, 'English description required (min 10 chars)').max(5000),
+  name_ar: nameFields.ar,
+  name_en: nameFields.en,
+  description_ar: descFields.ar,
+  description_en: descFields.en,
   category_id: z.string().uuid('Please select a valid category').optional(),
   pricing_model: z.enum(['fixed', 'variant']).default('fixed'),
   price: z.coerce.number().min(0.01, 'Price is required').optional(),
@@ -35,6 +57,12 @@ export const ProductSchema = z.object({
   lead_time_days: z.coerce.number().int().min(0).optional(),
   variants: z.array(ProductVariantSchema).optional(),
 }).refine(
+  (data) => nameFields.refine('name_ar', 'name_en').check(data),
+  { message: nameFields.refine('name_ar', 'name_en').message, path: ['name_ar'] },
+).refine(
+  (data) => descFields.refine('description_ar', 'description_en').check(data),
+  { message: descFields.refine('description_ar', 'description_en').message, path: ['description_ar'] },
+).refine(
   (data) => {
     if (data.pricing_model === 'fixed') {
       return data.price != null && data.price > 0;

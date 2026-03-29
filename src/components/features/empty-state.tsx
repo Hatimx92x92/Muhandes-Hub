@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Empty State Component
+// Muhandes HUB — Empty State Component
 // =============================================================================
 
 import type { ReactNode } from 'react';

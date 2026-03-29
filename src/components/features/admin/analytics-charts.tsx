@@ -3,6 +3,14 @@
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
+import {
   BarChart,
   Bar,
   LineChart,
@@ -13,12 +21,12 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
 } from 'recharts';
 
-const COLORS = ['#2563eb', '#16a34a', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#be185d', '#65a30d'];
+const COLORS = [
+  'var(--chart-1)', 'var(--chart-3)', 'var(--chart-2)', 'var(--chart-5)',
+  'var(--chart-4)', 'var(--info)', 'var(--secondary-dark)', 'var(--success)',
+];
 
 interface AnalyticsChartsProps {
   usersByRole: Record<string, number>;
@@ -27,6 +35,18 @@ interface AnalyticsChartsProps {
   recentSignups: { date: string; count: number }[];
   revenueByMonth: { month: string; amount: number }[];
 }
+
+const signupChartConfig = {
+  count: { label: 'Signups', color: 'var(--chart-1)' },
+} satisfies ChartConfig;
+
+const revenueChartConfig = {
+  amount: { label: 'Revenue', color: 'var(--chart-3)' },
+} satisfies ChartConfig;
+
+const funnelChartConfig = {
+  value: { label: 'Users', color: 'var(--chart-4)' },
+} satisfies ChartConfig;
 
 export function AnalyticsCharts({
   usersByRole,
@@ -41,6 +61,20 @@ export function AnalyticsCharts({
   const statusData = Object.entries(usersByStatus).map(([name, value]) => ({ name, value }));
   const tierData = Object.entries(subscriptionsByTier).map(([name, value]) => ({ name, value }));
 
+  const roleChartConfig = Object.fromEntries(
+    roleData.map((entry, i) => [
+      entry.name,
+      { label: entry.name, color: COLORS[i % COLORS.length] },
+    ])
+  ) satisfies ChartConfig;
+
+  const tierChartConfig = Object.fromEntries(
+    tierData.map((entry, i) => [
+      entry.name,
+      { label: entry.name, color: COLORS[i % COLORS.length] },
+    ])
+  ) satisfies ChartConfig;
+
   return (
     <div className="space-y-6">
       {/* Row 1: User Growth + Users by Role */}
@@ -52,24 +86,24 @@ export function AnalyticsCharts({
           </CardHeader>
           <CardContent>
             {recentSignups.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ChartContainer config={signupChartConfig} className="min-h-[300px] w-full">
                 <LineChart data={recentSignups}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip />
+                  <ChartTooltip content={<ChartTooltipContent />} />
                   <Line
                     type="monotone"
                     dataKey="count"
                     name={t('signups')}
-                    stroke="#2563eb"
+                    stroke="var(--color-count)"
                     strokeWidth={2}
                     dot={{ r: 3 }}
                   />
                 </LineChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             ) : (
-              <p className="py-12 text-center text-sm text-muted-foreground">No data</p>
+              <p className="py-12 text-center text-sm text-muted-foreground">{t('noData')}</p>
             )}
           </CardContent>
         </Card>
@@ -81,7 +115,7 @@ export function AnalyticsCharts({
           </CardHeader>
           <CardContent>
             {roleData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ChartContainer config={roleChartConfig} className="min-h-[300px] w-full">
                 <PieChart>
                   <Pie
                     data={roleData}
@@ -97,12 +131,12 @@ export function AnalyticsCharts({
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
-                  <Legend />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
                 </PieChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             ) : (
-              <p className="py-12 text-center text-sm text-muted-foreground">No data</p>
+              <p className="py-12 text-center text-sm text-muted-foreground">{t('noData')}</p>
             )}
           </CardContent>
         </Card>
@@ -117,17 +151,23 @@ export function AnalyticsCharts({
           </CardHeader>
           <CardContent>
             {revenueByMonth.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ChartContainer config={revenueChartConfig} className="min-h-[300px] w-full">
                 <BarChart data={revenueByMonth}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(value) => [`${Number(value).toLocaleString()} SAR`, t('totalRevenue')]} />
-                  <Bar dataKey="amount" name={t('totalRevenue')} fill="#16a34a" radius={[4, 4, 0, 0]} />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value) => `${Number(value).toLocaleString()} SAR`}
+                      />
+                    }
+                  />
+                  <Bar dataKey="amount" name={t('totalRevenue')} fill="var(--color-amount)" radius={[4, 4, 0, 0]} />
                 </BarChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             ) : (
-              <p className="py-12 text-center text-sm text-muted-foreground">No data</p>
+              <p className="py-12 text-center text-sm text-muted-foreground">{t('noData')}</p>
             )}
           </CardContent>
         </Card>
@@ -139,7 +179,7 @@ export function AnalyticsCharts({
           </CardHeader>
           <CardContent>
             {tierData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ChartContainer config={tierChartConfig} className="min-h-[300px] w-full">
                 <PieChart>
                   <Pie
                     data={tierData}
@@ -155,12 +195,12 @@ export function AnalyticsCharts({
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
-                  <Legend />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
                 </PieChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             ) : (
-              <p className="py-12 text-center text-sm text-muted-foreground">No data</p>
+              <p className="py-12 text-center text-sm text-muted-foreground">{t('noData')}</p>
             )}
           </CardContent>
         </Card>
@@ -173,17 +213,17 @@ export function AnalyticsCharts({
         </CardHeader>
         <CardContent>
           {statusData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
+            <ChartContainer config={funnelChartConfig} className="min-h-[300px] w-full">
               <BarChart data={statusData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis type="number" tick={{ fontSize: 11 }} />
                 <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={120} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#7c3aed" radius={[0, 4, 4, 0]} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="value" fill="var(--color-value)" radius={[0, 4, 4, 0]} />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           ) : (
-            <p className="py-12 text-center text-sm text-muted-foreground">No data</p>
+            <p className="py-12 text-center text-sm text-muted-foreground">{t('noData')}</p>
           )}
         </CardContent>
       </Card>

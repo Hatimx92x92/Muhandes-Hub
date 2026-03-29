@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Reviews Display Component
+// Muhandes HUB — Reviews Display Component
 // Shows a user's reviews on their partner profile page
 // =============================================================================
 
@@ -46,7 +46,7 @@ function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
           size={size}
           className={
             star <= rating
-              ? 'text-amber-400 fill-amber-400'
+              ? 'text-warning fill-warning'
               : 'text-zinc-300 dark:text-zinc-600'
           }
         />
@@ -62,7 +62,7 @@ function RatingBar({ label, rating }: { label: string; rating: number }) {
       <span className="text-sm text-zinc-600 dark:text-zinc-400 min-w-[80px]">{label}</span>
       <div className="flex-1 h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
         <div
-          className="h-full bg-amber-400 rounded-full transition-all"
+          className="h-full bg-warning rounded-full transition-all"
           style={{ width: `${percentage}%` }}
         />
       </div>
@@ -158,7 +158,7 @@ export function ReviewCard({ review }: { review: ReviewData }) {
 
       {/* Recommendation */}
       {review.would_recommend && (
-        <div className="mt-3 flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
+        <div className="mt-3 flex items-center gap-1.5 text-xs text-success">
           <span>✓</span>
           <span>{t('recommends')}</span>
         </div>

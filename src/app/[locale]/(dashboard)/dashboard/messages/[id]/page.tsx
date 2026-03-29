@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Chat Thread Page
+// Muhandes HUB — Chat Thread Page
 // =============================================================================
 
 import { redirect } from 'next/navigation';
@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getTranslations } from 'next-intl/server';
 import { markAsRead } from '@/actions/messages';
 import { ChatThread } from '@/components/features/messaging/chat-thread';
-import { ArrowRight } from 'lucide-react';
+import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -119,14 +119,9 @@ export default async function ChatThreadPage({ params }: PageProps) {
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
+      <BreadcrumbOverride segment={conversationId} label={otherName} />
       {/* Thread Header */}
       <div className="flex items-center gap-3 border-b border-border px-4 py-3 bg-card rounded-t-xl">
-        <Link
-          href="/dashboard/messages"
-          className="text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowRight className="h-5 w-5 rtl:rotate-180" />
-        </Link>
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
           {otherName.charAt(0)}
         </div>

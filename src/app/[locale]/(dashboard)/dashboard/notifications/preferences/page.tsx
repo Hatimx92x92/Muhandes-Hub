@@ -1,14 +1,11 @@
 // =============================================================================
-// Muqawil HUB — Notification Preferences Page
+// Muhandes HUB — Notification Preferences Page
 // =============================================================================
 
 import { redirect } from 'next/navigation';
-import { Link } from '@/i18n/navigation';
 import { getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
 import { NotificationPreferenceToggle } from '@/components/features/notifications/notification-preference-toggle';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -100,19 +97,11 @@ export default async function NotificationPreferencesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link
-          href="/dashboard/notifications"
-          className="text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowRight className="h-5 w-5 rtl:rotate-180" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{t('prefPage.title')}</h1>
-          <p className="text-sm text-muted-foreground">
-            {t('prefPage.subtitle')}
-          </p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">{t('prefPage.title')}</h1>
+        <p className="text-sm text-muted-foreground">
+          {t('prefPage.subtitle')}
+        </p>
       </div>
 
       {/* Preference Groups */}

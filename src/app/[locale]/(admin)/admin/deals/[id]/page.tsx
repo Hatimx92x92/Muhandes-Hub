@@ -5,6 +5,7 @@ import { getTranslations, getLocale } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Users, Banknote, Calendar, FileText } from 'lucide-react';
+import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -68,14 +69,7 @@ export default async function AdminDealDetailPage({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/admin/deals" className="text-sm text-muted-foreground hover:text-foreground">
-          {t('dealsPage.title')}
-        </Link>
-        <ArrowRight className="h-3 w-3 text-muted-foreground rtl:rotate-180" />
-        <span className="text-sm font-medium">{t('dealsPage.dealPrefix')} #{id.slice(0, 8)}</span>
-      </div>
+      <BreadcrumbOverride segment={id} label={`${t('dealsPage.dealPrefix')} #${id.slice(0, 8)}`} />
 
       {/* Deal Overview */}
       <Card>

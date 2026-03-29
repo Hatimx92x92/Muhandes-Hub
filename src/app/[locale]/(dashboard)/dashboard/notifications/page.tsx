@@ -1,19 +1,22 @@
 // =============================================================================
-// Muqawil HUB — Notifications Page
+// Muhandes HUB — Notifications Page
 // =============================================================================
 
 import { redirect } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getTranslations, getLocale } from 'next-intl/server';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/features/empty-state';
-import { Bell, Settings } from 'lucide-react';
-import { formatRelativeTime } from '@/lib/utils';
+import { Settings } from 'lucide-react';
 import { MarkAllReadButton } from '@/components/features/notifications/mark-all-read-button';
-import { NotificationItem } from '@/components/features/notifications/notification-item';
+import {
+  NotificationsTableClient,
+  type NotificationRow,
+} from '@/components/features/notifications/notifications-table-client';
+import {
+  bulkMarkNotificationsRead,
+  bulkDeleteNotifications,
+} from '@/actions/notifications';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -26,9 +29,10 @@ export default async function NotificationsPage() {
   if (!user) redirect('/login');
 
   const t = await getTranslations('dashboard.notifications');
+  const tCommon = await getTranslations('dashboard.common');
   const locale = await getLocale();
 
-  // Fetch notifications with pagination
+  // Fetch notifications
   const { data: notifications } = await db(supabase)
     .from('notifications')
     .select('*')
@@ -36,8 +40,39 @@ export default async function NotificationsPage() {
     .order('created_at', { ascending: false })
     .limit(50);
 
-  const items = notifications ?? [];
-  const unreadCount = items.filter((n: { is_read: boolean }) => !n.is_read).length;
+  const rawItems = notifications ?? [];
+  const unreadCount = rawItems.filter((n: { is_read: boolean }) => !n.is_read).length;
+
+  const items: NotificationRow[] = rawItems.map((n: {
+    id: string;
+    type: string;
+    title_ar: string;
+    title_en: string;
+    body_ar: string | null;
+    body_en: string | null;
+    link: string | null;
+    is_read: boolean;
+    created_at: string;
+  }) => ({
+    id: n.id,
+    type: n.type,
+    typeLabel: t(`types.${n.type}` as never) || n.type,
+    title: locale === 'ar' ? n.title_ar : (n.title_en || n.title_ar),
+    body: locale === 'ar' ? n.body_ar : (n.body_en || n.body_ar),
+    link: n.link,
+    is_read: n.is_read,
+    created_at: n.created_at,
+  }));
+
+  const translations: Record<string, string> = {
+    type: t('typeLabel'),
+    message: t('messageLabel'),
+    time: t('timeLabel'),
+    markRead: t('markRead'),
+    delete: tCommon('delete'),
+    noNotifications: t('noNotifications'),
+    noNotificationsDesc: t('noNotificationsDesc'),
+  };
 
   return (
     <div className="space-y-6">
@@ -62,42 +97,19 @@ export default async function NotificationsPage() {
         </div>
       </div>
 
-      {/* Notification List */}
-      {items.length === 0 ? (
-        <EmptyState
-          icon={<Bell className="h-12 w-12" />}
-          title={t('noNotifications')}
-          description={t('noNotificationsDesc')}
-        />
-      ) : (
-        <div className="space-y-2">
-          {items.map((notification: {
-            id: string;
-            type: string;
-            title_ar: string;
-            title_en: string;
-            body_ar: string | null;
-            body_en: string | null;
-            link: string | null;
-            is_read: boolean;
-            entity_type: string | null;
-            entity_id: string | null;
-            created_at: string;
-          }) => (
-            <NotificationItem
-              key={notification.id}
-              id={notification.id}
-              type={notification.type}
-              typeLabel={t(`types.${notification.type}` as never) || notification.type}
-              titleAr={notification.title_ar}
-              bodyAr={notification.body_ar}
-              link={notification.link}
-              isRead={notification.is_read}
-              createdAt={notification.created_at}
-            />
-          ))}
-        </div>
-      )}
+      {/* Notifications Table */}
+      <NotificationsTableClient
+        items={items}
+        translations={translations}
+        onBulkMarkRead={async (ids: string[]) => {
+          'use server';
+          await bulkMarkNotificationsRead(ids);
+        }}
+        onBulkDelete={async (ids: string[]) => {
+          'use server';
+          await bulkDeleteNotifications(ids);
+        }}
+      />
     </div>
   );
 }

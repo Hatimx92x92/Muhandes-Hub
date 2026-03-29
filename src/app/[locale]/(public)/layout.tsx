@@ -1,9 +1,9 @@
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
+// =============================================================================
+// (public) Layout — Public pages wrapper
+// =============================================================================
 
-// =============================================================================
-// (public) Layout — Header + Footer for unauthenticated pages
-// =============================================================================
+import { BreadcrumbProvider } from '@/components/layout/breadcrumb-provider';
+import { BreadcrumbNav } from '@/components/layout/breadcrumb-nav';
 
 export default function PublicLayout({
   children,
@@ -11,10 +11,13 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      <main className="flex-1">{children}</main>
-      <Footer />
-    </div>
+    <main className="flex-1">
+      <BreadcrumbProvider>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <BreadcrumbNav rootType="public" className="pt-6 mb-6" />
+          {children}
+        </div>
+      </BreadcrumbProvider>
+    </main>
   );
 }

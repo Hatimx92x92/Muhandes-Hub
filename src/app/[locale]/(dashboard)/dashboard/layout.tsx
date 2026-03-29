@@ -1,10 +1,13 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Sidebar } from '@/components/layout/sidebar';
-import { Topbar } from '@/components/layout/topbar';
-import { ToastProvider } from '@/components/ui/toast';
+import { Toaster } from '@/components/ui/sonner';
 import { NotificationListener } from '@/components/features/notifications/notification-listener';
+import { BreadcrumbProvider } from '@/components/layout/breadcrumb-provider';
+import { BreadcrumbNav } from '@/components/layout/breadcrumb-nav';
 import { getUnreadNotificationCount, getUnreadMessageCount } from '@/actions/notifications';
+import { getLocale } from 'next-intl/server';
+import { getEntitySlug } from '@/lib/utils';
 import type { UserRole } from '@/types';
 
 // =============================================================================
@@ -31,7 +34,7 @@ export default async function DashboardLayout({
       select: (c: string) => {
         eq: (f: string, v: string) => {
           single: () => Promise<{
-            data: { role: string; full_name: string; avatar_url: string | null; is_admin: boolean } | null;
+            data: { role: string; full_name: string; avatar_url: string | null; is_admin: boolean; slug_ar: string | null; slug_en: string | null } | null;
           }>;
         };
       };
@@ -40,37 +43,42 @@ export default async function DashboardLayout({
 
   const { data: profile } = await db
     .from('profiles')
-    .select('role, full_name, avatar_url, is_admin')
+    .select('role, full_name, avatar_url, is_admin, slug_ar, slug_en')
     .eq('id', user.id)
     .single();
 
   const userRole = (profile?.role as UserRole) || undefined;
-  const userName = profile?.full_name || user.email || '';
-  const userAvatar = profile?.avatar_url || undefined;
+  const locale = await getLocale();
+  const profileSlug = profile ? getEntitySlug(profile, locale) : null;
 
-  // Fetch unread counts for topbar and sidebar badges
+  // Fetch unread counts for sidebar badges
   const [notificationCount, messageCount] = await Promise.all([
     getUnreadNotificationCount(),
     getUnreadMessageCount(),
   ]);
 
   return (
-    <ToastProvider>
-      <div className="flex min-h-screen">
+    <>
+      <div className="flex flex-1">
         {/* Sidebar - hidden on mobile, shown md+ */}
         <div className="hidden md:block">
-          <Sidebar userRole={userRole} messageCount={messageCount} notificationCount={notificationCount} />
+          <Sidebar userRole={userRole} profileSlug={profileSlug} messageCount={messageCount} notificationCount={notificationCount} />
         </div>
 
         {/* Main area */}
         <div className="flex flex-1 flex-col">
-          <Topbar userName={userName} userAvatar={userAvatar} notificationCount={notificationCount} isAdmin={!!profile?.is_admin} />
-          <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+          <BreadcrumbProvider>
+            <main className="flex-1 p-4 sm:p-6 lg:p-8">
+              <BreadcrumbNav rootType="dashboard" className="mb-6" />
+              {children}
+            </main>
+          </BreadcrumbProvider>
         </div>
 
         {/* Realtime notification listener */}
         <NotificationListener userId={user.id} />
       </div>
-    </ToastProvider>
+      <Toaster position="bottom-left" dir="auto" richColors />
+    </>
   );
 }

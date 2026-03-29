@@ -3,14 +3,16 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { register } from '@/actions/auth';
+import { register, completeGoogleRegistration } from '@/actions/auth';
 import type { UserRole, ProfileType, SubscriptionTier } from '@/types/enums';
 import { StepIndicator } from './step-indicator';
 import { RoleStep } from './steps/role-step';
 import { AccountStep } from './steps/account-step';
 import { ProfileStep } from './steps/profile-step';
 import { TierStep } from './steps/tier-step';
+import { PaymentStep } from './steps/payment-step';
 import { ConfirmStep } from './steps/confirm-step';
+import { DocumentStep } from './steps/document-step';
 
 // =============================================================================
 // Wizard State
@@ -36,6 +38,11 @@ export interface WizardData {
   tier: SubscriptionTier;
   duration_months: number;
   coupon_code: string;
+  payment_method: 'card' | 'bank_transfer' | '';
+  // Step 5 (bank transfer)
+  bank_receipt: File | null;
+  // Step 6 (verification documents — Pro+ contractors/suppliers)
+  verification_docs: File[];
 }
 
 const initialData: WizardData = {
@@ -54,6 +61,9 @@ const initialData: WizardData = {
   tier: 'starter',
   duration_months: 1,
   coupon_code: '',
+  payment_method: '',
+  bank_receipt: null,
+  verification_docs: [],
 };
 
 // =============================================================================
@@ -65,16 +75,30 @@ interface StepConfig {
   label: string;
 }
 
-function getSteps(role: string, t: (key: string) => string): StepConfig[] {
+function getSteps(role: string, tier: string, isOAuth: boolean, t: (key: string) => string): StepConfig[] {
   const base: StepConfig[] = [
     { key: 'role', label: t('role') },
-    { key: 'account', label: t('account') },
-    { key: 'profile', label: t('profileStep') },
   ];
+
+  // OAuth users skip the account (email/password) step
+  if (!isOAuth) {
+    base.push({ key: 'account', label: t('account') });
+  }
+
+  base.push({ key: 'profile', label: t('profileStep') });
 
   // Only contractors and suppliers choose a subscription tier
   if (role === 'contractor' || role === 'supplier') {
     base.push({ key: 'tier', label: t('plan') });
+    // Payment step only for paid tiers
+    if (tier !== 'starter') {
+      base.push({ key: 'payment', label: t('payment') });
+    }
+  }
+
+  // Document upload step for paid-tier contractors/suppliers
+  if ((role === 'contractor' || role === 'supplier') && tier !== 'starter') {
+    base.push({ key: 'documents', label: t('documents') });
   }
 
   base.push({ key: 'confirm', label: t('confirmStep') });
@@ -85,7 +109,12 @@ function getSteps(role: string, t: (key: string) => string): StepConfig[] {
 // Registration Wizard
 // =============================================================================
 
-export function RegisterWizard() {
+interface RegisterWizardProps {
+  isOAuthMode?: boolean;
+  oauthEmail?: string;
+}
+
+export function RegisterWizard({ isOAuthMode = false }: RegisterWizardProps) {
   const router = useRouter();
   const t = useTranslations('auth.wizard');
   const [currentStep, setCurrentStep] = useState(0);
@@ -94,7 +123,7 @@ export function RegisterWizard() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
-  const steps = getSteps(data.role, t);
+  const steps = getSteps(data.role, data.tier, isOAuthMode, t);
 
   const updateData = useCallback((partial: Partial<WizardData>) => {
     setData((prev) => ({ ...prev, ...partial }));
@@ -118,9 +147,6 @@ export function RegisterWizard() {
 
     const formData = new FormData();
     formData.set('role', data.role);
-    formData.set('full_name', data.full_name);
-    formData.set('email', data.email);
-    formData.set('password', data.password);
     formData.set('phone', data.phone);
     formData.set('pdpl_consent', String(data.pdpl_consent));
     formData.set('profile_type', data.profile_type);
@@ -132,8 +158,26 @@ export function RegisterWizard() {
     if (data.tier) formData.set('tier', data.tier);
     if (data.duration_months) formData.set('duration_months', String(data.duration_months));
     if (data.coupon_code) formData.set('coupon_code', data.coupon_code);
+    if (data.payment_method) formData.set('payment_method', data.payment_method);
+    if (data.bank_receipt) formData.set('bank_receipt', data.bank_receipt);
+    if (data.verification_docs.length > 0) {
+      data.verification_docs.forEach((file) => {
+        formData.append('verification_docs', file);
+      });
+    }
 
-    const result = await register(null, formData);
+    let result;
+
+    if (isOAuthMode) {
+      // Google OAuth: complete profile for existing auth user
+      result = await completeGoogleRegistration(null, formData);
+    } else {
+      // Email registration: create new account
+      formData.set('full_name', data.full_name);
+      formData.set('email', data.email);
+      formData.set('password', data.password);
+      result = await register(null, formData);
+    }
 
     if (result.error) {
       setServerError(result.error);
@@ -143,12 +187,17 @@ export function RegisterWizard() {
     }
 
     // Success — redirect based on flow
-    if (result.data?.requiresPayment) {
-      router.push('/verify/email-sent');
+    if (isOAuthMode) {
+      // Google users skip email verification
+      if (result.data?.requiresPayment) {
+        router.push('/verify/payment');
+      } else {
+        router.push('/dashboard');
+      }
     } else {
       router.push('/verify/email-sent');
     }
-  }, [data, router]);
+  }, [data, router, isOAuthMode]);
 
   // Current step key
   const stepKey = steps[currentStep]?.key;
@@ -189,6 +238,23 @@ export function RegisterWizard() {
       )}
       {stepKey === 'tier' && (
         <TierStep data={data} updateData={updateData} onNext={next} onBack={back} />
+      )}
+      {stepKey === 'payment' && (
+        <PaymentStep
+          data={data}
+          updateData={updateData}
+          submitting={submitting}
+          onSubmit={handleSubmit}
+          onBack={back}
+        />
+      )}
+      {stepKey === 'documents' && (
+        <DocumentStep
+          data={data}
+          updateData={updateData}
+          onNext={next}
+          onBack={back}
+        />
       )}
       {stepKey === 'confirm' && (
         <ConfirmStep

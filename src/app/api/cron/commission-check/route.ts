@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Commission Overdue Check (Cron Endpoint)
+// Muhandes HUB — Commission Overdue Check (Cron Endpoint)
 // Call via Vercel Cron daily — marks overdue commissions and sends reminders
 // =============================================================================
 

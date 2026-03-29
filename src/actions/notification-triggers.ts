@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Notification Trigger Helpers
+// Muhandes HUB — Notification Trigger Helpers
 // Wire all 24 notification types to their triggering events
 // Import and call these from server actions after the primary operation.
 // =============================================================================
@@ -574,4 +574,167 @@ export async function notifyDealFlaggedForReview(params: {
       entity_id: params.dealId,
     });
   }
+}
+
+// ---------------------------------------------------------------------------
+// DEAL CANCELLATION REQUEST NOTIFICATIONS
+// ---------------------------------------------------------------------------
+
+/** Notify counterparty that a cancellation was requested */
+export async function notifyCancellationRequested(params: {
+  counterpartyId: string;
+  dealNumber: string;
+  dealId: string;
+  reason: string;
+}) {
+  await createNotification({
+    user_id: params.counterpartyId,
+    type: 'deal_status_changed',
+    title_ar: `طلب إلغاء الصفقة #${params.dealNumber}`,
+    title_en: `Cancellation requested for deal #${params.dealNumber}`,
+    body_ar: params.reason,
+    body_en: params.reason,
+    link: `/dashboard/deals/${params.dealId}`,
+    entity_type: 'deal',
+    entity_id: params.dealId,
+  });
+}
+
+/** Notify parties when a cancellation request is approved or rejected */
+export async function notifyCancellationResolved(params: {
+  userIds: string[];
+  dealNumber: string;
+  dealId: string;
+  outcome: 'approved' | 'rejected';
+}) {
+  const titles = {
+    approved: {
+      ar: `تم إلغاء الصفقة #${params.dealNumber}`,
+      en: `Deal #${params.dealNumber} has been cancelled`,
+    },
+    rejected: {
+      ar: `تم رفض طلب إلغاء الصفقة #${params.dealNumber}`,
+      en: `Cancellation request for deal #${params.dealNumber} was rejected`,
+    },
+  };
+  const label = titles[params.outcome];
+
+  for (const userId of params.userIds) {
+    await createNotification({
+      user_id: userId,
+      type: 'deal_status_changed',
+      title_ar: label.ar,
+      title_en: label.en,
+      link: `/dashboard/deals/${params.dealId}`,
+      entity_type: 'deal',
+      entity_id: params.dealId,
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DEAL SKIP MILESTONE NOTIFICATIONS
+// ---------------------------------------------------------------------------
+
+/** Notify counterparty that a skip milestone was requested */
+export async function notifySkipMilestoneRequested(params: {
+  counterpartyId: string;
+  dealNumber: string;
+  dealId: string;
+  milestoneTitle: { ar: string; en: string };
+}) {
+  await createNotification({
+    user_id: params.counterpartyId,
+    type: 'deal_status_changed',
+    title_ar: `طلب تخطي مرحلة "${params.milestoneTitle.ar}" في الصفقة #${params.dealNumber}`,
+    title_en: `Skip requested for milestone "${params.milestoneTitle.en}" in deal #${params.dealNumber}`,
+    link: `/dashboard/deals/${params.dealId}?tab=milestones`,
+    entity_type: 'deal',
+    entity_id: params.dealId,
+  });
+}
+
+/** Notify requester when a skip milestone request is approved or rejected */
+export async function notifySkipMilestoneResolved(params: {
+  requesterId: string;
+  dealNumber: string;
+  dealId: string;
+  outcome: 'approved' | 'rejected';
+}) {
+  const titles = {
+    approved: {
+      ar: `تمت الموافقة على تخطي المرحلة في الصفقة #${params.dealNumber}`,
+      en: `Skip milestone approved for deal #${params.dealNumber}`,
+    },
+    rejected: {
+      ar: `تم رفض طلب تخطي المرحلة في الصفقة #${params.dealNumber}`,
+      en: `Skip milestone rejected for deal #${params.dealNumber}`,
+    },
+  };
+  const label = titles[params.outcome];
+
+  await createNotification({
+    user_id: params.requesterId,
+    type: 'deal_status_changed',
+    title_ar: label.ar,
+    title_en: label.en,
+    link: `/dashboard/deals/${params.dealId}?tab=milestones`,
+    entity_type: 'deal',
+    entity_id: params.dealId,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// SUBSCRIPTION NOTIFICATIONS
+// ---------------------------------------------------------------------------
+
+/** Notify user when their subscription is upgraded */
+export async function notifySubscriptionUpgraded(params: {
+  userId: string;
+  newTier: string;
+}) {
+  await createNotification({
+    user_id: params.userId,
+    type: 'subscription_upgraded',
+    title_ar: `تمت ترقية اشتراكك إلى ${params.newTier}`,
+    title_en: `Your subscription has been upgraded to ${params.newTier}`,
+    body_ar: 'يمكنك الآن الاستفادة من المزايا الجديدة',
+    body_en: 'You can now enjoy the new features',
+    link: '/dashboard/subscription',
+    entity_type: 'subscription',
+  });
+}
+
+/** Notify user when their subscription is renewed */
+export async function notifySubscriptionRenewed(params: {
+  userId: string;
+  tier: string;
+}) {
+  await createNotification({
+    user_id: params.userId,
+    type: 'subscription_renewed',
+    title_ar: `تم تجديد اشتراكك في باقة ${params.tier}`,
+    title_en: `Your ${params.tier} subscription has been renewed`,
+    body_ar: 'اشتراكك نشط وجاهز للاستخدام',
+    body_en: 'Your subscription is active and ready to use',
+    link: '/dashboard/subscription',
+    entity_type: 'subscription',
+  });
+}
+
+/** Notify user when their bank transfer payment is approved by admin */
+export async function notifySubscriptionPaymentApproved(params: {
+  userId: string;
+  tier: string;
+}) {
+  await createNotification({
+    user_id: params.userId,
+    type: 'subscription_payment_approved',
+    title_ar: `تمت الموافقة على دفعتك لباقة ${params.tier}`,
+    title_en: `Your payment for ${params.tier} plan has been approved`,
+    body_ar: 'تم تفعيل اشتراكك بنجاح',
+    body_en: 'Your subscription has been activated successfully',
+    link: '/dashboard/subscription',
+    entity_type: 'subscription',
+  });
 }

@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Message & Notification Schemas (Zod v4)
+// Muhandes HUB — Message & Notification Schemas (Zod v4)
 // =============================================================================
 
 import { z } from 'zod/v4';
@@ -13,8 +13,12 @@ export const MessageSchema = z.object({
   conversation_id: z.string().uuid('Invalid conversation ID'),
   content: z
     .string()
-    .min(1, 'Message content is required')
-    .max(5000, 'Message content is too long'),
+    .max(5000, 'Message content is too long')
+    .optional()
+    .default(''),
+  file_url: z.string().url().optional(),
+  file_name: z.string().max(255).optional(),
+  file_size: z.coerce.number().int().min(0).optional(),
 });
 
 /** Schema for creating a conversation */

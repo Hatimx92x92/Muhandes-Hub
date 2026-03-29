@@ -33,10 +33,10 @@ export default async function VerifyContractPage({
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="mx-auto w-16 h-16 rounded-full bg-green-100 dark:bg-green-950/30 flex items-center justify-center text-2xl">
+            <div className="mx-auto w-16 h-16 rounded-full bg-success/10 flex items-center justify-center text-2xl">
               ✓
             </div>
-            <p className="text-green-600 dark:text-green-400 font-bold text-lg">{t('verified')}</p>
+            <p className="text-success font-bold text-lg">{t('verified')}</p>
 
             <div className="text-start space-y-3 rounded-lg border border-border p-4">
               {!!result.data.signed_at_a && (

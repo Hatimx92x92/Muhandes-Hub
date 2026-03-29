@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Twilio WhatsApp Client (Skeleton)
+// Muhandes HUB — Twilio WhatsApp Client (Skeleton)
 // =============================================================================
 // Future integration: Twilio WhatsApp Business API for notifications
 // Package required: twilio (not yet installed)

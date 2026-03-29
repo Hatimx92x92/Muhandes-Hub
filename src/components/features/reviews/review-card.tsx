@@ -3,6 +3,7 @@
 import { StarRating } from './star-rating';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { getLocaleField } from '@/lib/utils';
 import { useTranslations, useLocale } from 'next-intl';
 
 interface ReviewCardProps {
@@ -77,10 +78,7 @@ export function ReviewCard({ review, direction, canEdit, onEdit }: ReviewCardPro
         {/* Comment */}
         {(review.comment_ar || review.comment_en) && (
           <div className="rounded-lg bg-muted/50 p-3 text-sm">
-            {review.comment_ar && <p>{review.comment_ar}</p>}
-            {review.comment_en && (
-              <p className="mt-1 text-muted-foreground" dir="ltr">{review.comment_en}</p>
-            )}
+            <p>{getLocaleField(review as unknown as Record<string, unknown>, 'comment', locale)}</p>
           </div>
         )}
 

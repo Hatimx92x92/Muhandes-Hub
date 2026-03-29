@@ -1,30 +1,23 @@
 import { redirect } from 'next/navigation';
-import { Link } from '@/i18n/navigation';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AdminUserActions } from '@/components/features/admin/user-actions';
+import { AdminProfileEditForm } from '@/components/features/admin/user-profile-edit';
+import { AdminAuthControls } from '@/components/features/admin/user-auth-controls';
+import { AdminUserEntities } from '@/components/features/admin/user-entities';
+import { SubscriptionManagerButton } from '@/components/features/admin/subscription-manager';
 import { getFullUserDetails } from '@/actions/admin/users';
+import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 import {
-  ArrowRight,
-  Mail,
-  Phone,
   Shield,
-  Globe,
-  Calendar,
-  Briefcase,
   FileText,
   Star,
   Handshake,
   Package,
   Gavel,
   Eye,
-  Lock,
-  User,
-  Building2,
-  Hash,
   CreditCard,
-  MapPin,
 } from 'lucide-react';
 
 export default async function AdminUserDetailPage({
@@ -58,20 +51,13 @@ export default async function AdminUserDetailPage({
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-3">
-        <Link href="/admin/users" className="text-sm text-muted-foreground hover:text-foreground">
-          {t('backToUsers')}
-        </Link>
-        <ArrowRight className="h-3 w-3 text-muted-foreground rtl:rotate-180" />
-        <span className="text-sm font-medium">{t('title')}</span>
-      </div>
+      <BreadcrumbOverride segment={id} label={(profile?.full_name as string) ?? ''} />
 
       {/* Header with actions */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">
-            {(profile?.full_name_ar as string) ?? (profile?.full_name_en as string) ?? t('notProvided')}
+            {(profile?.full_name as string) ?? t('notProvided')}
           </h1>
           <div className="mt-2 flex flex-wrap gap-2">
             <Badge variant={STATUS_VARIANTS[(profile?.verification_status as string) ?? ''] ?? 'secondary'}>
@@ -99,150 +85,22 @@ export default async function AdminUserDetailPage({
         </div>
       </div>
 
-      {/* Auth Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Lock className="h-4 w-4" />
-            {t('authInfo')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="flex items-center gap-3">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-xs text-muted-foreground">{t('email')}</p>
-                <p className="text-sm font-medium">{auth.email as string}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-xs text-muted-foreground">{t('phone')}</p>
-                <p className="text-sm font-medium">{(auth.phone as string) || t('notProvided')}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Shield className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-xs text-muted-foreground">{t('provider')}</p>
-                <p className="text-sm font-medium capitalize">{auth.provider as string}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-xs text-muted-foreground">{t('emailVerified')}</p>
-                <Badge variant={auth.emailConfirmed ? 'success' : 'warning'} className="mt-0.5">
-                  {auth.emailConfirmed ? t('yes') : t('no')}
-                </Badge>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-xs text-muted-foreground">{t('lastSignIn')}</p>
-                <p className="text-sm font-medium">
-                  {auth.lastSignIn
-                    ? new Date(auth.lastSignIn as string).toLocaleString(locale)
-                    : t('never')}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-xs text-muted-foreground">{t('createdAt')}</p>
-                <p className="text-sm font-medium">
-                  {auth.createdAt
-                    ? new Date(auth.createdAt as string).toLocaleString(locale)
-                    : t('notProvided')}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 rounded-lg bg-muted/50 p-3">
-            <p className="text-xs text-muted-foreground">
-              <Lock className="me-1 inline h-3 w-3" />
-              Password: [hashed — not viewable]
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Section 1 — Auth & Access (editable) */}
+      <AdminAuthControls
+        userId={id}
+        auth={auth}
+        locale={locale}
+        isAdmin={!!profile?.is_admin}
+      />
 
-      {/* Profile Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <User className="h-4 w-4" />
-            {t('profileInfo')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="flex items-center gap-3">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-xs text-muted-foreground">{t('fullName')}</p>
-                <p className="text-sm font-medium">{(profile?.full_name_ar as string) ?? (profile?.full_name_en as string) ?? t('notProvided')}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-xs text-muted-foreground">{t('companyName')}</p>
-                <p className="text-sm font-medium">
-                  {locale === 'ar'
-                    ? (profile?.company_name_ar as string) ?? (profile?.company_name_en as string) ?? t('notProvided')
-                    : (profile?.company_name_en as string) ?? (profile?.company_name_ar as string) ?? t('notProvided')}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Briefcase className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-xs text-muted-foreground">{t('role')}</p>
-                <p className="text-sm font-medium">
-                  {profile?.role ? tAdmin(`roleLabels.${profile.role as string}`) : t('notProvided')}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Hash className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-xs text-muted-foreground">{t('crNumber')}</p>
-                <p className="text-sm font-medium">{(profile?.cr_number as string) ?? t('notProvided')}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Hash className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-xs text-muted-foreground">{t('vatNumber')}</p>
-                <p className="text-sm font-medium">{(profile?.vat_number as string) ?? t('notProvided')}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Globe className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-xs text-muted-foreground">{t('website')}</p>
-                <p className="text-sm font-medium">{(profile?.website as string) ?? t('notProvided')}</p>
-              </div>
-            </div>
-            {!!profile?.city && (
-              <div className="flex items-center gap-3">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-xs text-muted-foreground">{t('city')}</p>
-                  <p className="text-sm font-medium">{profile.city as string}</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Section 2 — Profile (editable) */}
+      <AdminProfileEditForm
+        userId={id}
+        profile={profile}
+        isAdmin={!!profile?.is_admin}
+      />
 
-      {/* Verification Status + Pipeline */}
+      {/* Section 3 — Verification Pipeline */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -251,14 +109,12 @@ export default async function AdminUserDetailPage({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Pipeline steps */}
           <div className="flex flex-wrap items-center gap-2">
             {['pending_email', 'pending_payment', 'pending_documents', 'pending_approval', 'active'].map((step, i) => {
               const current = profile?.verification_status as string;
               const steps = ['pending_email', 'pending_payment', 'pending_documents', 'pending_approval', 'active'];
               const currentIdx = steps.indexOf(current);
-              const stepIdx = i;
-              const isCompleted = currentIdx > stepIdx || (current === 'active' && step === 'active');
+              const isCompleted = currentIdx > i || (current === 'active' && step === 'active');
               const isCurrent = current === step;
 
               return (
@@ -283,13 +139,23 @@ export default async function AdminUserDetailPage({
         </CardContent>
       </Card>
 
-      {/* Subscription Info */}
+      {/* Section 4 — Subscription + Manager */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <CreditCard className="h-4 w-4" />
-            {t('subscriptionInfo')}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <CreditCard className="h-4 w-4" />
+              {t('subscriptionInfo')}
+            </CardTitle>
+            {!profile?.is_admin && (
+              <SubscriptionManagerButton
+                userId={id}
+                currentTier={(subscription?.tier as string) ?? (profile?.subscription_tier as string) ?? 'starter'}
+                currentStatus={subscription?.is_active ? 'active' : 'expired'}
+                subscriptionId={(subscription?.id as string) ?? ''}
+              />
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {subscription ? (
@@ -327,7 +193,7 @@ export default async function AdminUserDetailPage({
         </CardContent>
       </Card>
 
-      {/* Activity Summary */}
+      {/* Section 5 — Activity Summary */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -355,7 +221,7 @@ export default async function AdminUserDetailPage({
         </CardContent>
       </Card>
 
-      {/* Verification Documents */}
+      {/* Section 6 — Verification Documents */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -406,6 +272,29 @@ export default async function AdminUserDetailPage({
               ))}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Section 7 — All Related Entities (Tabbed) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t('entityTabs')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AdminUserEntities
+            userId={id}
+            projects={data.projects as Record<string, unknown>[]}
+            products={data.products as Record<string, unknown>[]}
+            rfqs={data.rfqs as Record<string, unknown>[]}
+            bids={data.bids as Record<string, unknown>[]}
+            deals={data.deals as Record<string, unknown>[]}
+            quotations={data.quotations as Record<string, unknown>[]}
+            reviewsGiven={data.reviewsGiven as Record<string, unknown>[]}
+            reviewsReceived={data.reviewsReceived as Record<string, unknown>[]}
+            commissions={data.commissions as Record<string, unknown>[]}
+            auditEntries={data.auditEntries as Record<string, unknown>[]}
+            notifications={data.notifications as Record<string, unknown>[]}
+          />
         </CardContent>
       </Card>
     </div>

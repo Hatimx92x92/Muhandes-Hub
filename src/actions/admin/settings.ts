@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Admin Settings & Coupon Actions
+// Muhandes HUB — Admin Settings & Coupon Actions
 // =============================================================================
 
 'use server';

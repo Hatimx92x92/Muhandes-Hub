@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { resetPassword } from '@/actions/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import type { ActionResult } from '@/types';
 
 // =============================================================================
@@ -39,9 +40,7 @@ export function ForgotPasswordForm() {
   return (
     <div className="space-y-4">
       {state?.error && (
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-          {state.error}
-        </div>
+        <AlertBanner variant="error">{state.error}</AlertBanner>
       )}
 
       <form action={formAction} className="space-y-4">

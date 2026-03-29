@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Admin Analytics Actions
+// Muhandes HUB — Admin Analytics Actions
 // =============================================================================
 
 'use server';
@@ -69,12 +69,12 @@ export async function getPlatformAnalytics(): Promise<ActionResult<{
     { data: recentUsers },
     { data: subscriptionsData },
   ] = await Promise.all([
-    db(adminClient).from('profiles').select('*', { count: 'exact', head: true }),
-    db(adminClient).from('profiles').select('*', { count: 'exact', head: true }).eq('verification_status', 'active'),
-    db(adminClient).from('deals').select('*', { count: 'exact', head: true }),
-    db(adminClient).from('projects').select('*', { count: 'exact', head: true }),
-    db(adminClient).from('products').select('*', { count: 'exact', head: true }),
-    db(adminClient).from('bids').select('*', { count: 'exact', head: true }),
+    db(adminClient).from('profiles').select('id', { count: 'exact', head: true }),
+    db(adminClient).from('profiles').select('id', { count: 'exact', head: true }).eq('verification_status', 'active'),
+    db(adminClient).from('deals').select('id', { count: 'exact', head: true }),
+    db(adminClient).from('projects').select('id', { count: 'exact', head: true }),
+    db(adminClient).from('products').select('id', { count: 'exact', head: true }),
+    db(adminClient).from('bids').select('id', { count: 'exact', head: true }),
     db(adminClient).from('profiles').select('role'),
     db(adminClient).from('profiles').select('verification_status'),
     db(adminClient).from('subscriptions').select('tier').eq('is_active', true),

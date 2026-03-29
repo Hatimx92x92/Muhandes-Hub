@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
-import { changeUserSubscription, extendUserSubscription, cancelUserSubscription } from '@/actions/admin/subscriptions';
+import { changeUserSubscription, extendUserSubscription, cancelUserSubscription, approveSubscriptionPayment } from '@/actions/admin/subscriptions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ interface SubscriptionManagerButtonProps {
   currentTier: string;
   currentStatus: string;
   subscriptionId: string;
+  paymentStatus?: string | null;
 }
 
 export function SubscriptionManagerButton({
@@ -21,6 +22,7 @@ export function SubscriptionManagerButton({
   currentTier,
   currentStatus,
   subscriptionId,
+  paymentStatus,
 }: SubscriptionManagerButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -54,6 +56,20 @@ export function SubscriptionManagerButton({
         setResult({ type: 'error', message: res.error });
       } else {
         setResult({ type: 'success', message: t('success') });
+        setIsOpen(false);
+        router.refresh();
+      }
+    });
+  };
+
+  const handleApprovePayment = () => {
+    if (!confirm(t('approvePaymentConfirm'))) return;
+    startTransition(async () => {
+      const res = await approveSubscriptionPayment(subscriptionId);
+      if (res.error) {
+        setResult({ type: 'error', message: res.error });
+      } else {
+        setResult({ type: 'success', message: t('paymentApproved') });
         setIsOpen(false);
         router.refresh();
       }
@@ -115,10 +131,10 @@ export function SubscriptionManagerButton({
           value={newTier}
           onChange={(e) => setNewTier(e.target.value)}
         >
-          <option value="starter">Starter</option>
-          <option value="pro">Pro</option>
-          <option value="business">Business</option>
-          <option value="enterprise">Enterprise</option>
+          <option value="starter">{t('tierStarter')}</option>
+          <option value="pro">{t('tierPro')}</option>
+          <option value="business">{t('tierBusiness')}</option>
+          <option value="enterprise">{t('tierEnterprise')}</option>
         </select>
       </div>
 
@@ -153,7 +169,12 @@ export function SubscriptionManagerButton({
       )}
 
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" variant="primary" loading={isPending} onClick={handleChangePlan} disabled={newTier === currentTier}>
+        {paymentStatus === 'pending' && (
+          <Button size="sm" variant="primary" loading={isPending} onClick={handleApprovePayment}>
+            {t('approvePayment')}
+          </Button>
+        )}
+        <Button size="sm" variant={paymentStatus === 'pending' ? 'outline' : 'primary'} loading={isPending} onClick={handleChangePlan} disabled={newTier === currentTier}>
           {t('changePlan')}
         </Button>
         <Button size="sm" variant="outline" loading={isPending} onClick={handleExtend}>

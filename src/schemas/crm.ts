@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — CRM Zod Schemas
+// Muhandes HUB — CRM Zod Schemas
 // =============================================================================
 
 import { z } from 'zod/v4';
@@ -71,6 +71,7 @@ export const KanbanCardSchema = z.object({
   assignee_name: z.string().optional(),
   due_date: z.string().optional(),
   priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+  file_urls: z.array(z.string().url()).optional(),
 });
 
 export const MoveCardSchema = z.object({
@@ -91,11 +92,30 @@ export const DailyLogSchema = z.object({
   description_en: z.string().optional(),
   issues: z.string().optional(),
   safety_notes: z.string().optional(),
+  photo_urls: z.array(z.string().url()).optional(),
 });
 
 export type CRMClientInput = z.infer<typeof CRMClientSchema>;
 export type ClientNoteInput = z.infer<typeof ClientNoteSchema>;
 export type CRMTagInput = z.infer<typeof CRMTagSchema>;
+
+// ---------------------------------------------------------------------------
+// Duplicate Detection (Pro+)
+// ---------------------------------------------------------------------------
+export const DetectDuplicatesSchema = z.object({
+  name: z.string().optional(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  company: z.string().optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Merge Clients (Pro+)
+// ---------------------------------------------------------------------------
+export const MergeClientsSchema = z.object({
+  primary_id: z.string().uuid(),
+  secondary_id: z.string().uuid(),
+});
 export type KanbanColumnInput = z.infer<typeof KanbanColumnSchema>;
 export type KanbanCardInput = z.infer<typeof KanbanCardSchema>;
 export type DailyLogInput = z.infer<typeof DailyLogSchema>;

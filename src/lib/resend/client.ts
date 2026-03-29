@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Resend Email Client + Bilingual Template
+// Muhandes HUB — Resend Email Client + Bilingual Template
 // =============================================================================
 
 interface EmailParams {
@@ -12,8 +12,8 @@ interface EmailParams {
   footer?: { ar: string; en: string };
 }
 
-const FROM_EMAIL = 'Muhaned Hub <noreply@muqawilhub.com>';
-const APP_NAME = 'Muhaned Hub | منصة مهندس';
+const FROM_EMAIL = 'Muhandes HUB <noreply@muqawilhub.com>';
+const APP_NAME = 'Muhandes HUB | منصة مهندس';
 
 /**
  * Send a bilingual email via Resend.

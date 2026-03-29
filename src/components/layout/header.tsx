@@ -2,12 +2,17 @@ import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import { LocaleSwitcher } from './locale-switcher';
 import { MobileNav } from './mobile-nav';
+import { HeaderUserMenu } from './header-user-menu';
 import { Logo } from '@/components/ui/logo';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
+import type { Locale } from '@/i18n/routing';
+import { createClient } from '@/lib/supabase/server';
+import { getUnreadNotificationCount } from '@/actions/notifications';
+import { Bell } from 'lucide-react';
 
 // =============================================================================
-// Header — public pages navigation (corporate B2B)
+// Header — auth-aware main navigation (corporate B2B)
 // =============================================================================
 
 const navLinkKeys = [
@@ -20,11 +25,44 @@ const navLinkKeys = [
 
 export async function Header({ className }: { className?: string }) {
   const t = await getTranslations('nav');
+  const tc = await getTranslations('common');
+  const t_theme = await getTranslations('theme');
+  const t_locale = await getTranslations('locale');
+  const locale = (await getLocale()) as Locale;
 
   const navLinks = navLinkKeys.map((link) => ({
     href: link.href,
     label: t(link.key),
   }));
+
+  // Check auth state
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let userName = '';
+  let userAvatar: string | undefined;
+  let isAdmin = false;
+  let notificationCount = 0;
+
+  if (user) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = supabase as any;
+    const { data: profile } = await db
+      .from('profiles')
+      .select('full_name, avatar_url, is_admin')
+      .eq('id', user.id)
+      .single();
+
+    userName = profile?.full_name || user.email || '';
+    userAvatar = profile?.avatar_url || undefined;
+    isAdmin = !!profile?.is_admin;
+
+    notificationCount = await getUnreadNotificationCount();
+  }
+
+  const isAuthenticated = !!user;
 
   return (
     <header
@@ -38,7 +76,7 @@ export async function Header({ className }: { className?: string }) {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center group">
-          <Logo size="md" showText className="hidden sm:flex" />
+          <Logo size="md" showText subtitle={tc('appTagline')} className="hidden sm:flex" />
           <Logo size="sm" showText={false} className="sm:hidden" />
         </Link>
 
@@ -57,21 +95,64 @@ export async function Header({ className }: { className?: string }) {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <LocaleSwitcher />
-          <Link
-            href="/login"
-            className="hidden sm:inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition-all duration-200"
-          >
-            {t('login')}
-          </Link>
-          <Link
-            href="/register"
-            className="inline-flex items-center rounded-xl bg-linear-to-r from-primary to-primary-dark px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]"
-          >
-            {t('register')}
-          </Link>
-          <MobileNav links={navLinks} />
+          <ThemeToggle labels={{
+            light: t_theme('light'),
+            dark: t_theme('dark'),
+            system: t_theme('system'),
+            ariaLabel: t_theme('ariaLabel', { mode: '' }),
+          }} />
+          <LocaleSwitcher
+            locale={locale}
+            label={locale === 'ar' ? t_locale('en') : t_locale('ar')}
+            ariaLabel={locale === 'ar' ? t_locale('switchToEn') : t_locale('switchToAr')}
+          />
+
+          {isAuthenticated ? (
+            <>
+              {/* Notifications */}
+              <Link
+                href="/dashboard/notifications"
+                className="relative inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                aria-label={t('notifications')}
+              >
+                <Bell className="h-5 w-5" />
+                {notificationCount > 0 && (
+                  <span className="absolute -top-0.5 -inset-e-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                    {notificationCount > 99 ? '99+' : notificationCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* User dropdown */}
+              <HeaderUserMenu
+                userName={userName}
+                userAvatar={userAvatar}
+                isAdmin={isAdmin}
+              />
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition-all duration-200"
+              >
+                {t('login')}
+              </Link>
+              <Link
+                href="/register"
+                className="inline-flex items-center rounded-xl bg-linear-to-r from-primary to-primary-dark px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]"
+              >
+                {t('register')}
+              </Link>
+            </>
+          )}
+
+          <MobileNav
+            links={navLinks}
+            isAuthenticated={isAuthenticated}
+            userName={userName}
+            isAdmin={isAdmin}
+          />
         </div>
       </div>
     </header>

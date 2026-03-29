@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Typesense Client Configuration
+// Muhandes HUB — Typesense Client Configuration
 // =============================================================================
 
 import Typesense from 'typesense';

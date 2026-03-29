@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Supabase Server Client (Server Components & Actions)
+// Muhandes HUB — Supabase Server Client (Server Components & Actions)
 // =============================================================================
 
 import { createServerClient } from '@supabase/ssr';

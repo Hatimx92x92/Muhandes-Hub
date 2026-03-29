@@ -43,7 +43,7 @@ export function StarRating({
             className={cn(
               sizeClasses[size],
               star <= value
-                ? 'fill-yellow-400 text-yellow-400'
+                ? 'fill-warning text-warning'
                 : 'fill-none text-muted-foreground/40',
             )}
             viewBox="0 0 24 24"

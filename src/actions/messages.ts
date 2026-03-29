@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Message Server Actions
+// Muhandes HUB — Message Server Actions
 // =============================================================================
 
 'use server';
@@ -13,6 +13,8 @@ import {
   CreateConversationSchema,
   QuickReplySchema,
 } from '@/schemas/message';
+import { uploadFile } from '@/actions/uploads';
+import { messageLimiter, checkRateLimit } from '@/lib/rate-limit';
 import type { ActionResult } from '@/types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,10 +48,15 @@ export async function sendMessage(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: null, error: t('mustLogin') };
 
+  // 1b. Rate limit
+  const rl = messageLimiter();
+  const { success: rlOk } = await checkRateLimit(rl, user.id);
+  if (!rlOk) return { data: null, error: t('tooManyRequests') };
+
   // 2. Validate
   const raw = {
     conversation_id: formData.get('conversation_id'),
-    content: formData.get('content'),
+    content: formData.get('content') || '',
   };
   const parsed = MessageSchema.safeParse(raw);
   if (!parsed.success) {
@@ -57,6 +64,31 @@ export async function sendMessage(
   }
 
   const { conversation_id, content } = parsed.data;
+
+  // 2b. Handle file attachment upload
+  let fileUrl: string | null = null;
+  let fileName: string | null = null;
+  let fileSize: number | null = null;
+
+  const file = formData.get('file') as File | null;
+  if (file && file.size > 0) {
+    const uploadResult = await uploadFile(
+      'message-attachments',
+      file,
+      `${conversation_id}/${Date.now()}`,
+    );
+    if (uploadResult.error) {
+      return { data: null, error: uploadResult.error };
+    }
+    fileUrl = uploadResult.data!.url;
+    fileName = file.name;
+    fileSize = file.size;
+  }
+
+  // Must have content or file
+  if (!content && !fileUrl) {
+    return { data: null, error: t('invalidData') };
+  }
 
   // 3. Verify user is a participant
   const { data: participant } = await db(supabase)
@@ -73,7 +105,10 @@ export async function sendMessage(
     .insert({
       conversation_id,
       sender_id: user.id,
-      content,
+      content: content || '',
+      ...(fileUrl && { file_url: fileUrl }),
+      ...(fileName && { file_name: fileName }),
+      ...(fileSize && { file_size: fileSize }),
     })
     .select('id')
     .single();
@@ -319,4 +354,92 @@ export async function deleteQuickReply(
 
   revalidatePath('/dashboard/messages');
   return { data: { deleted: true }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// GET OR CREATE DEAL CONVERSATION
+// ---------------------------------------------------------------------------
+interface DealConversationResult {
+  conversationId: string;
+  messages: Array<{
+    id: string;
+    conversation_id: string;
+    sender_id: string;
+    content: string;
+    created_at: string;
+    deleted_at: string | null;
+    file_url?: string | null;
+    file_name?: string | null;
+  }>;
+}
+
+export async function getOrCreateDealConversation(
+  dealId: string,
+): Promise<ActionResult<DealConversationResult>> {
+  const t = await getTranslations('actions.messages');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  // Verify user is a deal participant
+  const { data: deal } = await db(supabase)
+    .from('deals')
+    .select('id, buyer_id, seller_id')
+    .eq('id', dealId)
+    .single();
+
+  if (!deal) return { data: null, error: t('dealNotFound') };
+  if (deal.buyer_id !== user.id && deal.seller_id !== user.id) {
+    return { data: null, error: t('notParticipant') };
+  }
+
+  const counterpartyId = deal.buyer_id === user.id ? deal.seller_id : deal.buyer_id;
+
+  // Check for existing conversation with this deal_id
+  const { data: existing } = await db(supabase)
+    .from('conversations')
+    .select('id')
+    .eq('deal_id', dealId)
+    .limit(1)
+    .single();
+
+  if (existing) {
+    // Fetch messages
+    const { data: messages } = await db(supabase)
+      .from('messages')
+      .select('id, conversation_id, sender_id, content, created_at, deleted_at, file_url, file_name')
+      .eq('conversation_id', existing.id)
+      .order('created_at', { ascending: true })
+      .limit(200);
+
+    // Mark as read
+    await db(supabase)
+      .from('conversation_participants')
+      .update({ unread_count: 0, last_read_at: new Date().toISOString() })
+      .eq('conversation_id', existing.id)
+      .eq('user_id', user.id);
+
+    return { data: { conversationId: existing.id, messages: messages || [] }, error: null };
+  }
+
+  // Create new conversation for this deal
+  const { data: conversation, error: convErr } = await db(supabase)
+    .from('conversations')
+    .insert({ deal_id: dealId })
+    .select('id')
+    .single();
+
+  if (convErr || !conversation) {
+    return { data: null, error: t('createConversationError') };
+  }
+
+  // Add both participants
+  await db(supabase)
+    .from('conversation_participants')
+    .insert([
+      { conversation_id: conversation.id, user_id: user.id },
+      { conversation_id: conversation.id, user_id: counterpartyId },
+    ]);
+
+  return { data: { conversationId: conversation.id, messages: [] }, error: null };
 }

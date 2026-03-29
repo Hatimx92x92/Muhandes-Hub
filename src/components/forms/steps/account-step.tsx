@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
 import { PhoneInput } from '@/components/forms/phone-input';
 import { RegisterStep2Schema } from '@/schemas/auth';
@@ -75,10 +76,9 @@ export function AccountStep({ data, updateData, fieldErrors, onNext, onBack }: A
         placeholder="email@example.com"
       />
 
-      <Input
+      <PasswordInput
         label={t('password')}
         name="password"
-        type="password"
         dir="ltr"
         value={data.password}
         onChange={(e) => updateData({ password: e.target.value })}

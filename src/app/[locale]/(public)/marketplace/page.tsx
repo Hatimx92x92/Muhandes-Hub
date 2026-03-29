@@ -8,8 +8,11 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/features/empty-state';
 import { Package, Search, Star } from 'lucide-react';
-import { formatSAR, getLocaleField } from '@/lib/utils';
+import { formatSAR, getLocaleField, getEntitySlug } from '@/lib/utils';
 import { getTranslations, getLocale } from 'next-intl/server';
+import { BrowsePagination } from '@/components/features/browse-pagination';
+
+const PAGE_SIZE = 24;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -19,16 +22,19 @@ function db(supabase: any): any {
 export default async function MarketplacePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; sort?: string; stock?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string; stock?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
   const t = await getTranslations('public.marketplace');
   const locale = await getLocale();
+  const currentPage = Math.max(1, parseInt(params.page || '1', 10) || 1);
+  const from = (currentPage - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
 
   let query = db(supabase)
     .from('products')
-    .select('id, name_ar, name_en, description_ar, description_en, pricing_model, price, in_stock, created_at, supplier_id')
+    .select('id, name_ar, name_en, description_ar, description_en, pricing_model, price, in_stock, created_at, supplier_id, slug_ar, slug_en', { count: 'exact' })
     .eq('status', 'published');
 
   // Text search
@@ -54,7 +60,8 @@ export default async function MarketplacePage({
       query = query.order('created_at', { ascending: false });
   }
 
-  const { data: products } = await query.limit(50);
+  const { data: products, count } = await query.range(from, to);
+  const totalPages = Math.ceil((count ?? 0) / PAGE_SIZE);
 
   const items = (products ?? []) as Array<{
     id: string;
@@ -70,7 +77,7 @@ export default async function MarketplacePage({
   }>;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <div className="py-16">
       {/* Header */}
       <div className="mb-10">
         <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">{t('title')}</h1>
@@ -120,7 +127,7 @@ export default async function MarketplacePage({
 
       {/* Results count */}
       <p className="mb-4 text-sm text-muted-foreground">
-        {t('resultCount', { count: items.length })}
+        {t('resultCount', { count: count ?? items.length })}
       </p>
 
       {/* Products Grid */}
@@ -137,6 +144,13 @@ export default async function MarketplacePage({
           ))}
         </div>
       )}
+
+      <BrowsePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        searchParams={params as Record<string, string | undefined>}
+        labels={{ previous: t('previous'), next: t('next') }}
+      />
     </div>
   );
 }
@@ -158,6 +172,8 @@ function ProductCard({
     pricing_model: string;
     price: number | null;
     in_stock: boolean;
+    slug_ar?: string | null;
+    slug_en?: string | null;
   };
   locale: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -168,7 +184,7 @@ function ProductCard({
   const desc = description?.slice(0, 80) + (description?.length > 80 ? '…' : '');
 
   return (
-    <Link href={`/products/${product.id}`}>
+    <Link href={`/products/${getEntitySlug(product, locale)}`}>
       <Card className="h-full overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/20">
         {/* Placeholder image */}
         <div className="flex h-40 items-center justify-center bg-muted/50">

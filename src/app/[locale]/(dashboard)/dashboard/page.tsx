@@ -82,19 +82,24 @@ function QuickAction({
 // ---------------------------------------------------------------------------
 
 interface DashboardConfig {
-  stats: { label: string; value: string; icon: React.ElementType; href: string }[];
+  stats: { label: string; value: string | number; icon: React.ElementType; href: string }[];
   quickActions: { label: string; href: string; icon: React.ElementType }[];
 }
 
-function getDashboardConfig(role: UserRole, tStats: (key: string) => string, tActions: (key: string) => string): DashboardConfig {
+function getDashboardConfig(
+  role: UserRole,
+  tStats: (key: string) => string,
+  tActions: (key: string) => string,
+  counts: Record<string, number>,
+): DashboardConfig {
   switch (role) {
     case 'project_owner':
       return {
         stats: [
-          { label: tStats('activeProjects'), value: '—', icon: FolderKanban, href: '/dashboard/projects' },
-          { label: tStats('activeDeals'), value: '—', icon: Handshake, href: '/dashboard/deals' },
-          { label: tStats('rfqs'), value: '—', icon: ShoppingCart, href: '/dashboard/rfqs' },
-          { label: tStats('reviews'), value: '—', icon: Star, href: '/dashboard/reviews' },
+          { label: tStats('activeProjects'), value: counts.projects ?? 0, icon: FolderKanban, href: '/dashboard/projects' },
+          { label: tStats('activeDeals'), value: counts.deals ?? 0, icon: Handshake, href: '/dashboard/deals' },
+          { label: tStats('rfqs'), value: counts.rfqs ?? 0, icon: ShoppingCart, href: '/dashboard/rfqs' },
+          { label: tStats('reviews'), value: counts.reviews ?? 0, icon: Star, href: '/dashboard/reviews' },
         ],
         quickActions: [
           { label: tActions('newProject'), href: '/dashboard/projects/new', icon: FolderKanban },
@@ -105,10 +110,10 @@ function getDashboardConfig(role: UserRole, tStats: (key: string) => string, tAc
     case 'contractor':
       return {
         stats: [
-          { label: tStats('projects'), value: '—', icon: FolderKanban, href: '/dashboard/projects' },
-          { label: tStats('submittedBids'), value: '—', icon: Receipt, href: '/dashboard/quotations' },
-          { label: tStats('activeDealsShort'), value: '—', icon: Handshake, href: '/dashboard/deals' },
-          { label: tStats('reviews'), value: '—', icon: Star, href: '/dashboard/reviews' },
+          { label: tStats('projects'), value: counts.projects ?? 0, icon: FolderKanban, href: '/dashboard/projects' },
+          { label: tStats('submittedBids'), value: counts.bids ?? 0, icon: Receipt, href: '/dashboard/quotations' },
+          { label: tStats('activeDealsShort'), value: counts.deals ?? 0, icon: Handshake, href: '/dashboard/deals' },
+          { label: tStats('reviews'), value: counts.reviews ?? 0, icon: Star, href: '/dashboard/reviews' },
         ],
         quickActions: [
           { label: tActions('postProject'), href: '/dashboard/projects/new', icon: FolderKanban },
@@ -119,10 +124,10 @@ function getDashboardConfig(role: UserRole, tStats: (key: string) => string, tAc
     case 'supplier':
       return {
         stats: [
-          { label: tStats('products'), value: '—', icon: Package, href: '/dashboard/products' },
-          { label: tStats('quotations'), value: '—', icon: Receipt, href: '/dashboard/quotations' },
-          { label: tStats('deals'), value: '—', icon: Handshake, href: '/dashboard/deals' },
-          { label: tStats('reviews'), value: '—', icon: Star, href: '/dashboard/reviews' },
+          { label: tStats('products'), value: counts.products ?? 0, icon: Package, href: '/dashboard/products' },
+          { label: tStats('quotations'), value: counts.quotations ?? 0, icon: Receipt, href: '/dashboard/quotations' },
+          { label: tStats('deals'), value: counts.deals ?? 0, icon: Handshake, href: '/dashboard/deals' },
+          { label: tStats('reviews'), value: counts.reviews ?? 0, icon: Star, href: '/dashboard/reviews' },
         ],
         quickActions: [
           { label: tActions('newProduct'), href: '/dashboard/products/new', icon: Package },
@@ -133,10 +138,10 @@ function getDashboardConfig(role: UserRole, tStats: (key: string) => string, tAc
     case 'buyer':
       return {
         stats: [
-          { label: tStats('rfqs'), value: '—', icon: ShoppingCart, href: '/dashboard/rfqs' },
-          { label: tStats('deals'), value: '—', icon: Handshake, href: '/dashboard/deals' },
-          { label: tStats('reviews'), value: '—', icon: Star, href: '/dashboard/reviews' },
-          { label: tStats('contracts'), value: '—', icon: FileText, href: '/dashboard/contracts' },
+          { label: tStats('rfqs'), value: counts.rfqs ?? 0, icon: ShoppingCart, href: '/dashboard/rfqs' },
+          { label: tStats('deals'), value: counts.deals ?? 0, icon: Handshake, href: '/dashboard/deals' },
+          { label: tStats('reviews'), value: counts.reviews ?? 0, icon: Star, href: '/dashboard/reviews' },
+          { label: tStats('contracts'), value: counts.contracts ?? 0, icon: FileText, href: '/dashboard/contracts' },
         ],
         quickActions: [
           { label: tActions('newRfq'), href: '/dashboard/rfqs/new', icon: ShoppingCart },
@@ -163,24 +168,66 @@ export default async function DashboardPage() {
   const tActions = await getTranslations('dashboard.actions');
 
   // Fetch user role
-  const db = supabase as unknown as {
-    from: (t: string) => {
-      select: (c: string) => {
-        eq: (f: string, v: string) => {
-          single: () => Promise<{ data: { role: string; full_name: string } | null }>;
-        };
-      };
-    };
-  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
 
   const { data: profile } = await db
     .from('profiles')
-    .select('role, full_name')
+    .select('role, full_name, subscription_tier')
     .eq('id', user.id)
     .single();
 
   const role = (profile?.role as UserRole) || 'buyer';
-  const config = getDashboardConfig(role, tStats, tActions);
+
+  // Fetch real counts for stat cards
+  const counts: Record<string, number> = {};
+
+  const countQuery = async (table: string, filter?: Record<string, string>) => {
+    let q = db.from(table).select('id', { count: 'exact', head: true });
+    if (filter) {
+      for (const [k, v] of Object.entries(filter)) {
+        q = q.eq(k, v);
+      }
+    }
+    const { count } = await q;
+    return count ?? 0;
+  };
+
+  if (role === 'project_owner') {
+    const [projects, deals, rfqs, reviews] = await Promise.all([
+      countQuery('projects', { owner_id: user.id }),
+      db.from('deals').select('id', { count: 'exact', head: true }).or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
+      countQuery('rfqs', { poster_id: user.id }),
+      db.from('reviews').select('id', { count: 'exact', head: true }).or(`reviewer_id.eq.${user.id},reviewee_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
+    ]);
+    Object.assign(counts, { projects, deals, rfqs, reviews });
+  } else if (role === 'contractor') {
+    const [projects, bids, deals, reviews] = await Promise.all([
+      countQuery('projects', { owner_id: user.id }),
+      countQuery('bids', { contractor_id: user.id }),
+      db.from('deals').select('id', { count: 'exact', head: true }).or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
+      db.from('reviews').select('id', { count: 'exact', head: true }).or(`reviewer_id.eq.${user.id},reviewee_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
+    ]);
+    Object.assign(counts, { projects, bids, deals, reviews });
+  } else if (role === 'supplier') {
+    const [products, quotations, deals, reviews] = await Promise.all([
+      countQuery('products', { supplier_id: user.id }),
+      countQuery('quotations', { sender_id: user.id }),
+      db.from('deals').select('id', { count: 'exact', head: true }).or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
+      db.from('reviews').select('id', { count: 'exact', head: true }).or(`reviewer_id.eq.${user.id},reviewee_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
+    ]);
+    Object.assign(counts, { products, quotations, deals, reviews });
+  } else if (role === 'buyer') {
+    const [rfqs, deals, reviews, contracts] = await Promise.all([
+      countQuery('rfqs', { poster_id: user.id }),
+      db.from('deals').select('id', { count: 'exact', head: true }).or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
+      db.from('reviews').select('id', { count: 'exact', head: true }).or(`reviewer_id.eq.${user.id},reviewee_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
+      countQuery('contracts', { creator_id: user.id }),
+    ]);
+    Object.assign(counts, { rfqs, deals, reviews, contracts });
+  }
+
+  const config = getDashboardConfig(role, tStats, tActions, counts);
   const greeting = profile?.full_name
     ? t('greeting', { name: profile.full_name })
     : t('greetingDefault');

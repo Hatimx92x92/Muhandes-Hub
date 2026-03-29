@@ -1,4 +1,4 @@
-# Muqawil HUB — Product Requirements Document (PRD)
+# Muhandes HUB — Product Requirements Document (PRD)
 
 > **Version**: 1.0  
 > **Date**: March 4, 2026  
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-Muqawil HUB is a bilingual (Arabic/English) B2B marketplace purpose-built for the Saudi construction industry. It connects Project Owners, Contractors, Suppliers, and Buyers through a unified digital platform that manages the full project-to-procurement lifecycle: from posting construction projects and sourcing materials, through bidding and quotation, to deal execution, milestone tracking, and payment.
+Muhandes HUB is a bilingual (Arabic/English) B2B marketplace purpose-built for the Saudi construction industry. It connects Project Owners, Contractors, Suppliers, and Buyers through a unified digital platform that manages the full project-to-procurement lifecycle: from posting construction projects and sourcing materials, through bidding and quotation, to deal execution, milestone tracking, and payment.
 
 **Key Value Propositions:**
 
@@ -169,7 +169,7 @@ The Saudi construction industry suffers from:
 | FR-DEAL-12 | Deal lifecycle: active → in_progress → completed / cancelled / disputed                      | P0       | System            |
 | FR-DEAL-13 | Completion when both progress bars reach 100%                                                | P0       | System            |
 | FR-DEAL-14 | Activity log (complete audit trail)                                                          | P0       | System            |
-| FR-DEAL-15 | PDF export with Muqawil HUB branding, party logos, QR verification                           | P1       | Deal participants |
+| FR-DEAL-15 | PDF export with Muhandes HUB branding, party logos, QR verification                           | P1       | Deal participants |
 | FR-DEAL-16 | Auto-commission calculation from seller's tier at deal creation                              | P0       | System            |
 | FR-DEAL-17 | Embedded context-aware chat within deal workspace                                            | P0       | Deal participants |
 | FR-DEAL-18 | Real-time updates via Supabase Realtime                                                      | P0       | System            |

@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/commission-check",
       "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/reminder-check",
+      "schedule": "0 8 * * *"
     }
   ]
 }

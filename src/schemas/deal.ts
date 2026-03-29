@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Deal & Milestone Zod Schemas
+// Muhandes HUB — Deal & Milestone Zod Schemas
 // =============================================================================
 
 import { z } from 'zod/v4';
@@ -82,15 +82,15 @@ export const CancelRequestSchema = z.object({
 export type CancelRequestInput = z.infer<typeof CancelRequestSchema>;
 
 // ---------------------------------------------------------------------------
-// Deal Skip Milestone Request
+// Deal Skip-to-Finish Request
 // ---------------------------------------------------------------------------
 
-export const SkipMilestoneSchema = z.object({
-  milestone_id: z.string().uuid(),
+export const SkipToFinishSchema = z.object({
+  deal_id: z.string().uuid(),
   reason: z.string().min(5, 'Skip reason is required'),
 });
 
-export type SkipMilestoneInput = z.infer<typeof SkipMilestoneSchema>;
+export type SkipToFinishInput = z.infer<typeof SkipToFinishSchema>;
 
 // ---------------------------------------------------------------------------
 // Deal Document Upload

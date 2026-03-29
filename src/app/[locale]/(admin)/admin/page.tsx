@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { AdminStatValue } from '@/components/features/admin/admin-stat-value';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -79,7 +80,7 @@ export default async function AdminDashboardPage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                  <p className="text-xl font-extrabold">{stat.value}</p>
+                  <p className="text-xl font-extrabold"><AdminStatValue value={stat.value} /></p>
                 </div>
               </CardContent>
             </Card>
@@ -143,7 +144,7 @@ export default async function AdminDashboardPage() {
               <div className="space-y-2">
                 {recentAudit.map((entry: Record<string, unknown>) => (
                   <div key={entry.id as string} className="flex items-center justify-between text-sm">
-                    <span>{t(`auditActions.${entry.action as string}`)}</span>
+                    <span>{t(`auditActions.${entry.action as string}`, { defaultMessage: (entry.action as string).replace(/_/g, ' ') })}</span>
                     <time className="text-xs text-muted-foreground">
                       {new Date(entry.created_at as string).toLocaleDateString(locale)}
                     </time>

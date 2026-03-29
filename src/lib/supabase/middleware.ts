@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Supabase Middleware Client (session refresh in middleware)
+// Muhandes HUB — Supabase Middleware Client (session refresh in middleware)
 // =============================================================================
 
 import { createServerClient } from '@supabase/ssr';

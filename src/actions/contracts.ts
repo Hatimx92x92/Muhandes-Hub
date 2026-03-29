@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Contract Server Actions
+// Muhandes HUB — Contract Server Actions
 // =============================================================================
 
 'use server';
@@ -8,8 +8,10 @@ import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { ContractSchema, SignContractSchema, ClauseSchema } from '@/schemas/contract';
+import { apiLimiter, checkRateLimit } from '@/lib/rate-limit';
 import type { ActionResult } from '@/types';
 import { TIER_LIMITS } from '@/types';
+import { autoTranslateBilingualFields } from '@/lib/translate';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: Awaited<ReturnType<typeof createClient>>): any {
@@ -38,12 +40,26 @@ export async function createContract(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: null, error: t('mustLogin') };
 
+  // Rate limit
+  const rl = apiLimiter();
+  const { success: rlOk } = await checkRateLimit(rl, user.id);
+  if (!rlOk) return { data: null, error: t('tooManyRequests') };
+
   // Parse form data
+  let partyA, partyB, additionalClauses;
+  try {
+    partyA = JSON.parse(formData.get('party_a') as string || '{}');
+    partyB = JSON.parse(formData.get('party_b') as string || '{}');
+    additionalClauses = JSON.parse(formData.get('additional_clauses') as string || '[]');
+  } catch {
+    return { data: null, error: t('invalidData') };
+  }
+
   const rawData = {
     deal_id: formData.get('deal_id') as string || undefined,
     template_type: formData.get('template_type') as string,
-    party_a: JSON.parse(formData.get('party_a') as string || '{}'),
-    party_b: JSON.parse(formData.get('party_b') as string || '{}'),
+    party_a: partyA,
+    party_b: partyB,
     scope_ar: formData.get('scope_ar') as string || undefined,
     scope_en: formData.get('scope_en') as string || undefined,
     payment_terms_ar: formData.get('payment_terms_ar') as string || undefined,
@@ -54,13 +70,16 @@ export async function createContract(
     warranty_ar: formData.get('warranty_ar') as string || undefined,
     warranty_en: formData.get('warranty_en') as string || undefined,
     governing_law: formData.get('governing_law') as string || 'Saudi Arabian Law',
-    additional_clauses: JSON.parse(formData.get('additional_clauses') as string || '[]'),
+    additional_clauses: additionalClauses,
   };
 
   const parsed = ContractSchema.safeParse(rawData);
   if (!parsed.success) {
     return { data: null, error: t('invalidData'), fieldErrors: toFieldErrors(parsed.error.issues) };
   }
+
+  // Auto-translate missing bilingual fields
+  const translated = await autoTranslateBilingualFields(parsed.data as Record<string, unknown>, ['scope', 'payment_terms', 'penalties', 'warranty']);
 
   // Tier limit check
   const { data: sub } = await db(supabase)
@@ -105,15 +124,15 @@ export async function createContract(
       template_type: parsed.data.template_type,
       party_a: parsed.data.party_a,
       party_b: parsed.data.party_b,
-      scope_ar: parsed.data.scope_ar,
-      scope_en: parsed.data.scope_en,
-      payment_terms_ar: parsed.data.payment_terms_ar,
-      payment_terms_en: parsed.data.payment_terms_en,
+      scope_ar: (translated.scope_ar as string) || parsed.data.scope_ar,
+      scope_en: (translated.scope_en as string) || parsed.data.scope_en,
+      payment_terms_ar: (translated.payment_terms_ar as string) || parsed.data.payment_terms_ar,
+      payment_terms_en: (translated.payment_terms_en as string) || parsed.data.payment_terms_en,
       timeline: parsed.data.timeline,
-      penalties_ar: parsed.data.penalties_ar,
-      penalties_en: parsed.data.penalties_en,
-      warranty_ar: parsed.data.warranty_ar,
-      warranty_en: parsed.data.warranty_en,
+      penalties_ar: (translated.penalties_ar as string) || parsed.data.penalties_ar,
+      penalties_en: (translated.penalties_en as string) || parsed.data.penalties_en,
+      warranty_ar: (translated.warranty_ar as string) || parsed.data.warranty_ar,
+      warranty_en: (translated.warranty_en as string) || parsed.data.warranty_en,
       governing_law: parsed.data.governing_law,
       additional_clauses: parsed.data.additional_clauses,
       status: 'draft',

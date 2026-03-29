@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { FileText, Upload } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import { uploadVerificationDocuments, logout } from '@/actions/auth';
 
 // =============================================================================
@@ -63,9 +64,7 @@ export default function DocumentsPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         {error && (
-          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
-          </div>
+          <AlertBanner variant="error">{error}</AlertBanner>
         )}
 
         {/* VAT Certificate */}

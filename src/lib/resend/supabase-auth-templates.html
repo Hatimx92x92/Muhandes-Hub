@@ -1,0 +1,369 @@
+<!-- 
+  ============================================================================
+  Muhandes HUB — Supabase Auth Email Templates (Bilingual AR/EN)
+  ============================================================================
+  Configure these in Supabase Dashboard → Authentication → Email Templates
+  
+  Available Supabase template variables:
+  - {{ .ConfirmationURL }}  — Email confirmation / signup link
+  - {{ .Token }}            — OTP token (for verify type)
+  - {{ .SiteURL }}          — Your site URL
+  - {{ .RedirectTo }}       — Redirect URL after action
+
+  Templates below:
+  1. Confirm Signup
+  2. Reset Password
+  3. Magic Link
+  4. Email Change
+  5. Invite User
+  ============================================================================
+-->
+
+<!-- ======================== 1. CONFIRM SIGNUP ======================== -->
+<!-- Subject: تأكيد بريدك الإلكتروني | Confirm Your Email — Muhandes HUB -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;">
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#1e293b;padding:24px;text-align:center;">
+              <h1 style="color:#ffffff;margin:0;font-size:20px;">Muhandes HUB | منصة مهندس</h1>
+            </td>
+          </tr>
+          <!-- Arabic Section (RTL) -->
+          <tr>
+            <td dir="rtl" style="padding:24px;text-align:right;border-bottom:1px solid #e4e4e7;">
+              <h2 style="margin:0 0 16px;font-size:18px;color:#1e293b;">تأكيد بريدك الإلكتروني</h2>
+              <p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.6;">
+                شكرًا لتسجيلك في منصة مهندس. اضغط على الرابط أدناه لتأكيد بريدك الإلكتروني وتفعيل حسابك.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+                <tr>
+                  <td style="background-color:#2563eb;border-radius:6px;padding:12px 32px;">
+                    <a href="{{ .ConfirmationURL }}" style="color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">تأكيد البريد الإلكتروني</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- English Section (LTR) -->
+          <tr>
+            <td dir="ltr" style="padding:24px;text-align:left;">
+              <h2 style="margin:0 0 16px;font-size:18px;color:#1e293b;">Confirm Your Email</h2>
+              <p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.6;">
+                Thank you for signing up for Muhandes HUB. Click the link below to confirm your email address and activate your account.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+                <tr>
+                  <td style="background-color:#2563eb;border-radius:6px;padding:12px 32px;">
+                    <a href="{{ .ConfirmationURL }}" style="color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Confirm Email</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#f4f4f5;padding:16px 24px;text-align:center;">
+              <p style="margin:0;color:#a1a1aa;font-size:12px;">
+                إذا لم تقم بإنشاء حساب، تجاهل هذا البريد.
+                <br>If you did not create an account, ignore this email.
+              </p>
+              <p style="margin:8px 0 0;color:#a1a1aa;font-size:11px;">© Muhandes HUB</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+
+
+<!-- ======================== 2. RESET PASSWORD ======================== -->
+<!-- Subject: إعادة تعيين كلمة المرور | Reset Your Password — Muhandes HUB -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;">
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#1e293b;padding:24px;text-align:center;">
+              <h1 style="color:#ffffff;margin:0;font-size:20px;">Muhandes HUB | منصة مهندس</h1>
+            </td>
+          </tr>
+          <!-- Arabic Section (RTL) -->
+          <tr>
+            <td dir="rtl" style="padding:24px;text-align:right;border-bottom:1px solid #e4e4e7;">
+              <h2 style="margin:0 0 16px;font-size:18px;color:#1e293b;">إعادة تعيين كلمة المرور</h2>
+              <p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.6;">
+                تلقينا طلبًا لإعادة تعيين كلمة المرور الخاصة بك. اضغط على الرابط أدناه لاختيار كلمة مرور جديدة.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+                <tr>
+                  <td style="background-color:#2563eb;border-radius:6px;padding:12px 32px;">
+                    <a href="{{ .ConfirmationURL }}" style="color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">إعادة تعيين كلمة المرور</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- English Section (LTR) -->
+          <tr>
+            <td dir="ltr" style="padding:24px;text-align:left;">
+              <h2 style="margin:0 0 16px;font-size:18px;color:#1e293b;">Reset Your Password</h2>
+              <p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.6;">
+                We received a request to reset your password. Click the link below to choose a new password.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+                <tr>
+                  <td style="background-color:#2563eb;border-radius:6px;padding:12px 32px;">
+                    <a href="{{ .ConfirmationURL }}" style="color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Reset Password</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#f4f4f5;padding:16px 24px;text-align:center;">
+              <p style="margin:0;color:#a1a1aa;font-size:12px;">
+                إذا لم تطلب إعادة تعيين كلمة المرور، تجاهل هذا البريد.
+                <br>If you didn't request a password reset, ignore this email.
+              </p>
+              <p style="margin:8px 0 0;color:#a1a1aa;font-size:11px;">© Muhandes HUB</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+
+
+<!-- ======================== 3. MAGIC LINK ======================== -->
+<!-- Subject: رابط الدخول السريع | Your Login Link — Muhandes HUB -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;">
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#1e293b;padding:24px;text-align:center;">
+              <h1 style="color:#ffffff;margin:0;font-size:20px;">Muhandes HUB | منصة مهندس</h1>
+            </td>
+          </tr>
+          <!-- Arabic Section (RTL) -->
+          <tr>
+            <td dir="rtl" style="padding:24px;text-align:right;border-bottom:1px solid #e4e4e7;">
+              <h2 style="margin:0 0 16px;font-size:18px;color:#1e293b;">رابط الدخول السريع</h2>
+              <p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.6;">
+                اضغط على الرابط أدناه لتسجيل الدخول إلى حسابك. هذا الرابط صالح لمرة واحدة فقط.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+                <tr>
+                  <td style="background-color:#2563eb;border-radius:6px;padding:12px 32px;">
+                    <a href="{{ .ConfirmationURL }}" style="color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">تسجيل الدخول</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- English Section (LTR) -->
+          <tr>
+            <td dir="ltr" style="padding:24px;text-align:left;">
+              <h2 style="margin:0 0 16px;font-size:18px;color:#1e293b;">Your Login Link</h2>
+              <p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.6;">
+                Click the link below to log in to your account. This link can only be used once.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+                <tr>
+                  <td style="background-color:#2563eb;border-radius:6px;padding:12px 32px;">
+                    <a href="{{ .ConfirmationURL }}" style="color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Log In</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#f4f4f5;padding:16px 24px;text-align:center;">
+              <p style="margin:0;color:#a1a1aa;font-size:12px;">
+                إذا لم تطلب رابط الدخول، تجاهل هذا البريد.
+                <br>If you didn't request this login link, ignore this email.
+              </p>
+              <p style="margin:8px 0 0;color:#a1a1aa;font-size:11px;">© Muhandes HUB</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+
+
+<!-- ======================== 4. EMAIL CHANGE ======================== -->
+<!-- Subject: تأكيد تغيير البريد | Confirm Email Change — Muhandes HUB -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;">
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#1e293b;padding:24px;text-align:center;">
+              <h1 style="color:#ffffff;margin:0;font-size:20px;">Muhandes HUB | منصة مهندس</h1>
+            </td>
+          </tr>
+          <!-- Arabic Section (RTL) -->
+          <tr>
+            <td dir="rtl" style="padding:24px;text-align:right;border-bottom:1px solid #e4e4e7;">
+              <h2 style="margin:0 0 16px;font-size:18px;color:#1e293b;">تأكيد تغيير البريد الإلكتروني</h2>
+              <p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.6;">
+                اضغط على الرابط أدناه لتأكيد تغيير بريدك الإلكتروني.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+                <tr>
+                  <td style="background-color:#2563eb;border-radius:6px;padding:12px 32px;">
+                    <a href="{{ .ConfirmationURL }}" style="color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">تأكيد التغيير</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- English Section (LTR) -->
+          <tr>
+            <td dir="ltr" style="padding:24px;text-align:left;">
+              <h2 style="margin:0 0 16px;font-size:18px;color:#1e293b;">Confirm Email Change</h2>
+              <p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.6;">
+                Click the link below to confirm your email address change.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+                <tr>
+                  <td style="background-color:#2563eb;border-radius:6px;padding:12px 32px;">
+                    <a href="{{ .ConfirmationURL }}" style="color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Confirm Change</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#f4f4f5;padding:16px 24px;text-align:center;">
+              <p style="margin:0;color:#a1a1aa;font-size:12px;">
+                إذا لم تطلب تغيير البريد، تجاهل هذا البريد.
+                <br>If you didn't request this change, ignore this email.
+              </p>
+              <p style="margin:8px 0 0;color:#a1a1aa;font-size:11px;">© Muhandes HUB</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+
+
+<!-- ======================== 5. INVITE USER ======================== -->
+<!-- Subject: دعوة للانضمام | You're Invited — Muhandes HUB -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;">
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#1e293b;padding:24px;text-align:center;">
+              <h1 style="color:#ffffff;margin:0;font-size:20px;">Muhandes HUB | منصة مهندس</h1>
+            </td>
+          </tr>
+          <!-- Arabic Section (RTL) -->
+          <tr>
+            <td dir="rtl" style="padding:24px;text-align:right;border-bottom:1px solid #e4e4e7;">
+              <h2 style="margin:0 0 16px;font-size:18px;color:#1e293b;">دعوة للانضمام إلى منصة مهندس</h2>
+              <p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.6;">
+                تمت دعوتك للانضمام إلى منصة مهندس. اضغط على الرابط أدناه لقبول الدعوة وإنشاء حسابك.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+                <tr>
+                  <td style="background-color:#2563eb;border-radius:6px;padding:12px 32px;">
+                    <a href="{{ .ConfirmationURL }}" style="color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">قبول الدعوة</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- English Section (LTR) -->
+          <tr>
+            <td dir="ltr" style="padding:24px;text-align:left;">
+              <h2 style="margin:0 0 16px;font-size:18px;color:#1e293b;">You're Invited to Muhandes HUB</h2>
+              <p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.6;">
+                You've been invited to join Muhandes HUB. Click the link below to accept the invitation and create your account.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+                <tr>
+                  <td style="background-color:#2563eb;border-radius:6px;padding:12px 32px;">
+                    <a href="{{ .ConfirmationURL }}" style="color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Accept Invitation</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#f4f4f5;padding:16px 24px;text-align:center;">
+              <p style="margin:0;color:#a1a1aa;font-size:12px;">
+                إذا لم تكن تنتظر هذه الدعوة، تجاهل هذا البريد.
+                <br>If you weren't expecting this invitation, ignore this email.
+              </p>
+              <p style="margin:8px 0 0;color:#a1a1aa;font-size:11px;">© Muhandes HUB</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

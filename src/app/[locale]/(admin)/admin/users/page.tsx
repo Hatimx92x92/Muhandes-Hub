@@ -1,139 +1,74 @@
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
-import { Link } from '@/i18n/navigation';
-import { getTranslations, getLocale } from 'next-intl/server';
-import { Users, Shield, Ban, AlertCircle } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { EmptyState } from '@/components/features/empty-state';
-import { AdminUserActions } from '@/components/features/admin/user-actions';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function db(supabase: any): any {
-  return supabase;
-}
-
-const STATUS_VARIANTS: Record<string, 'pending' | 'success' | 'destructive' | 'warning' | 'info'> = {
-  pending_email: 'pending',
-  pending_payment: 'pending',
-  pending_documents: 'pending',
-  pending_approval: 'warning',
-  active: 'success',
-  banned: 'destructive',
-  restricted: 'warning',
-};
+import { getTranslations } from 'next-intl/server';
+import { getAdminUsers, type AdminQueryParams } from '@/actions/admin/queries';
+import { UsersTableClient } from './users-table-client';
 
 export default async function AdminUsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; search?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const t = await getTranslations('admin');
-  const locale = await getLocale();
-  const { status: filterStatus, search } = await searchParams;
+  const tf = await getTranslations('features.adminUser');
+  const params = await searchParams;
 
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  const queryParams: AdminQueryParams = {
+    page: Number(params.page) || 1,
+    search: params.search,
+    sort: params.sort,
+    filters: {
+      ...(params.status ? { status: params.status } : {}),
+      ...(params.role ? { role: params.role } : {}),
+    },
+  };
 
-  // Build query
-  let query = db(supabase)
-    .from('profiles')
-    .select('id, full_name, company_name_ar, company_name_en, role, verification_status, is_admin, created_at')
-    .order('created_at', { ascending: false })
-    .limit(100);
+  const result = await getAdminUsers(queryParams);
 
-  if (filterStatus) {
-    query = query.eq('verification_status', filterStatus);
-  }
-
-  if (search) {
-    query = query.or(`full_name.ilike.%${search}%,company_name_ar.ilike.%${search}%,company_name_en.ilike.%${search}%`);
-  }
-
-  const { data: users } = await query;
-  const items = (users ?? []) as Record<string, unknown>[];
-
-  const statuses = ['active', 'pending_approval', 'pending_documents', 'pending_payment', 'pending_email', 'banned', 'restricted'];
+  // Build flat translation map for client
+  const translations: Record<string, string> = {
+    col_name: t('table.columns.name'),
+    col_company: t('table.columns.company'),
+    col_role: t('table.columns.role'),
+    col_status: t('table.columns.status'),
+    col_created: t('table.columns.created'),
+    col_actions: t('table.columns.actions'),
+    sort_newest: t('table.sort.newest'),
+    sort_oldest: t('table.sort.oldest'),
+    sort_nameAsc: t('table.sort.nameAsc'),
+    sort_nameDesc: t('table.sort.nameDesc'),
+    status_pending_email: t('userStatus.pending_email'),
+    status_pending_payment: t('userStatus.pending_payment'),
+    status_pending_documents: t('userStatus.pending_documents'),
+    status_pending_approval: t('userStatus.pending_approval'),
+    status_active: t('userStatus.active'),
+    status_banned: t('userStatus.banned'),
+    status_restricted: t('userStatus.restricted'),
+    role_project_owner: t('roleLabels.project_owner'),
+    role_contractor: t('roleLabels.contractor'),
+    role_supplier: t('roleLabels.supplier'),
+    role_buyer: t('roleLabels.buyer'),
+    adminBadge: t('adminBadge'),
+    noUsers: t('usersPage.noUsers'),
+    noUsersDesc: t('usersPage.noUsersDesc'),
+    searchPlaceholder: t('usersPage.title'),
+    action_approve: tf('approve'),
+    action_restrict: tf('restrict'),
+    action_ban: tf('ban'),
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t('usersPage.title')}</h1>
-          <p className="text-muted-foreground">{t('usersPage.subtitle')}</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold">{t('usersPage.title')}</h1>
+        <p className="text-muted-foreground">{t('usersPage.subtitle')}</p>
       </div>
 
-      {/* Filter badges */}
-      <div className="flex flex-wrap gap-2">
-        <Link href="/admin/users">
-          <Badge variant={!filterStatus ? 'default' : 'outline'}>{t('all')}</Badge>
-        </Link>
-        {statuses.map((s) => (
-          <Link key={s} href={`/admin/users?status=${s}`}>
-            <Badge variant={filterStatus === s ? 'default' : 'outline'}>
-              {t(`userStatus.${s}`)}
-            </Badge>
-          </Link>
-        ))}
-      </div>
-
-      {/* User list */}
-      {items.length === 0 ? (
-        <EmptyState
-          icon={<Users className="h-12 w-12" />}
-          title={t('usersPage.noUsers')}
-          description={t('usersPage.noUsersDesc')}
-        />
-      ) : (
-        <div className="space-y-3">
-          {items.map((u) => (
-            <Link key={u.id as string} href={`/admin/users/${u.id as string}`}>
-              <Card className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/20 cursor-pointer">
-                <CardContent className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate font-medium">
-                        {(u.full_name as string) ?? t('noName')}
-                      </p>
-                      {!!u.is_admin && (
-                        <Badge variant="info">
-                          <Shield className="me-1 h-3 w-3" />
-                          {t('adminBadge')}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="truncate text-sm text-muted-foreground">
-                      {(u.company_name_ar as string) ?? (u.company_name_en as string) ?? ''}
-                    </p>
-                    <div className="mt-1 flex flex-wrap gap-2">
-                      <Badge variant={(u.role as string) === 'project_owner' ? 'project_owner' : (u.role as string) === 'contractor' ? 'contractor' : (u.role as string) === 'supplier' ? 'supplier' : 'buyer'}>
-                        {t(`roleLabels.${u.role as string}`)}
-                      </Badge>
-                      <Badge variant={STATUS_VARIANTS[u.verification_status as string] ?? 'secondary'}>
-                        {t(`userStatus.${u.verification_status as string}`)}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm">
-                    <time className="text-muted-foreground">
-                      {new Date(u.created_at as string).toLocaleDateString(locale)}
-                    </time>
-                    <AdminUserActions
-                      userId={u.id as string}
-                      currentStatus={u.verification_status as string}
-                      isAdmin={!!u.is_admin}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      )}
+      <UsersTableClient
+        data={result.data}
+        totalCount={result.totalCount}
+        currentPage={result.page}
+        totalPages={result.totalPages}
+        translations={translations}
+      />
     </div>
   );
 }

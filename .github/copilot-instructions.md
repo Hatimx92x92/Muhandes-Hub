@@ -1,4 +1,4 @@
-# Muqawil HUB — Copilot Instructions
+# Muhandes HUB — Copilot Instructions
 
 Bilingual (Arabic/English) B2B marketplace for the Saudi construction industry. Multi-role platform with subscription tiers, deal workspaces, bidding/quotation, and admin moderation.
 
@@ -35,6 +35,13 @@ npm run test         # Vitest (watch mode)
 npm run test:run     # Vitest (single run)
 npm run typesense:index  # Reindex Typesense
 ```
+
+## Testing & User Creation
+
+- **Creating users**: Always use the browser registration page (`/register`) via browser tools — never create users via scripts or direct DB inserts
+- **Demo accounts**: See `.docs/DEMO-USERS.md` for existing test accounts with credentials
+- **E2E test plan**: See `.docs/TESTS.md` for the full 214-test plan across 10 phases
+- **Cron jobs**: 3 daily jobs (subscription/commission/reminder checks) — see `vercel.json`
 
 ## Architecture
 

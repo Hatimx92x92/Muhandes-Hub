@@ -1,15 +1,20 @@
-// =============================================================================
-// Muqawil HUB — RFQ Server Actions
+﻿// =============================================================================
+// Muhandes HUB â€” RFQ Server Actions
 // =============================================================================
 
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
+import { localizeFieldErrors } from '@/lib/zod-i18n';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { RFQSchema, RFQResponseSchema } from '@/schemas/rfq';
 import type { ActionResult } from '@/types';
 import { VAT_RATE } from '@/types';
+import { generateUniqueSlug, slugify } from '@/lib/utils';
+import { autoTranslateBilingualFields } from '@/lib/translate';
+import { autoLinkClient } from '@/actions/crm';
 import {
   notifyRfqResponseReceived,
   notifyRfqResponseAccepted,
@@ -22,14 +27,15 @@ function db(supabase: Awaited<ReturnType<typeof createClient>>): any {
   return supabase;
 }
 
-function toFieldErrors(issues: { path: PropertyKey[]; message: string }[]): Record<string, string[]> {
+async function toFieldErrors(issues: { path: PropertyKey[]; message: string }[]): Promise<Record<string, string[]>> {
+  const locale = await getLocale();
   const fieldErrors: Record<string, string[]> = {};
   for (const issue of issues) {
     const key = String(issue.path[0] ?? 'form');
     fieldErrors[key] = fieldErrors[key] ?? [];
     fieldErrors[key].push(issue.message);
   }
-  return fieldErrors;
+  return localizeFieldErrors(fieldErrors, locale);
 }
 
 // ---------------------------------------------------------------------------
@@ -72,18 +78,27 @@ export async function createRFQ(
 
   const parsed = RFQSchema.safeParse(raw);
   if (!parsed.success) {
-    return { data: null, error: t('invalidData'), fieldErrors: toFieldErrors(parsed.error.issues) };
+    return { data: null, error: t('invalidData'), fieldErrors: await toFieldErrors(parsed.error.issues) };
   }
 
-  // 4. Insert RFQ as draft
+  // 3b. Auto-translate missing bilingual fields
+  const translated = await autoTranslateBilingualFields(parsed.data as Record<string, unknown>, ['title', 'description']);
+
+  // 4. Generate slugs
+  const [slug_ar, slug_en] = await Promise.all([
+    generateUniqueSlug((translated.title_ar as string) || parsed.data.title_ar || '', 'rfqs', 'slug_ar', db(supabase)),
+    generateUniqueSlug((translated.title_en as string) || parsed.data.title_en || '', 'rfqs', 'slug_en', db(supabase)),
+  ]);
+
+  // 5. Insert RFQ as draft
   const { data: rfq, error } = await db(supabase)
     .from('rfqs')
     .insert({
       poster_id: user.id,
-      title_ar: parsed.data.title_ar,
-      title_en: parsed.data.title_en,
-      description_ar: parsed.data.description_ar,
-      description_en: parsed.data.description_en,
+      title_ar: (translated.title_ar as string) || parsed.data.title_ar || '',
+      title_en: (translated.title_en as string) || parsed.data.title_en || '',
+      description_ar: (translated.description_ar as string) || parsed.data.description_ar || '',
+      description_en: (translated.description_en as string) || parsed.data.description_en || '',
       category_id: parsed.data.category_id || null,
       quantity: parsed.data.quantity || null,
       budget_min: parsed.data.budget_min || null,
@@ -92,6 +107,8 @@ export async function createRFQ(
       city_id: null, // Will be resolved when city table is available
       project_id: parsed.data.project_id || null,
       product_id: parsed.data.product_id || null,
+      slug_ar,
+      slug_en,
       status: 'draft',
     })
     .select('id')
@@ -99,6 +116,27 @@ export async function createRFQ(
 
   if (error || !rfq) {
     return { data: null, error: t('createError') };
+  }
+
+  // 6. Upload RFQ files from FormData
+  const rfqFiles = formData.getAll('rfq_files') as File[];
+  const fileCategory = (formData.get('file_category') as string) || 'general';
+  if (rfqFiles.length > 0) {
+    const { uploadFile: doUpload } = await import('@/actions/uploads');
+    for (const file of rfqFiles) {
+      if (!file || file.size === 0) continue;
+      const uploadResult = await doUpload('rfq-files', file, `${rfq.id}/${fileCategory}-${Date.now()}`);
+      if (uploadResult.data) {
+        await db(supabase).from('rfq_files').insert({
+          rfq_id: rfq.id,
+          file_url: uploadResult.data.url,
+          file_name: file.name,
+          file_size: file.size,
+          mime_type: file.type,
+          category: fileCategory,
+        });
+      }
+    }
   }
 
   revalidatePath('/dashboard/rfqs');
@@ -174,8 +212,11 @@ export async function respondToRFQ(
 
   const parsed = RFQResponseSchema.safeParse(raw);
   if (!parsed.success) {
-    return { data: null, error: t('invalidData'), fieldErrors: toFieldErrors(parsed.error.issues) };
+    return { data: null, error: t('invalidData'), fieldErrors: await toFieldErrors(parsed.error.issues) };
   }
+
+  // Auto-translate missing bilingual fields
+  const translated = await autoTranslateBilingualFields(parsed.data as Record<string, unknown>, ['delivery_terms', 'notes']);
 
   // Verify RFQ is published and before deadline
   const { data: rfq } = await db(supabase)
@@ -218,10 +259,10 @@ export async function respondToRFQ(
       rfq_id: parsed.data.rfq_id,
       supplier_id: user.id,
       pricing,
-      delivery_terms_ar: parsed.data.delivery_terms_ar || null,
-      delivery_terms_en: parsed.data.delivery_terms_en || null,
-      notes_ar: parsed.data.notes_ar || null,
-      notes_en: parsed.data.notes_en || null,
+      delivery_terms_ar: (translated.delivery_terms_ar as string) || parsed.data.delivery_terms_ar || null,
+      delivery_terms_en: (translated.delivery_terms_en as string) || parsed.data.delivery_terms_en || null,
+      notes_ar: (translated.notes_ar as string) || parsed.data.notes_ar || null,
+      notes_en: (translated.notes_en as string) || parsed.data.notes_en || null,
       status: 'pending',
     })
     .select('id')
@@ -248,7 +289,7 @@ export async function respondToRFQ(
     notifyRfqResponseReceived({
       ownerId: rfqForNotify.poster_id,
       rfqTitle: { ar: rfqForNotify.title_ar, en: rfqForNotify.title_en },
-      responderName: responderProfile?.company_name_ar || 'مورد',
+      responderName: responderProfile?.company_name_ar || 'Ù…ÙˆØ±Ø¯',
       rfqId: parsed.data.rfq_id,
       responseId: response.id,
     }).catch(() => {});
@@ -279,7 +320,7 @@ export async function acceptRFQResponse(responseId: string): Promise<ActionResul
   // Verify poster ownership of RFQ
   const { data: rfq } = await db(supabase)
     .from('rfqs')
-    .select('id, poster_id, title_ar, project_id')
+    .select('id, poster_id, title_ar, title_en, project_id')
     .eq('id', response.rfq_id)
     .single();
 
@@ -299,10 +340,11 @@ export async function acceptRFQResponse(responseId: string): Promise<ActionResul
 
   // Calculate deal value from pricing
   const pricingData = response.pricing || {};
-  const dealValue = pricingData.total || 0;
+  const dealValue = pricingData.total_price || pricingData.total || 0;
 
-  // Get supplier tier for commission
-  const { data: supplierSub } = await db(supabase)
+  // Get supplier tier for commission (use admin client to bypass RLS)
+  const adminSupabase = createAdminClient();
+  const { data: supplierSub } = await adminSupabase
     .from('subscriptions')
     .select('tier')
     .eq('user_id', response.supplier_id)
@@ -313,11 +355,14 @@ export async function acceptRFQResponse(responseId: string): Promise<ActionResul
   const commissionRates: Record<string, number> = { starter: 0.02, pro: 0.01, business: 0, enterprise: 0 };
   const commRate = commissionRates[tier] ?? 0.02;
 
+  // Generate slug from English title
+  const slugBase = slugify(rfq.title_en || rfq.title_ar || `rfq-deal-${responseId.slice(0, 8)}`);
+
   // Create deal
   const { data: deal, error: dealError } = await db(supabase)
     .from('deals')
     .insert({
-      title_slug: `deal-rfq-${rfq.title_ar?.slice(0, 20) || response.rfq_id}`,
+      title_slug: `deal-${slugBase}`,
       deal_type: 'deal_product',
       trigger_source: 'rfq_response',
       rfq_response_id: responseId,
@@ -330,7 +375,7 @@ export async function acceptRFQResponse(responseId: string): Promise<ActionResul
       commission_vat: dealValue * commRate * VAT_RATE,
       status: 'active',
     })
-    .select('id')
+    .select('id, title_slug')
     .single();
 
   if (dealError || !deal) {
@@ -352,9 +397,12 @@ export async function acceptRFQResponse(responseId: string): Promise<ActionResul
     dealId: deal.id,
   }).catch(() => {});
 
+  // Auto-link counterparty as CRM client
+  autoLinkClient(deal.id).catch(() => {});
+
   revalidatePath('/dashboard/rfqs');
   revalidatePath('/dashboard/deals');
-  return { data: { dealId: deal.id }, error: null };
+  return { data: { dealId: deal.title_slug || deal.id }, error: null };
 }
 
 // ---------------------------------------------------------------------------
@@ -371,7 +419,7 @@ export async function rejectRFQResponse(
 
   const { data: response } = await db(supabase)
     .from('rfq_responses')
-    .select('id, rfq_id, status')
+    .select('id, rfq_id, supplier_id, status')
     .eq('id', responseId)
     .single();
 
@@ -379,7 +427,7 @@ export async function rejectRFQResponse(
 
   const { data: rfq } = await db(supabase)
     .from('rfqs')
-    .select('poster_id')
+    .select('poster_id, title_ar, title_en')
     .eq('id', response.rfq_id)
     .single();
 
@@ -398,11 +446,44 @@ export async function rejectRFQResponse(
 
   // Notify supplier
   notifyRfqResponseRejected({
-    supplierId: response.supplier_id || '',
-    rfqTitle: { ar: '', en: '' },
+    supplierId: response.supplier_id,
+    rfqTitle: { ar: rfq.title_ar || '', en: rfq.title_en || '' },
     responseId,
   }).catch(() => {});
 
   revalidatePath('/dashboard/rfqs');
   return { data: undefined, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// REMOVE RFQ FILE
+// ---------------------------------------------------------------------------
+export async function removeRFQFile(
+  rfqId: string,
+  fileId: string,
+): Promise<ActionResult<{ deleted: boolean }>> {
+  const t = await getTranslations('actions.rfqs');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  // Ownership check
+  const { data: rfq } = await db(supabase)
+    .from('rfqs')
+    .select('poster_id')
+    .eq('id', rfqId)
+    .single();
+  if (!rfq) return { data: null, error: t('rfqNotFound') };
+  if (rfq.poster_id !== user.id) return { data: null, error: t('noPermission') };
+
+  const { error: deleteErr } = await db(supabase)
+    .from('rfq_files')
+    .delete()
+    .eq('id', fileId)
+    .eq('rfq_id', rfqId);
+
+  if (deleteErr) return { data: null, error: t('deleteError') };
+
+  revalidatePath(`/dashboard/rfqs/${rfqId}`);
+  return { data: { deleted: true }, error: null };
 }

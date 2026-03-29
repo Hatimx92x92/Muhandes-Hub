@@ -1,5 +1,5 @@
 -- ============================================================================
--- Muqawil HUB — Complete Database Schema
+-- Muhandes HUB — Complete Database Schema
 -- Supabase (PostgreSQL) Migration
 -- Version: 1.0 | Generated: March 4, 2026
 -- ============================================================================
@@ -291,6 +291,10 @@ CREATE TABLE profiles (
     website TEXT,
     company_profile_url TEXT,
     -- PDF (Project Owner only)
+    bio_ar TEXT,
+    bio_en TEXT,
+    slug_ar TEXT UNIQUE,
+    slug_en TEXT UNIQUE,
     -- Location
     city_id UUID REFERENCES saudi_cities(id),
     address_ar TEXT,
@@ -308,6 +312,12 @@ CREATE TABLE profiles (
     notification_preferences JSONB NOT NULL DEFAULT '{}',
     -- PDPL consent
     pdpl_consent_at TIMESTAMPTZ,
+    -- Auth provider (email, google)
+    provider TEXT NOT NULL DEFAULT 'email',
+    -- Bank transfer receipt path (for admin verification)
+    bank_receipt_url TEXT,
+    -- Single-device enforcement: only one session allowed per account
+    active_session_token TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -335,7 +345,7 @@ UPDATE
 CREATE
 OR REPLACE FUNCTION handle_new_user() RETURNS TRIGGER AS $ $ BEGIN
 INSERT INTO
-    public.profiles (id, role, full_name, phone)
+    public.profiles (id, role, full_name, phone, provider)
 VALUES
     (
         NEW.id,
@@ -344,7 +354,8 @@ VALUES
             'buyer'
         ),
         COALESCE(NEW.raw_user_meta_data ->> 'full_name', ''),
-        COALESCE(NEW.raw_user_meta_data ->> 'phone', '')
+        COALESCE(NEW.raw_user_meta_data ->> 'phone', ''),
+        COALESCE(NEW.raw_user_meta_data ->> 'provider', 'email')
     );
 
 RETURN NEW;
@@ -506,6 +517,9 @@ CREATE TABLE projects (
     approved_at TIMESTAMPTZ,
     bid_count INT NOT NULL DEFAULT 0,
     last_synced_at TIMESTAMPTZ,
+    slug_ar TEXT UNIQUE,
+    slug_en TEXT UNIQUE,
+    bid_deadline TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -567,6 +581,10 @@ CREATE TABLE products (
     in_stock BOOLEAN NOT NULL DEFAULT true,
     stock_quantity INT,
     -- null = unlimited / not tracked
+    slug_ar TEXT UNIQUE,
+    slug_en TEXT UNIQUE,
+    min_order_qty INT NOT NULL DEFAULT 1,
+    lead_time_days INT,
     status post_status NOT NULL DEFAULT 'draft',
     rejection_reason_ar TEXT,
     rejection_reason_en TEXT,
@@ -651,6 +669,7 @@ CREATE TABLE bids (
     methodology_en TEXT,
     status bid_status NOT NULL DEFAULT 'pending',
     attachments JSONB DEFAULT '[]',
+    awarded_at TIMESTAMPTZ,
     submitted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE(project_id, contractor_id)
@@ -743,6 +762,8 @@ CREATE TABLE rfqs (
         approved_at TIMESTAMPTZ,
         response_count INT NOT NULL DEFAULT 0,
         last_synced_at TIMESTAMPTZ,
+        slug_ar TEXT UNIQUE,
+        slug_en TEXT UNIQUE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -893,6 +914,8 @@ CREATE TABLE quotations (
         status quotation_status NOT NULL DEFAULT 'draft',
         revision_count INT NOT NULL DEFAULT 0,
         accepted_at TIMESTAMPTZ,
+        expires_at TIMESTAMPTZ,
+        -- Auto-computed: created_at + (validity_days * interval '1 day')
         pdf_url TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -1000,6 +1023,9 @@ CREATE TABLE deals (
         project_id UUID REFERENCES projects(id) ON DELETE
     SET
         NULL,
+        product_id UUID REFERENCES products(id) ON DELETE
+    SET
+        NULL,
         -- Parties
         seller_id UUID NOT NULL REFERENCES profiles(id),
         buyer_id UUID NOT NULL REFERENCES profiles(id),
@@ -1020,6 +1046,8 @@ CREATE TABLE deals (
         ),
         started_at TIMESTAMPTZ,
         completed_at TIMESTAMPTZ,
+        cancelled_at TIMESTAMPTZ,
+        disputed_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -1138,6 +1166,7 @@ CREATE TABLE deal_milestones (
     suggested_by UUID REFERENCES profiles(id),
     is_suggestion BOOLEAN NOT NULL DEFAULT false,
     suggestion_approved BOOLEAN,
+    completed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -1437,6 +1466,9 @@ CREATE TABLE crm_clients (
     total_deal_value NUMERIC(14, 2) NOT NULL DEFAULT 0,
     total_deals INT NOT NULL DEFAULT 0,
     average_deal_size NUMERIC(14, 2) NOT NULL DEFAULT 0,
+    deal_completion_rate NUMERIC(5, 2) NOT NULL DEFAULT 0,
+    payment_timeliness_score NUMERIC(5, 2) NOT NULL DEFAULT 0,
+    review_rating NUMERIC(3, 2) NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -1518,6 +1550,8 @@ CREATE TABLE conversations (
         deal_id UUID REFERENCES deals(id) ON DELETE
     SET
         NULL,
+        last_message_at TIMESTAMPTZ,
+        last_message_preview TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
         -- At least one context must be set
@@ -1764,6 +1798,8 @@ CREATE TABLE invoices (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     type invoice_type NOT NULL,
+    number TEXT NOT NULL,
+    -- INV-YYYY-NNNN (auto-generated)
     reference_id UUID NOT NULL,
     -- commission_id or subscription_id
     subtotal NUMERIC(14, 2) NOT NULL,
@@ -1814,6 +1850,7 @@ CREATE TABLE contact_submissions (
     name TEXT NOT NULL,
     email TEXT NOT NULL,
     company TEXT,
+    subject TEXT NOT NULL,
     message TEXT NOT NULL,
     role_interest TEXT,
     is_read BOOLEAN NOT NULL DEFAULT false,
@@ -1823,6 +1860,126 @@ CREATE TABLE contact_submissions (
 CREATE INDEX idx_contact_submissions_unread ON contact_submissions(is_read)
 WHERE
     is_read = false;
+
+-- ============================================================================
+-- SECTION 30.1: Profile Views
+-- ============================================================================
+CREATE TABLE profile_views (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    viewer_id UUID REFERENCES profiles(id) ON DELETE
+    SET
+        NULL,
+        viewed_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_profile_views_profile ON profile_views(profile_id, viewed_at DESC);
+
+CREATE INDEX idx_profile_views_viewer ON profile_views(viewer_id);
+
+-- ============================================================================
+-- SECTION 30.2: Quotation Revisions
+-- ============================================================================
+CREATE TABLE quotation_revisions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    quotation_id UUID NOT NULL REFERENCES quotations(id) ON DELETE CASCADE,
+    revision_number INT NOT NULL,
+    line_items JSONB NOT NULL DEFAULT '[]',
+    subtotal NUMERIC(14, 2) NOT NULL DEFAULT 0,
+    vat_amount NUMERIC(14, 2) NOT NULL DEFAULT 0,
+    total NUMERIC(14, 2) NOT NULL DEFAULT 0,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_quotation_revisions_quotation ON quotation_revisions(quotation_id, revision_number);
+
+-- ============================================================================
+-- SECTION 30.3: Bulk Import Jobs
+-- ============================================================================
+CREATE TABLE bulk_import_jobs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    entity_type TEXT NOT NULL,
+    -- 'products', 'crm_clients'
+    file_url TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    -- 'pending', 'processing', 'completed', 'failed'
+    total_rows INT,
+    processed_rows INT NOT NULL DEFAULT 0,
+    error_rows INT NOT NULL DEFAULT 0,
+    errors JSONB DEFAULT '[]',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_bulk_import_jobs_user ON bulk_import_jobs(user_id);
+
+CREATE INDEX idx_bulk_import_jobs_status ON bulk_import_jobs(status);
+
+-- ============================================================================
+-- SECTION 30.4: Additional Triggers
+-- ============================================================================
+-- Auto-compute quotation expires_at on insert
+CREATE
+OR REPLACE FUNCTION auto_quotation_expires_at() RETURNS TRIGGER AS $ $ BEGIN NEW.expires_at := NEW.created_at + (NEW.validity_days * interval '1 day');
+
+RETURN NEW;
+
+END;
+
+$ $ LANGUAGE plpgsql;
+
+CREATE TRIGGER set_quotation_expires_at BEFORE
+INSERT
+    ON quotations FOR EACH ROW EXECUTE FUNCTION auto_quotation_expires_at();
+
+-- Update conversations.last_message_at and last_message_preview on new message
+CREATE
+OR REPLACE FUNCTION update_conversation_last_message() RETURNS TRIGGER AS $ $ BEGIN
+UPDATE
+    conversations
+SET
+    last_message_at = NEW.created_at,
+    last_message_preview = LEFT(NEW.content, 100),
+    updated_at = now()
+WHERE
+    id = NEW.conversation_id;
+
+RETURN NEW;
+
+END;
+
+$ $ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_message_created
+AFTER
+INSERT
+    ON messages FOR EACH ROW EXECUTE FUNCTION update_conversation_last_message();
+
+-- Auto-generate invoice number INV-YYYY-NNNN
+CREATE SEQUENCE IF NOT EXISTS invoice_number_seq START WITH 1;
+
+CREATE
+OR REPLACE FUNCTION auto_invoice_number() RETURNS TRIGGER AS $ $ DECLARE next_val INT;
+
+BEGIN next_val := nextval('invoice_number_seq');
+
+NEW.number := 'INV-' || EXTRACT(
+    YEAR
+    FROM
+        now()
+) :: TEXT || '-' || lpad(next_val :: TEXT, 4, '0');
+
+RETURN NEW;
+
+END;
+
+$ $ LANGUAGE plpgsql;
+
+CREATE TRIGGER set_invoice_number BEFORE
+INSERT
+    ON invoices FOR EACH ROW EXECUTE FUNCTION auto_invoice_number();
 
 -- ============================================================================
 -- SECTION 31: Row Level Security (RLS)
@@ -2895,6 +3052,108 @@ SELECT
                 AND profiles.is_admin = true
         )
     );
+
+-- Enable RLS on new tables
+ALTER TABLE
+    profile_views ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE
+    quotation_revisions ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE
+    bulk_import_jobs ENABLE ROW LEVEL SECURITY;
+
+-- profile_views: users can view their own profile's views
+CREATE POLICY "Users can view own profile views" ON profile_views FOR
+SELECT
+    USING (profile_id = auth.uid());
+
+-- profile_views: authenticated users can insert views
+CREATE POLICY "Authenticated users can create profile views" ON profile_views FOR
+INSERT
+    WITH CHECK (
+        auth.uid() IS NOT NULL
+        AND viewer_id = auth.uid()
+    );
+
+-- quotation_revisions: sender or recipient can view
+CREATE POLICY "Quotation parties can view revisions" ON quotation_revisions FOR
+SELECT
+    USING (
+        EXISTS (
+            SELECT
+                1
+            FROM
+                quotations
+            WHERE
+                quotations.id = quotation_revisions.quotation_id
+                AND (
+                    quotations.sender_id = auth.uid()
+                    OR quotations.recipient_id = auth.uid()
+                )
+        )
+    );
+
+-- quotation_revisions: sender can insert
+CREATE POLICY "Quotation sender can create revisions" ON quotation_revisions FOR
+INSERT
+    WITH CHECK (
+        EXISTS (
+            SELECT
+                1
+            FROM
+                quotations
+            WHERE
+                quotations.id = quotation_revisions.quotation_id
+                AND quotations.sender_id = auth.uid()
+        )
+    );
+
+-- bulk_import_jobs: users manage their own jobs
+CREATE POLICY "Users can view own import jobs" ON bulk_import_jobs FOR
+SELECT
+    USING (user_id = auth.uid());
+
+CREATE POLICY "Users can create own import jobs" ON bulk_import_jobs FOR
+INSERT
+    WITH CHECK (user_id = auth.uid());
+
+-- Admin access to new tables
+CREATE POLICY "Admins can manage profile_views" ON profile_views FOR ALL USING (
+    EXISTS (
+        SELECT
+            1
+        FROM
+            profiles
+        WHERE
+            profiles.id = auth.uid()
+            AND profiles.is_admin = true
+    )
+);
+
+CREATE POLICY "Admins can manage quotation_revisions" ON quotation_revisions FOR ALL USING (
+    EXISTS (
+        SELECT
+            1
+        FROM
+            profiles
+        WHERE
+            profiles.id = auth.uid()
+            AND profiles.is_admin = true
+    )
+);
+
+CREATE POLICY "Admins can manage bulk_import_jobs" ON bulk_import_jobs FOR ALL USING (
+    EXISTS (
+        SELECT
+            1
+        FROM
+            profiles
+        WHERE
+            profiles.id = auth.uid()
+            AND profiles.is_admin = true
+    )
+);
 
 -- ============================================================================
 -- SECTION 32: Seed Data — Saudi Cities

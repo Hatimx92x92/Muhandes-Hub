@@ -3,11 +3,13 @@
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { FadeIn, FloatingElement } from '@/components/ui/motion';
+import { ShimmerButton } from '@/components/ui/shimmer-button';
+import { AnimatedGradientText } from '@/components/ui/animated-gradient-text';
 import { useReducedMotion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 
 /* ==========================================================================
-   CTASection — Final call-to-action with animated entrance + floating shapes
+   CTASection — Final call-to-action with shimmer button + gradient text
    ========================================================================== */
 
 export function CTASection() {
@@ -44,8 +46,15 @@ export function CTASection() {
 
       <div className="relative mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
         <FadeIn direction="up" delay={0}>
-          <h2 className="text-3xl font-extrabold text-primary-foreground sm:text-4xl mb-4">
-            {t('title')}
+          <h2 className="text-3xl font-extrabold sm:text-4xl mb-4">
+            <AnimatedGradientText
+              colorFrom="#ffffff"
+              colorTo="#e0e7ff"
+              speed={2}
+              className="text-3xl font-extrabold sm:text-4xl"
+            >
+              {t('title')}
+            </AnimatedGradientText>
           </h2>
         </FadeIn>
 
@@ -56,12 +65,16 @@ export function CTASection() {
         </FadeIn>
 
         <FadeIn direction="up" delay={0.3}>
-          <Link
-            href="/register"
-            className="group inline-flex h-13 items-center gap-2 rounded-xl bg-white px-8 text-base font-bold text-primary shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]"
-          >
-            {t('button')}
-            <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5 rtl:rotate-180 rtl:group-hover:translate-x-0.5" />
+          <Link href="/register">
+            <ShimmerButton
+              shimmerColor="#1E56A0"
+              background="rgba(255, 255, 255, 0.95)"
+              borderRadius="12px"
+              className="h-13 px-8 text-base font-bold text-primary shadow-lg"
+            >
+              {t('button')}
+              <ArrowLeft className="ms-2 h-4 w-4 rtl:rotate-180" />
+            </ShimmerButton>
           </Link>
         </FadeIn>
       </div>

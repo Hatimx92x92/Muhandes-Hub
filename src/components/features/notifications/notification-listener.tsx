@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { useToast } from '@/components/ui/toast';
+import { toast } from 'sonner';
 import { useLocale } from '@/hooks';
 
 interface NotificationListenerProps {
@@ -14,7 +14,6 @@ interface NotificationListenerProps {
  * Place this in the dashboard layout (renders nothing visible).
  */
 export function NotificationListener({ userId }: NotificationListenerProps) {
-  const { addToast } = useToast();
   const { locale } = useLocale();
   const supabaseRef = useRef(createClient());
 
@@ -43,7 +42,7 @@ export function NotificationListener({ userId }: NotificationListenerProps) {
             : record.title_en || record.title_ar || '';
 
           if (title) {
-            addToast(title, 'info', 6000);
+            toast.info(title, { duration: 6000 });
           }
         },
       )
@@ -52,7 +51,7 @@ export function NotificationListener({ userId }: NotificationListenerProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, locale, addToast]);
+  }, [userId, locale]);
 
   // Renders nothing — purely for side effects
   return null;

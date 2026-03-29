@@ -1,135 +1,85 @@
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
-import { getTranslations, getLocale } from 'next-intl/server';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ClipboardList } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
+import { getAdminAuditLog, type AdminQueryParams } from '@/actions/admin/queries';
+import { AuditLogTableClient } from './audit-log-table-client';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function db(supabase: any): any {
-  return supabase;
-}
+const AUDIT_ACTIONS = [
+  'approve_post', 'reject_post', 'edit_post',
+  'approve_documents', 'reject_documents',
+  'ban_user', 'unban_user', 'restrict_user', 'unrestrict_user',
+  'admin_edit_profile', 'admin_update_auth', 'generate_reset_link',
+  'bulk_approve', 'bulk_ban', 'bulk_unban', 'bulk_restrict', 'bulk_unrestrict',
+  'approve_commission_payment', 'resolve_commission_dispute',
+  'update_setting', 'create_coupon', 'update_coupon', 'activate_coupon', 'deactivate_coupon',
+  'update_announcement',
+  'change_subscription', 'extend_subscription', 'cancel_subscription',
+  'send_email', 'mark_contact_read', 'mark_contact_unread', 'delete_contact',
+  'hide_review', 'unhide_review',
+] as const;
 
-const actionVariants: Record<string, string> = {
-  approve_post: 'success',
-  reject_post: 'destructive',
-  approve_documents: 'success',
-  reject_documents: 'destructive',
-  ban_user: 'destructive',
-  unban_user: 'success',
-  restrict_user: 'warning',
-  unrestrict_user: 'success',
-  approve_commission_payment: 'success',
-  resolve_commission_dispute: 'info',
-  hide_review: 'warning',
-  unhide_review: 'success',
-};
+const TARGET_TYPES = [
+  'project', 'product', 'rfq', 'user', 'users', 'commission', 'review', 'coupon',
+  'platform_settings', 'contact_submission',
+] as const;
 
 export default async function AdminAuditLogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const t = await getTranslations('admin');
-  const locale = await getLocale();
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
   const params = await searchParams;
-  const page = Math.max(1, Number(params.page) || 1);
-  const pageSize = 25;
-  const offset = (page - 1) * pageSize;
 
-  const { data: entries, count } = await db(supabase)
-    .from('admin_audit_log')
-    .select('id, admin_id, action, target_type, target_id, details, ip_address, created_at', { count: 'exact' })
-    .order('created_at', { ascending: false })
-    .range(offset, offset + pageSize - 1);
+  const queryParams: AdminQueryParams = {
+    page: Number(params.page) || 1,
+    sort: params.sort,
+    filters: {
+      ...(params.action ? { action: params.action } : {}),
+      ...(params.target_type ? { target_type: params.target_type } : {}),
+    },
+  };
 
-  const totalPages = Math.ceil((count ?? 0) / pageSize);
+  const result = await getAdminAuditLog(queryParams);
+
+  // Build flat translations including audit action + target type labels
+  const translations: Record<string, string> = {
+    col_action: t('table.columns.action'),
+    col_targetType: t('table.columns.targetType'),
+    col_targetId: t('table.columns.targetId'),
+    col_adminId: t('table.columns.adminId'),
+    col_ip: t('table.columns.ip'),
+    col_details: t('table.columns.details'),
+    col_timestamp: t('table.columns.timestamp'),
+    sort_newest: t('table.sort.newest'),
+    sort_oldest: t('table.sort.oldest'),
+    noAuditLogs: t('auditLogPage.noOperations'),
+  };
+
+  // Audit action translations
+  for (const action of AUDIT_ACTIONS) {
+    translations[`auditAction_${action}`] = t(`auditActions.${action}`);
+  }
+
+  // Target type translations
+  for (const tt of TARGET_TYPES) {
+    translations[`targetType_${tt}`] = t(`targetTypes.${tt}`);
+  }
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">{t('auditLogPage.title')}</h1>
-        <p className="text-muted-foreground">{t('auditLogPage.subtitle')} ({count ?? 0} {t('auditLogPage.operationCount')})</p>
+        <p className="text-muted-foreground">
+          {t('auditLogPage.subtitle')} ({result.totalCount} {t('auditLogPage.operationCount')})
+        </p>
       </div>
 
-      {/* Entries */}
-      {!entries || entries.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <ClipboardList className="h-12 w-12 text-muted-foreground/50" />
-            <p className="mt-4 text-muted-foreground">{t('auditLogPage.noOperations')}</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-2">
-          {(entries as Record<string, unknown>[]).map((entry) => (
-            <Card key={entry.id as string}>
-              <CardContent className="py-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Badge variant={(actionVariants[entry.action as string] ?? 'secondary') as 'success' | 'destructive' | 'warning' | 'info' | 'secondary'}>
-                        {t(`auditActions.${entry.action as string}`)}
-                      </Badge>
-                      <Badge variant="outline">
-                        {t(`targetTypes.${entry.target_type as string}`)}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {t('auditLogPage.target')} {(entry.target_id as string)?.slice(0, 8) ?? '—'}
-                      {' · '}
-                      {t('auditLogPage.adminLabel')} {(entry.admin_id as string)?.slice(0, 8) ?? '—'}
-                      {!!entry.ip_address && (
-                        <>
-                          {' · '}
-                          IP: {entry.ip_address as string}
-                        </>
-                      )}
-                    </p>
-                    {!!entry.details && Object.keys(entry.details as Record<string, unknown>).length > 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        {JSON.stringify(entry.details).slice(0, 100)}
-                      </p>
-                    )}
-                  </div>
-                  <time className="shrink-0 text-xs text-muted-foreground">
-                    {new Date(entry.created_at as string).toLocaleString(locale)}
-                  </time>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          {page > 1 && (
-            <a
-              href={`/admin/audit-log?page=${page - 1}`}
-              className="rounded-lg border border-border px-3 py-1 text-sm hover:bg-muted"
-            >
-              {t('auditLogPage.prev')}
-            </a>
-          )}
-          <span className="text-sm text-muted-foreground">
-            {t('auditLogPage.pageOf', { page, total: totalPages })}
-          </span>
-          {page < totalPages && (
-            <a
-              href={`/admin/audit-log?page=${page + 1}`}
-              className="rounded-lg border border-border px-3 py-1 text-sm hover:bg-muted"
-            >
-              {t('auditLogPage.next')}
-            </a>
-          )}
-        </div>
-      )}
+      <AuditLogTableClient
+        data={result.data}
+        totalCount={result.totalCount}
+        currentPage={result.page}
+        totalPages={result.totalPages}
+        translations={translations}
+      />
     </div>
   );
 }

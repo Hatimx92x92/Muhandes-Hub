@@ -1,7 +1,8 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
+import { SAUDI_CITIES } from '@/components/forms/city-select';
 import type { WizardData } from '../register-wizard';
 
 // =============================================================================
@@ -20,6 +21,7 @@ export function ConfirmStep({ data, submitting, onSubmit, onBack }: ConfirmStepP
   const tr = useTranslations('auth.roleStep');
   const tp = useTranslations('pricing.tiers');
   const tc = useTranslations('common');
+  const locale = useLocale();
   const showTier = data.role === 'contractor' || data.role === 'supplier';
 
   const roleKeyMap: Record<string, string> = {
@@ -30,8 +32,8 @@ export function ConfirmStep({ data, submitting, onSubmit, onBack }: ConfirmStepP
   };
 
   const profileTypeMap: Record<string, string> = {
-    company: t('company'),
-    personal: t('profileType'),
+    company: t('companyType'),
+    personal: t('personalType'),
   };
 
   return (
@@ -68,13 +70,23 @@ export function ConfirmStep({ data, submitting, onSubmit, onBack }: ConfirmStepP
         {data.city && (
           <div className="flex justify-between p-3">
             <span className="text-sm text-muted-foreground">{t('city')}</span>
-            <span className="text-sm font-medium">{data.city}</span>
+            <span className="text-sm font-medium">
+              {SAUDI_CITIES.find((c) => c.value === data.city)?.[locale === 'en' ? 'label_en' : 'label_ar'] ?? data.city}
+            </span>
           </div>
         )}
         {showTier && (
           <div className="flex justify-between p-3">
             <span className="text-sm text-muted-foreground">{t('tier')}</span>
             <span className="text-sm font-medium">{tp(`${data.tier}.name`)}</span>
+          </div>
+        )}
+        {showTier && data.tier !== 'starter' && data.payment_method && (
+          <div className="flex justify-between p-3">
+            <span className="text-sm text-muted-foreground">{t('paymentMethod')}</span>
+            <span className="text-sm font-medium">
+              {data.payment_method === 'card' ? t('paymentCard') : t('paymentBank')}
+            </span>
           </div>
         )}
       </div>

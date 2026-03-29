@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Admin Moderation Actions
+// Muhandes HUB — Admin Moderation Actions
 // =============================================================================
 // ⚠️ All actions require is_admin = true. Uses Admin client for bypassing RLS.
 // =============================================================================

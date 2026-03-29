@@ -1,9 +1,10 @@
 // =============================================================================
-// Muqawil HUB — Message Bubble Component
+// Muhandes HUB — Message Bubble Component
 // =============================================================================
 
 import { cn } from '@/lib/utils';
 import { FileText, Download } from 'lucide-react';
+import { useLocale } from 'next-intl';
 
 interface MessageBubbleProps {
   content: string;
@@ -14,9 +15,9 @@ interface MessageBubbleProps {
   fileSize?: number | null;
 }
 
-function formatTime(dateStr: string): string {
+function formatTime(dateStr: string, locale: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleTimeString(locale === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
 function formatFileSize(bytes: number): string {
@@ -33,6 +34,7 @@ export function MessageBubble({
   fileName,
   fileSize,
 }: MessageBubbleProps) {
+  const locale = useLocale();
   return (
     <div className={cn('flex', isMine ? 'justify-end' : 'justify-start')}>
       <div
@@ -77,7 +79,7 @@ export function MessageBubble({
             isMine ? 'text-primary-foreground/60' : 'text-muted-foreground',
           )}
         >
-          {formatTime(createdAt)}
+          {formatTime(createdAt, locale)}
         </p>
       </div>
     </div>

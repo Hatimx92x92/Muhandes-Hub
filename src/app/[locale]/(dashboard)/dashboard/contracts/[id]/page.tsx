@@ -9,7 +9,10 @@ import { createClient } from '@/lib/supabase/server';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { ContractSignForm } from '@/components/features/contracts/contract-sign-form';
+import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
+import QRCode from 'qrcode';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any { return supabase; }
@@ -72,6 +75,7 @@ export default async function ContractDetailPage({
 
   return (
     <div className="space-y-6">
+      <BreadcrumbOverride segment={id} label={t(`template.${contract.template_type as string}`)} />
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -95,12 +99,11 @@ export default async function ContractDetailPage({
             </Link>
           )}
         </div>
-        <Link
-          href="/dashboard/contracts"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← {t('backToContracts')}
-        </Link>
+        <a href={`/api/pdf/contract/${contract.id}`} target="_blank" rel="noopener noreferrer">
+          <Button variant="outline" size="sm">
+            {t('downloadPdf')}
+          </Button>
+        </a>
       </div>
 
       {/* Parties */}
@@ -247,14 +250,29 @@ export default async function ContractDetailPage({
         )}
       </Card>
 
-      {/* QR Verification Link */}
+      {/* QR Verification */}
       {!!contract.qr_uuid && (
         <Card className="p-4">
-          <p className="text-sm text-muted-foreground">
-            {t('verificationLink')}: <code className="text-xs">/verify/contract/{contract.qr_uuid as string}</code>
-          </p>
+          <QrVerification qrUuid={contract.qr_uuid as string} label={t('verificationLink')} />
         </Card>
       )}
+    </div>
+  );
+}
+
+// Server component to generate QR code
+async function QrVerification({ qrUuid, label }: { qrUuid: string; label: string }) {
+  const verifyUrl = `https://muqawilhub.com/verify/contract/${qrUuid}`;
+  const qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 120, margin: 1 });
+
+  return (
+    <div className="flex items-center gap-4">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={qrDataUrl} alt="QR Code" width={120} height={120} className="rounded" />
+      <div className="space-y-1">
+        <p className="text-sm font-medium">{label}</p>
+        <code className="text-xs text-muted-foreground break-all">{verifyUrl}</code>
+      </div>
     </div>
   );
 }

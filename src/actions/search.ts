@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Search Server Action (Typesense + PostgreSQL fallback)
+// Muhandes HUB — Search Server Action (Typesense + PostgreSQL fallback)
 // =============================================================================
 
 'use server';

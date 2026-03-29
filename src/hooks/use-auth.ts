@@ -29,6 +29,13 @@ export interface UserProfile {
   subscription_tier: SubscriptionTier;
   subscription_expires_at: string | null;
   is_admin: boolean;
+  slug_ar?: string | null;
+  slug_en?: string | null;
+  // New profile fields
+  profile_visibility?: Record<string, boolean> | null;
+  social_links?: Record<string, string> | null;
+  specializations?: string[] | null;
+  established_year?: number | null;
 }
 
 // =============================================================================

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { AlertBanner } from '@/components/ui/alert-banner';
 
 // =============================================================================
 // Contact Form — public contact page form
@@ -33,9 +34,7 @@ export function ContactForm() {
   return (
     <form action={formAction} className="space-y-4">
       {state?.error && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-          {state.error}
-        </div>
+        <AlertBanner variant="error">{state.error}</AlertBanner>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">

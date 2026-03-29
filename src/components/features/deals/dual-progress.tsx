@@ -2,18 +2,23 @@
 // Dual Progress Component — Seller + Buyer progress bars
 // =============================================================================
 
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { getTranslations } from 'next-intl/server';
+import { CheckCircle } from 'lucide-react';
 
 interface DualProgressProps {
   sellerProgress: number;
   buyerProgress: number;
+  sellerLabel?: string;
+  buyerLabel?: string;
   className?: string;
 }
 
-export async function DualProgress({ sellerProgress, buyerProgress, className }: DualProgressProps) {
-  const t = await getTranslations('features.dualProgress');
+export function DualProgress({ sellerProgress, buyerProgress, sellerLabel, buyerLabel, className }: DualProgressProps) {
+  const t = useTranslations('features.dualProgress');
   return (
     <Card className={cn('p-5', className)}>
       <div className="grid gap-6 sm:grid-cols-2">
@@ -68,7 +73,8 @@ export async function DualProgress({ sellerProgress, buyerProgress, className }:
 
       {/* Combined completion indicator */}
       {sellerProgress >= 100 && buyerProgress >= 100 && (
-        <div className="mt-4 rounded-lg bg-success/10 p-3 text-center text-sm font-semibold text-success">
+        <div className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-success/10 p-3 text-sm font-semibold text-success">
+          <CheckCircle className="h-4 w-4" />
           {t('dealCompleted')}
         </div>
       )}

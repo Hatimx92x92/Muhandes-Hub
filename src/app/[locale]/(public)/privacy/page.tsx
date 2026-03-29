@@ -3,12 +3,13 @@
 // =============================================================================
 
 import { getTranslations } from 'next-intl/server';
+import { Link } from '@/i18n/navigation';
 
 export default async function PrivacyPage() {
   const t = await getTranslations('legal.privacy');
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-4xl py-16">
       <h1 className="text-3xl font-bold text-foreground mb-2">{t('title')}</h1>
       <p className="text-sm text-muted-foreground mb-8">{t('lastUpdated')}</p>
 
@@ -82,6 +83,16 @@ export default async function PrivacyPage() {
           <p className="text-muted-foreground leading-relaxed">
             {t('contact.description')}
           </p>
+        </section>
+
+        <hr className="border-border" />
+        <section>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3">{t('seeAlso')}</h3>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/terms" className="text-sm text-primary hover:underline">{t('termsLink')}</Link>
+            <span className="text-border">·</span>
+            <Link href="/cookies" className="text-sm text-primary hover:underline">{t('cookiesLink')}</Link>
+          </div>
         </section>
       </div>
     </div>

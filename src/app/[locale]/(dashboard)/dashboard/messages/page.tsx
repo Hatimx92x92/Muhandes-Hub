@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Messages Page (Conversation List)
+// Muhandes HUB — Messages Page (Conversation List)
 // =============================================================================
 
 import { redirect } from 'next/navigation';

@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Rate Limiting via Upstash Redis
+// Muhandes HUB — Rate Limiting via Upstash Redis
 // =============================================================================
 
 import { Ratelimit } from '@upstash/ratelimit';
@@ -91,6 +91,28 @@ export const apiLimiter = () => {
     redis: r,
     limiter: Ratelimit.slidingWindow(200, '1 m'),
     prefix: 'rl:api',
+  });
+};
+
+/** Password reset: 3 per hour per email (public, unauthenticated) */
+export const passwordResetLimiter = () => {
+  const r = getRedis();
+  if (!r) return null;
+  return new Ratelimit({
+    redis: r,
+    limiter: Ratelimit.slidingWindow(3, '1 h'),
+    prefix: 'rl:password-reset',
+  });
+};
+
+/** Contact form: 5 per hour per IP (public, unauthenticated) */
+export const contactLimiter = () => {
+  const r = getRedis();
+  if (!r) return null;
+  return new Ratelimit({
+    redis: r,
+    limiter: Ratelimit.slidingWindow(5, '1 h'),
+    prefix: 'rl:contact',
   });
 };
 

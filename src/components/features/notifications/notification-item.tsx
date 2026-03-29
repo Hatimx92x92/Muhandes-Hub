@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Notification Item Component
+// Muhandes HUB — Notification Item Component
 // =============================================================================
 
 'use client';

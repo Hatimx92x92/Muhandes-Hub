@@ -6,7 +6,7 @@ See `.github/copilot-instructions.md` for full architecture, patterns, and conve
 
 ## Project Overview
 
-Muqawil HUB — bilingual (AR/EN) B2B marketplace for Saudi construction. Full spec in `.docs/FEATURES.md`.
+Muhandes HUB — bilingual (AR/EN) B2B marketplace for Saudi construction. Full spec in `.docs/FEATURES.md`.
 
 ## Spec Library — READ BEFORE CODING
 
@@ -37,6 +37,12 @@ npm run lint         # ESLint 9 flat config
 npm run test         # Vitest (watch)
 npm run test:run     # Vitest (single run)
 ```
+
+## Testing & User Creation
+
+- **Creating users**: Always use the browser registration page (`/register`) — never scripts or direct DB inserts
+- **Demo accounts**: `.docs/DEMO-USERS.md`
+- **E2E test plan**: `.docs/TESTS.md` (214 tests, 10 phases)
 
 ## Key Rules
 

@@ -10,16 +10,19 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CrmAddClientForm } from '@/components/features/crm/crm-add-client-form';
+import { PipelineBoard } from '@/components/features/crm/pipeline-board';
+import { TierLimitIndicator } from '@/components/features/tier-gate';
+import { TIER_LIMITS } from '@/types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any { return supabase; }
 
 const PIPELINE_STAGES = [
-  { key: 'lead', color: 'text-blue-600' },
-  { key: 'in_negotiation', color: 'text-amber-600' },
-  { key: 'active_deal', color: 'text-green-600' },
+  { key: 'lead', color: 'text-info' },
+  { key: 'in_negotiation', color: 'text-warning' },
+  { key: 'active_deal', color: 'text-success' },
   { key: 'completed', color: 'text-primary' },
-  { key: 'repeat', color: 'text-purple-600' },
+  { key: 'repeat', color: 'text-accent-purple-foreground' },
 ] as const;
 
 const STAGE_VARIANTS: Record<string, string> = {
@@ -33,7 +36,7 @@ const STAGE_VARIANTS: Record<string, string> = {
 export default async function CRMPage({
   searchParams,
 }: {
-  searchParams: Promise<{ stage?: string; q?: string; favorites?: string; archived?: string }>;
+  searchParams: Promise<{ stage?: string; q?: string; favorites?: string; archived?: string; view?: string }>;
 }) {
   const sp = await searchParams;
   const t = await getTranslations('dashboard.crm');
@@ -51,6 +54,17 @@ export default async function CRMPage({
     .single();
 
   if (profile?.role === 'buyer') redirect('/dashboard');
+
+  // Subscription tier for limit indicator
+  const { data: subscription } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .single();
+
+  const tier = (subscription?.tier || 'starter') as keyof typeof TIER_LIMITS;
+  const maxClients = TIER_LIMITS[tier]?.crmClients ?? 20;
 
   // Fetch all clients
   let query = db(supabase)
@@ -98,7 +112,11 @@ export default async function CRMPage({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t('title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('clientCount', { count: totalClients })}</p>
+          <p className="text-sm text-muted-foreground">
+            {t('clientCount', { count: totalClients })}
+            {' · '}
+            <TierLimitIndicator current={totalClients} max={maxClients} />
+          </p>
         </div>
         <CrmAddClientForm tags={tags || []} />
       </div>
@@ -135,21 +153,58 @@ export default async function CRMPage({
             {t('archived')}
           </Badge>
         </Link>
+
+        {/* View Toggle */}
+        <div className="ms-auto flex gap-1">
+          <Link href={`/dashboard/crm?${new URLSearchParams({ ...sp, view: 'board' }).toString()}`}>
+            <Badge variant={sp.view !== 'list' ? 'default' : 'outline'}>
+              {t('boardView')}
+            </Badge>
+          </Link>
+          <Link href={`/dashboard/crm?${new URLSearchParams({ ...sp, view: 'list' }).toString()}`}>
+            <Badge variant={sp.view === 'list' ? 'default' : 'outline'}>
+              {t('listView')}
+            </Badge>
+          </Link>
+        </div>
       </div>
 
-      {/* Client List */}
+      {/* Pipeline Board View (default) */}
+      {sp.view !== 'list' && !sp.stage && !sp.favorites && !sp.archived && (
+        <PipelineBoard
+          clients={(clients || []).map((c: Record<string, unknown>) => ({
+            id: c.id as string,
+            name: c.name as string,
+            company: c.company as string | null,
+            email: c.email as string | null,
+            phone: c.phone as string | null,
+            pipeline_stage: c.pipeline_stage as string,
+            is_favorite: c.is_favorite as boolean,
+            last_interaction_at: c.last_interaction_at as string | null,
+            slug: c.slug as string | null,
+            crm_client_tags: (c.crm_client_tags as Array<Record<string, unknown>> || []).map((ct) => ({
+              crm_tags: ct.crm_tags as { id: string; name: string; color: string } | null,
+            })),
+          }))}
+          stages={PIPELINE_STAGES.map(s => ({ key: s.key, color: s.color }))}
+        />
+      )}
+
+      {/* Client List View */}
+      {(sp.view === 'list' || sp.stage || sp.favorites || sp.archived) && (
+        <>
       {(clients && clients.length > 0) ? (
         <div className="space-y-3">
           {clients.map((client: Record<string, unknown>) => {
             const clientTags = (client.crm_client_tags as Array<Record<string, unknown>>) || [];
             const stageInfo = PIPELINE_STAGES.find(s => s.key === client.pipeline_stage);
             return (
-              <Link key={client.id as string} href={`/dashboard/crm/${client.id}`}>
+              <Link key={client.id as string} href={`/dashboard/crm/${(client.slug as string) || client.id}`}>
                 <Card className="p-4 hover:border-primary transition-colors">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        {!!client.is_favorite && <span className="text-amber-500">★</span>}
+                        {!!client.is_favorite && <span className="text-warning">★</span>}
                         <h3 className="font-semibold truncate">{client.name as string}</h3>
                         {stageInfo && (
                           <Badge variant={STAGE_VARIANTS[stageInfo.key] as 'info' | 'warning' | 'active' | 'completed' | 'secondary'}>
@@ -183,7 +238,13 @@ export default async function CRMPage({
                       {!!client.phone && (
                         <p className="text-xs text-muted-foreground">{client.phone as string}</p>
                       )}
-                      <p className="text-[10px] text-muted-foreground mt-1">
+                      <p className={`text-[10px] mt-1 ${(() => {
+                        if (!client.last_interaction_at) return 'text-muted-foreground';
+                        const days = Math.floor((Date.now() - new Date(client.last_interaction_at as string).getTime()) / 86400000);
+                        if (days < 30) return 'text-success';
+                        if (days < 90) return 'text-warning';
+                        return 'text-destructive';
+                      })()}`}>
                         {t('lastInteraction')}: {client.last_interaction_at
                           ? new Date(client.last_interaction_at as string).toLocaleDateString(locale)
                           : '—'}
@@ -200,6 +261,8 @@ export default async function CRMPage({
           <p className="text-muted-foreground">{t('noClients')}</p>
           <p className="text-sm text-muted-foreground mt-1">{t('noClientsDesc')}</p>
         </Card>
+      )}
+        </>
       )}
     </div>
   );

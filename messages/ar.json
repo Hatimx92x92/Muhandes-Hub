@@ -1,7 +1,8 @@
 {
   "common": {
     "appName": "منصة مهندس",
-    "appNameEn": "Muhaned Hub",
+    "appNameEn": "Muhandes HUB",
+    "appTagline": "سوق الإنشاءات السعودي",
     "loading": "جارٍ التحميل...",
     "error": "حدث خطأ",
     "retry": "إعادة المحاولة",
@@ -34,10 +35,31 @@
     "viewAll": "عرض الكل",
     "learnMore": "اعرف المزيد",
     "getStarted": "ابدأ الآن",
-    "copyright": "© {year} Muhaned Hub. جميع الحقوق محفوظة.",
+    "copyright": "© {year} Muhandes HUB. جميع الحقوق محفوظة.",
     "saudiArabia": "المملكة العربية السعودية",
     "vat15": "ضريبة القيمة المضافة 15%",
-    "saudiVat": "المملكة العربية السعودية | ضريبة القيمة المضافة 15%"
+    "saudiVat": "المملكة العربية السعودية | ضريبة القيمة المضافة 15%",
+    "translating": "جاري الترجمة...",
+    "autoTranslated": "ترجمة تلقائية",
+    "selectedCount": "{count} مُختار",
+    "clearSelection": "إلغاء التحديد"
+  },
+  "breadcrumb": {
+    "home": "الرئيسية",
+    "admin": "الإدارة",
+    "new": "جديد",
+    "edit": "تعديل",
+    "bid": "تقديم عرض",
+    "bids": "العروض",
+    "kanban": "كانبان",
+    "dailyLog": "السجل اليومي",
+    "milestones": "المراحل",
+    "proofs": "الإثباتات",
+    "users": "المستخدمون",
+    "posts": "المنشورات",
+    "subscriptions": "الاشتراكات",
+    "auditLog": "سجل المراجعة",
+    "contacts": "جهات الاتصال"
   },
   "nav": {
     "projects": "المشاريع",
@@ -59,16 +81,28 @@
     "reviews": "التقييمات",
     "analytics": "التحليلات",
     "commissions": "العمولات",
+    "inquiries": "الاستفسارات",
     "settings": "الإعدادات",
     "profile": "الملف الشخصي",
     "subscription": "الاشتراك",
+    "payments": "المدفوعات",
     "platform": "المنصة",
     "support": "الدعم",
     "contact": "اتصل بنا",
     "terms": "الشروط والأحكام",
     "privacy": "سياسة الخصوصية",
     "cookies": "سياسة ملفات تعريف الارتباط",
-    "adminPanel": "لوحة الإدارة"
+    "adminPanel": "لوحة الإدارة",
+    "groupOverview": "نظرة عامة",
+    "groupProjectManagement": "إدارة المشاريع",
+    "groupProjectsBidding": "المشاريع والعطاءات",
+    "groupProductsSales": "المنتجات والمبيعات",
+    "groupProcurement": "المشتريات",
+    "groupCommunication": "التواصل",
+    "groupBusiness": "الأعمال",
+    "groupAccount": "الحساب",
+    "viewPublicProfile": "عرض الملف العام",
+    "myBids": "عروضي"
   },
   "locale": {
     "switchToEn": "Switch to English",
@@ -191,7 +225,8 @@
       "title": "إنشاء حساب جديد",
       "description": "انضم إلى منصة مهندس وابدأ رحلتك في قطاع الإنشاءات",
       "hasAccount": "لديك حساب بالفعل؟",
-      "login": "تسجيل الدخول"
+      "login": "تسجيل الدخول",
+      "orContinueWith": "أو المتابعة عبر"
     },
     "forgotPassword": {
       "title": "استعادة كلمة المرور",
@@ -213,7 +248,20 @@
       "account": "بيانات الحساب",
       "profileStep": "الملف الشخصي",
       "plan": "الاشتراك",
+      "payment": "الدفع",
+      "documents": "المستندات",
       "confirmStep": "التأكيد"
+    },
+    "documentStep": {
+      "title": "مستندات التحقق",
+      "subtitle": "ارفع مستندات شركتك للتحقق منها",
+      "crCertificate": "السجل التجاري",
+      "crHint": "PDF أو صورة، بحد أقصى 10 ميجابايت",
+      "vatCertificate": "شهادة ضريبة القيمة المضافة",
+      "vatHint": "PDF أو صورة، بحد أقصى 10 ميجابايت",
+      "classCertificate": "شهادة التصنيف",
+      "classHint": "PDF أو صورة، بحد أقصى 10 ميجابايت",
+      "optional": "المستندات اختيارية — يمكنك رفعها لاحقاً من ملفك الشخصي"
     },
     "roleStep": {
       "title": "اختر نوع حسابك",
@@ -268,6 +316,12 @@
       "quarterly": "3 أشهر (-5%)",
       "semiAnnual": "6 أشهر (-10%)",
       "annual": "سنوي (-15%)",
+      "paymentMethodTitle": "طريقة الدفع",
+      "paymentCard": "الدفع الإلكتروني",
+      "paymentCardDesc": "ادفع باستخدام فيزا/ماستركارد عبر 3D Secure الآمن",
+      "paymentBank": "تحويل بنكي",
+      "paymentBankDesc": "حوّل إلى حسابنا البنكي وارفع إيصال التحويل",
+      "selectPaymentMethod": "الرجاء اختيار طريقة الدفع",
       "features": {
         "bids10": "10 عروض / شهرياً",
         "bids50": "50 عروض / شهرياً",
@@ -297,12 +351,45 @@
       "email": "البريد",
       "phone": "الهاتف",
       "profileType": "نوع الحساب",
+      "companyType": "شركة",
+      "personalType": "شخصي",
       "company": "الشركة",
       "city": "المدينة",
       "tier": "الخطة",
       "duration": "المدة",
       "months": "شهر",
+      "paymentMethod": "طريقة الدفع",
+      "paymentCard": "الدفع الإلكتروني (بطاقة)",
+      "paymentBank": "تحويل بنكي",
       "submit": "إنشاء الحساب"
+    },
+    "paymentStep": {
+      "title": "إتمام الدفع",
+      "cardTitle": "الدفع الإلكتروني",
+      "cardDescription": "سيتم توجيهك إلى صفحة الدفع الآمنة عبر Moyasar لإتمام عملية الدفع.",
+      "proceedToPayment": "المتابعة للدفع",
+      "bankTitle": "تحويل بنكي",
+      "bankDescription": "حوّل مبلغ الاشتراك إلى الحساب البنكي التالي وارفع إيصال التحويل.",
+      "bankName": "اسم البنك",
+      "accountName": "اسم الحساب",
+      "iban": "رقم الآيبان",
+      "referenceCode": "رمز المرجع",
+      "referenceHint": "يرجى تضمين هذا المرجع في وصف التحويل",
+      "uploadReceipt": "رفع إيصال التحويل",
+      "uploadReceiptHint": "PDF أو JPEG أو PNG — الحد الأقصى 5 ميجابايت",
+      "receiptRequired": "يرجى رفع إيصال التحويل",
+      "submitting": "جارٍ الإرسال...",
+      "submitRegistration": "تسجيل الحساب",
+      "summary": "ملخص الدفع",
+      "plan": "الخطة",
+      "duration": "المدة",
+      "months": "شهر",
+      "total": "الإجمالي (شامل الضريبة)"
+    },
+    "googleSignup": {
+      "button": "التسجيل باستخدام Google",
+      "welcome": "مرحباً! أكمل ملفك الشخصي للبدء",
+      "completeProfile": "إتمام التسجيل"
     }
   },
   "verify": {
@@ -318,7 +405,15 @@
       "description": "أكمل دفع اشتراكك للانتقال إلى الخطوة التالية. يمكنك الدفع عبر بطاقة الائتمان أو التحويل البنكي.",
       "placeholder": "سيتم تفعيل بوابة الدفع عبر Moyasar قريباً.",
       "contactLink": "صفحة التواصل",
-      "logout": "تسجيل الخروج"
+      "logout": "تسجيل الخروج",
+      "cardProcessing": "جارٍ معالجة الدفع...",
+      "cardSuccess": "تم الدفع بنجاح! جارٍ التحويل...",
+      "cardFailed": "فشل الدفع. يرجى المحاولة مرة أخرى أو اختيار التحويل البنكي.",
+      "bankPending": "تم تقديم إيصال التحويل البنكي",
+      "bankPendingDesc": "سيتحقق فريقنا من التحويل. عادة ما يستغرق ذلك 1-2 يوم عمل.",
+      "bankReceiptUploaded": "تم رفع الإيصال بنجاح",
+      "retryPayment": "إعادة المحاولة",
+      "switchToBank": "الدفع عبر التحويل البنكي"
     },
     "documents": {
       "title": "رفع المستندات",
@@ -430,7 +525,10 @@
       "product": "منتج",
       "free": "مجاناً",
       "unlimited": "غير محدود",
-      "shortlisted": "في القائمة المختصرة"
+      "shortlisted": "في القائمة المختصرة",
+      "selectAll": "تحديد الكل",
+      "selected": "محدد",
+      "clear": "مسح"
     },
     "error": {
       "title": "حدث خطأ",
@@ -455,7 +553,9 @@
         "projectDetails": "تفاصيل المشروع",
         "editProject": "تعديل المشروع",
         "editProjectDesc": "عدّل بيانات مشروعك ثم أعد تقديمه للمراجعة",
-        "submitForReview": "تقديم للمراجعة"
+        "submitForReview": "تقديم للمراجعة",
+        "documentsAndFiles": "المستندات والملفات",
+        "associatedDeals": "الصفقات المرتبطة"
       }
     },
     "bids": {
@@ -477,6 +577,29 @@
       "noBidsDesc": "لم يتقدم أي مقاول بعرض على هذا المشروع",
       "backToProjectDetails": "العودة لتفاصيل المشروع",
       "cantViewOthersBids": "لا يمكنك عرض العروض على مشاريع الآخرين"
+    },
+    "myBids": {
+      "title": "عروضي",
+      "subtitle": "تتبع عروضك المقدمة وحالتها",
+      "noBids": "لا توجد عروض بعد",
+      "noBidsDesc": "تصفح المشاريع المتاحة وقدم عرضك الأول",
+      "browseProjects": "تصفح المشاريع",
+      "projectName": "المشروع",
+      "amount": "القيمة",
+      "timeline": "المدة",
+      "status": "الحالة",
+      "submittedAt": "تاريخ التقديم",
+      "actions": "الإجراءات",
+      "statusPending": "قيد المراجعة",
+      "statusShortlisted": "في القائمة المختصرة",
+      "statusAwarded": "تمت الترسية",
+      "statusRejected": "مرفوض",
+      "totalBids": "إجمالي العروض",
+      "pendingBids": "قيد المراجعة",
+      "awardedBids": "تمت ترسيتها",
+      "editBid": "تعديل العرض",
+      "viewProject": "عرض المشروع",
+      "days": "{count} يوم"
     },
     "deals": {
       "title": "الصفقات",
@@ -526,6 +649,7 @@
       "tabProofs": "الإثباتات",
       "tabDocuments": "المستندات",
       "tabActivity": "السجل",
+      "tabMessages": "المحادثات",
       "backToList": "العودة للقائمة",
       "dealValue": "قيمة الصفقة",
       "commissionRate": "نسبة العمولة",
@@ -561,9 +685,28 @@
       "submittedByYou": "مقدم منك",
       "percentageClaimed": "نسبة الإنجاز المطالب بها",
       "rejectionReason": "سبب الرفض",
+      "confirmProof": "تأكيد الإثبات",
+      "rejectProof": "رفض الإثبات",
+      "rejectionReasonPlaceholder": "اشرح سبب عدم كفاية الإثبات...",
       "attachments": "مرفقات",
       "documentVault": "خزنة المستندات",
       "documentVaultDesc": "يمكنك رفع العقود والرسومات والمواصفات وغيرها هنا",
+      "uploadDocument": "رفع مستند",
+      "docFile": "الملف",
+      "docCategory": "التصنيف",
+      "docNotes": "ملاحظات",
+      "docNotesPlaceholder": "ملاحظات اختيارية حول هذا الملف...",
+      "upload": "رفع",
+      "cancel": "إلغاء",
+      "noDocuments": "لا توجد مستندات بعد",
+      "docCat_all": "الكل",
+      "docCat_contracts": "العقود",
+      "docCat_drawings": "المخططات",
+      "docCat_specs": "المواصفات",
+      "docCat_permits": "التصاريح",
+      "docCat_invoices": "الفواتير",
+      "docCat_correspondence": "المراسلات",
+      "docCat_general": "عام",
       "dailyLogTitle": "سجل الموقع اليومي",
       "logRecords": "سجلات",
       "todayLog": "سجل اليوم",
@@ -579,11 +722,54 @@
       "dealColon": "صفقة:",
       "newMilestoneTitle": "إضافة مرحلة جديدة",
       "newMilestoneDesc": "أضف مرحلة لتتبع التقدم في الصفقة",
-      "submitProofDesc": "قدم إثباتاً على الإنجاز أو الدفع (النسبة المتبقية: {remaining}%)"
+      "submitProofDesc": "قدم إثباتاً على الإنجاز أو الدفع (النسبة المتبقية: {remaining}%)",
+      "reviewSubmitted": "تم إرسال التقييم",
+      "reviewSubmittedDesc": "شكراً لتقييمك لشريكك في هذه الصفقة",
+      "writeReview": "كتابة تقييم",
+      "cancelReview": "إلغاء",
+      "reviewPartner": "قيّم شريكك",
+      "reviewWindowRemaining": "متبقي {days} يوم لترك تقييم",
+      "dealInfo": "معلومات الصفقة",
+      "dealType": "النوع",
+      "triggerSource": "المصدر",
+      "viewDailyLog": "السجل اليومي",
+      "viewKanban": "لوحة كانبان",
+      "viewContract": "العقد",
+      "quickLinks": "روابط سريعة",
+      "requestCancellation": "طلب إلغاء",
+      "noMessagesYet": "لا توجد رسائل بعد",
+      "startConversation": "ابدأ محادثة حول هذه الصفقة",
+      "typeMessage": "اكتب رسالة...",
+      "typing": "يكتب",
+      "chatError": "خطأ في تحميل المحادثة",
+      "you": "أنت",
+      "attachment": "مرفق",
+      "stepCreated": "تم الإنشاء",
+      "stepInProgress": "قيد التنفيذ",
+      "stepCompleted": "مكتمل",
+      "stepCancelled": "ملغي",
+      "pendingCount": "{count} معلّقة",
+      "suggestChangesHint": "يمكنك اقتراح تغييرات للمشتري",
+      "skipToFinish": "تخطي إلى الإنهاء",
+      "pendingSkipRequests": "طلبات تخطي إلى الإنهاء معلقة",
+      "awaitingApproval": "بانتظار الموافقة",
+      "cancelRequestedBy": "تم الطلب من {party}",
+      "counterparty": "الطرف الآخر",
+      "proofGroupPending": "بانتظار المراجعة",
+      "proofGroupConfirmed": "مؤكدة",
+      "proofGroupRejected": "مرفوضة",
+      "roleProjectOwner": "صاحب المشروع",
+      "roleContractor": "مقاول",
+      "roleSupplier": "مورّد",
+      "roleBuyer": "مشتري",
+      "accountRole": "نوع الحساب",
+      "dealOrigin": "أصل الصفقة",
+      "linkedContracts": "العقود المرتبطة"
     },
     "products": {
       "title": "المنتجات",
       "subtitle": "إدارة منتجاتك وتتبع حالتها",
+      "name": "الاسم",
       "new": "منتج جديد",
       "noProducts": "لا توجد منتجات",
       "noProductsDesc": "أضف منتجاتك لعرضها في سوق المنتجات",
@@ -602,9 +788,59 @@
       "tierLimitDesc": "اشتراكك الحالي ({tier}) يسمح بـ {max} منتج فقط. يرجى ترقية اشتراكك لإضافة المزيد.",
       "addProduct": "إضافة منتج",
       "addFirstProduct": "أضف منتجك الأول لعرضه في السوق",
+      "inquiriesLabel": "الاستفسارات",
       "byVariants": "حسب المتغيرات",
       "atLimitWarning": "وصلت للحد الأقصى من المنتجات ({max}) في اشتراك",
-      "upgradeYourPlan": "ترقية اشتراكك"
+      "upgradeYourPlan": "ترقية اشتراكك",
+      "detail": {
+        "backToProducts": "العودة للمنتجات",
+        "productDetails": "تفاصيل المنتج",
+        "editProduct": "تعديل المنتج",
+        "editProductDesc": "عدّل تفاصيل المنتج ثم أعد إرساله للمراجعة",
+        "submitForReview": "إرسال للمراجعة",
+        "fixedPrice": "سعر ثابت",
+        "variantBased": "حسب المتغيرات",
+        "stockQuantity": "كمية المخزون",
+        "leadTimeDays": "وقت التسليم",
+        "days": "يوم"
+      }
+    },
+    "inquiries": {
+      "title": "استفسارات المنتجات",
+      "description": "عرض والرد على الاستفسارات حول منتجاتك",
+      "empty": "لا توجد استفسارات بعد",
+      "emptyDescription": "عندما يستفسر المشترون عن منتجاتك، ستظهر الاستفسارات هنا",
+      "viewDetails": "عرض التفاصيل",
+      "units": "وحدة",
+      "unknownProduct": "منتج غير معروف",
+      "unknownSender": "مرسل غير معروف",
+      "sender": "المرسل",
+      "requirements": "المتطلبات",
+      "markResponded": "تحديد كتم الرد",
+      "status": {
+        "pending": "قيد الانتظار",
+        "responded": "تم الرد",
+        "closed": "مغلق"
+      }
+    },
+    "inquiryDetail": {
+      "title": "تفاصيل الاستفسار",
+      "description": "عرض تفاصيل الاستفسار والرد عليه",
+      "respondWithQuotation": "الرد بعرض سعر",
+      "product": "المنتج",
+      "from": "من",
+      "quantity": "الكمية",
+      "date": "التاريخ",
+      "requirements": "المتطلبات",
+      "linkedQuotations": "عروض الأسعار المرتبطة",
+      "viewQuotation": "عرض عرض السعر",
+      "unknownSender": "مرسل غير معروف",
+      "unknownProduct": "منتج غير معروف",
+      "status": {
+        "pending": "قيد الانتظار",
+        "responded": "تم الرد",
+        "closed": "مغلق"
+      }
     },
     "rfqs": {
       "title": "طلبات عروض الأسعار",
@@ -636,7 +872,9 @@
       "noResponsesReceived": "لم يتم تلقي أي ردود بعد",
       "responsePending": "قيد المراجعة",
       "responseAccepted": "مقبول",
-      "responseRejected": "مرفوض"
+      "responseRejected": "مرفوض",
+      "linkedProduct": "المنتج المرتبط",
+      "attachments": "المرفقات"
     },
     "quotations": {
       "title": "عروض الأسعار",
@@ -671,9 +909,14 @@
       "receivedDirection": "مستلم",
       "modeInquiryResponse": "رد على استفسار",
       "modeStandalone": "مستقل",
+      "markSent": "تحديد كمرسل",
       "unitPrice": "سعر الوحدة",
       "paymentTerms": "شروط الدفع",
-      "deliveryTerms": "شروط التسليم"
+      "deliveryTerms": "شروط التسليم",
+      "downloadPdf": "تحميل PDF",
+      "unit": "الوحدة",
+      "sourceRfq": "من طلب عروض أسعار",
+      "sourceInquiry": "من استفسار"
     },
     "contracts": {
       "title": "العقود",
@@ -769,6 +1012,10 @@
       "unreadCount": "لديك {count} إشعار غير مقروء",
       "allRead": "جميع الإشعارات مقروءة",
       "preferencesButton": "التفضيلات",
+      "typeLabel": "النوع",
+      "messageLabel": "الرسالة",
+      "timeLabel": "الوقت",
+      "markRead": "تحديد كمقروء",
       "types": {
         "bid_received": "عرض سعر جديد",
         "bid_awarded": "ترسية عرض",
@@ -796,7 +1043,10 @@
         "rfq_response_rejected": "رفض رد طلب أسعار",
         "supplier_hire_request_received": "طلب توظيف مورّد",
         "supplier_hire_quotation_received": "عرض أسعار توظيف",
-        "deal_flagged_review": "صفقة مُعلّمة للمراجعة"
+        "deal_flagged_review": "صفقة مُعلّمة للمراجعة",
+        "subscription_upgraded": "ترقية الاشتراك",
+        "subscription_renewed": "تجديد الاشتراك",
+        "subscription_payment_approved": "تمت الموافقة على الدفع"
       },
       "prefPage": {
         "title": "تفضيلات الإشعارات",
@@ -829,6 +1079,8 @@
       "clientCount": "{count} عميل",
       "favorites": "المفضلة",
       "archived": "المؤرشف",
+      "boardView": "لوحة",
+      "listView": "قائمة",
       "lastInteraction": "آخر تفاعل",
       "clientData": "بيانات العميل",
       "phone": "الهاتف",
@@ -874,6 +1126,7 @@
     "profile": {
       "title": "الملف الشخصي",
       "subtitle": "إدارة بياناتك الشخصية ومعلومات شركتك",
+      "viewPublicProfile": "معاينة الملف العام",
       "roles": {
         "project_owner": "صاحب مشروع",
         "contractor": "مقاول",
@@ -926,13 +1179,119 @@
         "commission": "العمولة",
         "kanban": "كانبان",
         "analytics": "التحليلات",
-        "csvUpload": "رفع CSV"
+        "csvUpload": "رفع CSV",
+        "clauseLibrary": "مكتبة البنود",
+        "customContracts": "عقود مخصصة"
       },
+      "startsOn": "يبدأ في",
+      "subscriptionDates": "فترة الاشتراك",
+      "remainingDays": "المتبقي",
+      "days": "يوم",
       "changePlan": "تغيير الخطة",
       "monthlyVatInclusive": "شهرياً شامل الضريبة",
       "currentPlanBadge": "الخطة الحالية",
       "upgrade": "ترقية",
-      "downgrade": "تخفيض"
+      "downgrade": "تخفيض",
+      "renew": "تجديد",
+      "change": {
+        "title": "تغيير خطة الاشتراك",
+        "subtitle": "اختر خطتك الجديدة وأكمل الدفع",
+        "backToSubscription": "العودة إلى الاشتراك",
+        "currentPlan": "الخطة الحالية",
+        "newPlan": "الخطة الجديدة",
+        "downgradeTo": "تخفيض إلى",
+        "renewPlan": "تجديد الخطة",
+        "perMonth": "/شهر",
+        "keyChanges": "التغييرات الرئيسية",
+        "selectDuration": "اختر المدة",
+        "month": "شهر",
+        "months": "أشهر",
+        "off": "خصم",
+        "priceBreakdown": "تفاصيل السعر",
+        "durationDiscount": "خصم المدة",
+        "vat": "ضريبة القيمة المضافة",
+        "prorationCredit": "رصيد المدة المتبقية",
+        "totalDue": "المبلغ المستحق",
+        "paymentMethod": "طريقة الدفع",
+        "cardPayment": "بطاقة بنكية",
+        "cardDescription": "فيزا/ماستركارد مع 3D Secure",
+        "bankTransfer": "تحويل بنكي",
+        "bankDescription": "قم بالتحويل وارفع الإيصال",
+        "couponCode": "كود الخصم",
+        "couponPlaceholder": "أدخل كود الخصم",
+        "applyCoupon": "تطبيق",
+        "couponApplied": "تم تطبيق الكوبون: {discount}",
+        "couponDiscount": "خصم الكوبون",
+        "currentSubscription": "الاشتراك الحالي",
+        "startDate": "تاريخ البداية",
+        "endDate": "تاريخ الانتهاء",
+        "remainingDays": "{days} يوم متبقي",
+        "upgradeTitle": "ترقية إلى {tier}",
+        "downgradeTitle": "تخفيض إلى {tier}",
+        "renewTitle": "تجديد {tier}",
+        "confirmUpgrade": "تأكيد الترقية والدفع",
+        "confirmDowngrade": "تأكيد التخفيض",
+        "confirmRenewal": "تأكيد التجديد والدفع",
+        "redirectingToPayment": "جارٍ التوجيه إلى بوابة الدفع...",
+        "downgradeScheduled": "تم جدولة التخفيض",
+        "downgradeEffectiveDate": "سيتم تغيير خطتك إلى الدرجة الجديدة في {date}. حتى ذلك الحين، تحتفظ بجميع المميزات الحالية.",
+        "downgradeWarning": "سيتم تغيير خطتك في نهاية فترة الفوترة الحالية. ستحتفظ بجميع المميزات حتى ذلك الحين. المحتوى المنشأ في الدرجة الحالية سيتم الحفاظ عليه.",
+        "bankTransferSubmitted": "تم إرسال الدفعة",
+        "bankTransferPending": "جارٍ مراجعة التحويل البنكي. سيتم تفعيل اشتراكك بمجرد التحقق من الدفع من قبل فريقنا.",
+        "upgradeActivated": "تمت الترقية بنجاح!",
+        "upgradeActivatedDescription": "تم ترقية اشتراكك بنجاح. يمكنك الآن الاستمتاع بجميع مميزات خطتك الجديدة."
+      },
+      "paymentResult": {
+        "successTitle": "تم الدفع بنجاح!",
+        "successDescription": "تم تفعيل اشتراكك. يمكنك الآن الاستمتاع بجميع مميزات خطتك الجديدة.",
+        "failedTitle": "فشل الدفع",
+        "failedDescription": "لم نتمكن من معالجة دفعتك. يرجى المحاولة مرة أخرى أو اختيار طريقة دفع مختلفة.",
+        "backToSubscription": "العودة إلى الاشتراك",
+        "tryAgain": "حاول مرة أخرى"
+      },
+      "invoiceHistory": {
+        "title": "سجل الفواتير",
+        "description": "عرض وتحميل فواتير جميع مدفوعاتك",
+        "invoiceNumber": "رقم الفاتورة",
+        "type": "النوع",
+        "typeSubscription": "اشتراك",
+        "typeCommission": "عمولة",
+        "amount": "المبلغ",
+        "subtotal": "المبلغ قبل الضريبة",
+        "vat": "ض.ق.م",
+        "total": "الإجمالي",
+        "issuedAt": "التاريخ",
+        "reference": "المرجع",
+        "download": "تحميل PDF",
+        "noInvoices": "لا توجد فواتير بعد",
+        "noInvoicesDescription": "ستظهر هنا فواتير مدفوعات الاشتراك والعمولة",
+        "filterAll": "الكل",
+        "filterSubscription": "الاشتراك",
+        "filterCommission": "العمولة"
+      }
+    },
+    "payments": {
+      "title": "المدفوعات",
+      "subtitle": "عرض جميع مدفوعات الاشتراك والعمولة",
+      "totalPaid": "إجمالي المدفوع",
+      "subscriptionPayments": "مدفوعات الاشتراك",
+      "commissionPayments": "مدفوعات العمولة",
+      "invoiceCount": "إجمالي الفواتير",
+      "invoiceNumber": "رقم الفاتورة",
+      "type": "النوع",
+      "typeSubscription": "اشتراك",
+      "typeCommission": "عمولة",
+      "subtotal": "المبلغ قبل الضريبة",
+      "vat": "ض.ق.م (15%)",
+      "total": "الإجمالي",
+      "issuedAt": "التاريخ",
+      "reference": "المرجع",
+      "download": "تحميل",
+      "noPayments": "لا توجد مدفوعات بعد",
+      "noPaymentsDescription": "ستظهر هنا سجل مدفوعات الاشتراك والعمولة",
+      "filterAll": "الكل",
+      "filterSubscription": "الاشتراك",
+      "filterCommission": "العمولة"
     },
     "commissions": {
       "title": "العمولات",
@@ -965,7 +1324,8 @@
       "paymentOverdue": "تأخر الدفع —",
       "dueDate": "موعد الاستحقاق:",
       "disputeReason": "سبب الاعتراض:",
-      "paidOn": "تم الدفع:"
+      "paidOn": "تم الدفع:",
+      "downloadInvoice": "تحميل الفاتورة"
     },
     "analytics": {
       "title": "التحليلات",
@@ -976,16 +1336,83 @@
       "fullDashboard": "لوحة تحليلات شاملة",
       "summaryWidget": "ملخص الأداء",
       "tiers": {
+        "starter": "مجاني",
         "pro": "المحترف",
         "business": "الأعمال",
         "enterprise": "المؤسسات"
       },
+      "kpi": {
+        "totalDeals": "إجمالي الصفقات",
+        "completedDeals": "مكتملة",
+        "activeDeals": "صفقات نشطة",
+        "cancelledDeals": "ملغية",
+        "totalRevenue": "الإيرادات",
+        "avgRating": "متوسط التقييم",
+        "totalReviews": "التقييمات"
+      },
+      "vsLastPeriod": "مقارنة بالفترة السابقة",
+      "rolePerformance": "أداء الدور",
+      "role": {
+        "projects": "المشاريع",
+        "bids": "العروض المقدمة",
+        "bidWinRate": "نسبة الفوز بالعروض",
+        "avgBidToAward": "متوسط وقت الترسية",
+        "products": "المنتجات",
+        "quotations": "عروض الأسعار",
+        "conversionRate": "نسبة التحويل",
+        "inquiries": "الاستفسارات",
+        "rfqs": "طلبات الأسعار",
+        "bidsReceived": "العروض المستلمة",
+        "avgBidsPerProject": "متوسط العروض/المشروع",
+        "deals": "الصفقات"
+      },
+      "chartsSection": "تحليلات تفصيلية",
+      "chartsLockedTitle": "الرسوم البيانية المتقدمة",
+      "chartsLockedDesc": "الرسوم البيانية التفاعلية والتحليلات التفصيلية متاحة لمشتركي باقة الأعمال والمؤسسات",
+      "period": {
+        "7d": "٧ أيام",
+        "30d": "٣٠ يوم",
+        "90d": "٩٠ يوم",
+        "12m": "١٢ شهر",
+        "all": "الكل"
+      },
+      "charts": {
+        "dealsOverTime": "الصفقات عبر الزمن",
+        "deals": "الصفقات",
+        "revenueTrend": "اتجاه الإيرادات",
+        "revenue": "الإيرادات",
+        "dealsByStatus": "الصفقات حسب الحالة",
+        "ratingOverTime": "التقييم عبر الزمن",
+        "rating": "التقييم",
+        "bidsByStatus": "العروض حسب الحالة",
+        "bidWinRateTrend": "اتجاه نسبة الفوز",
+        "winRate": "نسبة الفوز",
+        "topProducts": "أفضل المنتجات",
+        "quotationsByStatus": "عروض الأسعار حسب الحالة",
+        "roleSpecific": "تحليل النشاط",
+        "noData": "لا توجد بيانات لهذه الفترة"
+      },
+      "status": {
+        "active": "نشطة",
+        "in_progress": "قيد التنفيذ",
+        "completed": "مكتملة",
+        "cancelled": "ملغية",
+        "disputed": "متنازع عليها"
+      },
+      "bidStatus": {
+        "pending": "قيد الانتظار",
+        "shortlisted": "مختارة",
+        "awarded": "مُرسى عليها",
+        "rejected": "مرفوضة"
+      },
+      "exportCsv": "تصدير CSV",
       "totalDeals": "إجمالي الصفقات",
       "completedDeals": "صفقات مكتملة",
       "activeDeals": "صفقات نشطة",
       "avgRating": "متوسط التقييم",
       "projects": "المشاريع",
       "bidsLabel": "العروض",
+      "bidWinRate": "نسبة الفوز بالعروض",
       "products": "المنتجات",
       "quotations": "عروض الأسعار",
       "recentDeals": "آخر الصفقات",
@@ -1029,7 +1456,11 @@
       "settings": "الإعدادات",
       "analytics": "التحليلات",
       "contacts": "رسائل التواصل",
-      "messages": "المحادثات"
+      "messages": "المحادثات",
+      "groupOverview": "نظرة عامة",
+      "groupContent": "المحتوى",
+      "groupFinance": "المالية",
+      "groupSystem": "النظام"
     },
     "actions": {
       "approvePost": "اعتماد منشور",
@@ -1066,30 +1497,52 @@
     "auditActions": {
       "approve_post": "اعتماد منشور",
       "reject_post": "رفض منشور",
+      "edit_post": "تعديل منشور",
       "approve_documents": "اعتماد مستندات",
       "reject_documents": "رفض مستندات",
       "ban_user": "حظر مستخدم",
       "unban_user": "إلغاء حظر",
       "restrict_user": "تقييد مستخدم",
       "unrestrict_user": "إلغاء تقييد",
+      "admin_edit_profile": "تعديل ملف مستخدم",
+      "admin_update_auth": "تحديث مصادقة مستخدم",
+      "generate_reset_link": "إنشاء رابط إعادة تعيين",
+      "bulk_approve": "اعتماد جماعي للمستخدمين",
+      "bulk_ban": "حظر جماعي للمستخدمين",
+      "bulk_unban": "إلغاء حظر جماعي",
+      "bulk_restrict": "تقييد جماعي للمستخدمين",
+      "bulk_unrestrict": "إلغاء تقييد جماعي",
       "approve_commission_payment": "اعتماد دفع عمولة",
       "resolve_commission_dispute": "حل اعتراض",
       "update_setting": "تحديث إعداد",
       "create_coupon": "إنشاء كوبون",
       "update_coupon": "تحديث كوبون",
-      "toggle_coupon": "تفعيل/تعطيل كوبون",
+      "activate_coupon": "تفعيل كوبون",
+      "deactivate_coupon": "تعطيل كوبون",
+      "update_announcement": "تحديث إعلان",
+      "change_subscription": "تغيير اشتراك",
+      "extend_subscription": "تمديد اشتراك",
+      "cancel_subscription": "إلغاء اشتراك",
+      "send_email": "إرسال بريد إلكتروني",
+      "mark_contact_read": "تحديد رسالة كمقروء",
+      "mark_contact_unread": "تحديد رسالة كغير مقروء",
+      "delete_contact": "حذف رسالة تواصل",
       "hide_review": "إخفاء تقييم",
-      "unhide_review": "إظهار تقييم"
+      "unhide_review": "إظهار تقييم",
+      "approve_subscription_payment": "اعتماد دفع اشتراك"
     },
     "targetTypes": {
       "project": "مشروع",
       "product": "منتج",
       "rfq": "طلب عرض سعر",
       "user": "مستخدم",
+      "users": "مستخدمون",
       "commission": "عمولة",
       "review": "تقييم",
       "coupon": "كوبون",
-      "platform_settings": "إعداد"
+      "platform_settings": "إعداد",
+      "contact_submission": "رسالة تواصل",
+      "subscription": "اشتراك"
     },
     "userStatus": {
       "pending_email": "بانتظار التفعيل",
@@ -1203,6 +1656,62 @@
       "noReviews": "لا توجد تقييمات",
       "hiddenBadge": "مخفي"
     },
+    "table": {
+      "export": "تصدير CSV",
+      "showing": "{count, plural, =0 {لا توجد نتائج} =1 {نتيجة واحدة} two {نتيجتان} few {# نتائج} many {# نتيجة} other {# نتيجة}}",
+      "clearFilters": "مسح الفلاتر",
+      "columns": {
+        "name": "الاسم",
+        "company": "الشركة",
+        "role": "الدور",
+        "status": "الحالة",
+        "created": "تاريخ الإنشاء",
+        "actions": "الإجراءات",
+        "title": "العنوان",
+        "type": "النوع",
+        "owner": "المالك",
+        "dealId": "رقم الصفقة",
+        "dealType": "نوع الصفقة",
+        "buyer": "المشتري",
+        "seller": "البائع",
+        "value": "القيمة",
+        "commissionId": "رقم العمولة",
+        "amount": "المبلغ",
+        "vat": "الضريبة",
+        "total": "الإجمالي",
+        "dueDate": "تاريخ الاستحقاق",
+        "user": "المستخدم",
+        "tier": "الباقة",
+        "price": "السعر",
+        "startDate": "تاريخ البدء",
+        "expiresDate": "تاريخ الانتهاء",
+        "receipt": "الإيصال",
+        "viewReceipt": "عرض الإيصال",
+        "rating": "التقييم",
+        "comment": "التعليق",
+        "visibility": "الظهور",
+        "action": "الإجراء",
+        "targetType": "نوع الهدف",
+        "targetId": "رقم الهدف",
+        "adminId": "رقم المشرف",
+        "ip": "عنوان IP",
+        "details": "التفاصيل",
+        "timestamp": "الوقت"
+      },
+      "sort": {
+        "newest": "الأحدث أولاً",
+        "oldest": "الأقدم أولاً",
+        "nameAsc": "الاسم أ-ي",
+        "nameDesc": "الاسم ي-أ",
+        "valueHigh": "القيمة: الأعلى أولاً",
+        "valueLow": "القيمة: الأقل أولاً",
+        "ratingHigh": "التقييم: الأعلى أولاً",
+        "ratingLow": "التقييم: الأقل أولاً",
+        "amountHigh": "المبلغ: الأعلى أولاً",
+        "amountLow": "المبلغ: الأقل أولاً",
+        "dueSoon": "تاريخ الاستحقاق: الأقرب"
+      }
+    },
     "settingsPage": {
       "title": "الإعدادات",
       "subtitle": "إعدادات المنصة وإدارة الكوبونات",
@@ -1289,7 +1798,70 @@
       "noActivity": "لا توجد نشاطات",
       "company": "شركة",
       "personal": "شخصي",
-      "notProvided": "غير متوفر"
+      "notProvided": "غير متوفر",
+      "edit": "تعديل",
+      "save": "حفظ",
+      "cancel": "إلغاء",
+      "saving": "جاري الحفظ...",
+      "saved": "تم الحفظ بنجاح",
+      "editProfile": "تعديل الملف الشخصي",
+      "editAuth": "تعديل الحساب",
+      "companyNameAr": "اسم الشركة (عربي)",
+      "companyNameEn": "اسم الشركة (إنجليزي)",
+      "bioAr": "النبذة (عربي)",
+      "bioEn": "النبذة (إنجليزي)",
+      "addressAr": "العنوان (عربي)",
+      "addressEn": "العنوان (إنجليزي)",
+      "changeEmail": "تغيير البريد",
+      "changePhone": "تغيير الهاتف",
+      "forceVerifyEmail": "تأكيد البريد",
+      "forceVerifyEmailConfirm": "تأكيد بريد هذا المستخدم؟",
+      "resetPassword": "رابط إعادة تعيين كلمة المرور",
+      "resetLinkGenerated": "تم إنشاء الرابط. انسخه من الأسفل:",
+      "resetLinkCopied": "تم نسخ الرابط",
+      "generateLink": "إنشاء رابط",
+      "copyLink": "نسخ الرابط",
+      "newEmail": "البريد الجديد",
+      "newPhone": "الهاتف الجديد",
+      "apply": "تطبيق",
+      "entityTabs": "الكيانات المرتبطة",
+      "tabProjects": "المشاريع",
+      "tabProducts": "المنتجات",
+      "tabRfqs": "طلبات التسعير",
+      "tabBids": "العروض",
+      "tabDeals": "الصفقات",
+      "tabQuotations": "عروض الأسعار",
+      "tabReviewsGiven": "التقييمات المعطاة",
+      "tabReviewsReceived": "التقييمات المستلمة",
+      "tabCommissions": "العمولات",
+      "tabAuditLog": "سجل الإجراءات",
+      "tabNotifications": "الإشعارات",
+      "noProjects": "لا توجد مشاريع",
+      "noProducts": "لا توجد منتجات",
+      "noRfqs": "لا توجد طلبات تسعير",
+      "noBids": "لا توجد عروض",
+      "noDeals": "لا توجد صفقات",
+      "noQuotations": "لا توجد عروض أسعار",
+      "noReviews": "لا توجد تقييمات",
+      "noCommissions": "لا توجد عمولات",
+      "noAuditEntries": "لا يوجد سجل إجراءات",
+      "noNotifications": "لا توجد إشعارات",
+      "dealValue": "القيمة",
+      "bidAmount": "المبلغ",
+      "rating": "التقييم",
+      "status": "الحالة",
+      "date": "التاريخ",
+      "type": "النوع",
+      "action": "الإجراء",
+      "target": "الهدف",
+      "total": "الإجمالي",
+      "number": "الرقم",
+      "hidden": "مخفي",
+      "read": "مقروء",
+      "unread": "غير مقروء",
+      "manageSubscription": "إدارة الاشتراك",
+      "currency": "ر.س",
+      "vat": "ضريبة القيمة المضافة"
     },
     "analyticsPage": {
       "title": "التحليلات",
@@ -1328,7 +1900,8 @@
       "products": "المنتجات",
       "bids": "العروض",
       "incompleteRegistrations": "تسجيلات غير مكتملة",
-      "export": "تصدير CSV"
+      "export": "تصدير CSV",
+      "noData": "لا توجد بيانات"
     },
     "contactsPage": {
       "title": "رسائل التواصل",
@@ -1370,7 +1943,15 @@
       "confirmChange": "هل تريد تغيير الباقة؟",
       "confirmCancel": "هل تريد إلغاء الاشتراك؟",
       "success": "تم تحديث الاشتراك بنجاح",
-      "error": "حدث خطأ أثناء تحديث الاشتراك"
+      "error": "حدث خطأ أثناء تحديث الاشتراك",
+      "tierStarter": "المبتدئة",
+      "tierPro": "الاحترافية",
+      "tierBusiness": "الأعمال",
+      "tierEnterprise": "المؤسسات",
+      "approvePayment": "الموافقة على الدفع",
+      "approvePaymentConfirm": "الموافقة على هذا التحويل البنكي وتفعيل الاشتراك؟",
+      "paymentApproved": "تمت الموافقة على الدفع وتفعيل الاشتراك",
+      "pendingPayment": "بانتظار الدفع"
     },
     "postEdit": {
       "title": "تعديل المنشور",
@@ -1399,15 +1980,6 @@
       "completeRegistration": "إكمال التسجيل",
       "accountStatus": "حالة الحساب",
       "customMessage": "رسالة مخصصة"
-    },
-    "auditActions": {
-      "edit_post": "تعديل منشور",
-      "change_subscription": "تغيير اشتراك",
-      "cancel_subscription": "إلغاء اشتراك",
-      "extend_subscription": "تمديد اشتراك",
-      "send_admin_email": "إرسال بريد إلكتروني",
-      "mark_contact_read": "تحديد رسالة كمقروء",
-      "delete_contact": "حذف رسالة تواصل"
     }
   },
   "public": {
@@ -1438,7 +2010,9 @@
       "medina": "المدينة المنورة",
       "subcontract": "بالباطن",
       "category": "الفئة",
-      "bidCount": "{count} عرض"
+      "bidCount": "{count} عرض",
+      "previous": "السابق",
+      "next": "التالي"
     },
     "marketplace": {
       "title": "سوق المنتجات",
@@ -1459,7 +2033,9 @@
       "noProductsDesc": "لم يتم نشر أي منتجات بعد أو لا توجد نتائج مطابقة للبحث",
       "variantPricing": "حسب المتغيرات",
       "available": "متوفر",
-      "soldOut": "نفذ"
+      "soldOut": "نفذ",
+      "previous": "السابق",
+      "next": "التالي"
     },
     "rfqs": {
       "title": "طلبات عروض الأسعار",
@@ -1479,7 +2055,9 @@
       "expired": "منتهي",
       "upTo": "حتى",
       "quantityLabel": "الكمية:",
-      "responseCount": "{count} رد"
+      "responseCount": "{count} رد",
+      "previous": "السابق",
+      "next": "التالي"
     },
     "partners": {
       "title": "دليل الشركاء",
@@ -1490,7 +2068,12 @@
       "noResults": "لا يوجد شركاء مطابقون",
       "verified": "موثق",
       "projects": "مشروع",
+      "products": "منتجات",
       "deals": "صفقة",
+      "completedDeals": "{count} صفقة مكتملة",
+      "reviews": "({count} تقييم)",
+      "publishedProjects": "{count} مشروع منشور",
+      "listedProducts": "{count} منتج معروض",
       "search": "بحث",
       "contractor": "مقاول",
       "supplier": "مورد",
@@ -1511,7 +2094,12 @@
       "backToPartners": "العودة لدليل الشركاء",
       "contractor": "مقاول",
       "supplier": "مورد",
+      "verified": "موثّق",
       "aboutCompany": "نبذة عن الشركة",
+      "overview": "نظرة عامة",
+      "projects": "المشاريع",
+      "products": "المنتجات",
+      "reviews": "التقييمات",
       "publishedProjects": "المشاريع المنشورة",
       "listedProducts": "المنتجات المعروضة",
       "variantPricing": "حسب المتغيرات",
@@ -1521,7 +2109,53 @@
       "sendMessage": "إرسال رسالة",
       "loginToContact": "سجل دخولك للتواصل",
       "companyInfo": "معلومات الشركة",
-      "memberSince": "عضو منذ {date}"
+      "memberSince": "عضو منذ {date}",
+      "established": "تأسست {year}",
+      "crNumber": "س.ت",
+      "specializations": "التخصصات",
+      "companyDocuments": "مستندات الشركة",
+      "socialLinks": "روابط التواصل",
+      "completedDeals": "{count} صفقة مكتملة",
+      "statsRating": "تقييم {rating}",
+      "statsReviews": "{count} تقييم",
+      "statsDeals": "{count} صفقة",
+      "statsProjects": "{count} مشروع",
+      "statsProducts": "{count} منتج",
+      "noProjects": "لا توجد مشاريع منشورة بعد",
+      "noProducts": "لا توجد منتجات معروضة بعد",
+      "noReviews": "لا توجد تقييمات بعد",
+      "noProjectsDesc": "لم ينشر هذا الشريك أي مشاريع بعد",
+      "noProductsDesc": "لم يعرض هذا المورد أي منتجات بعد",
+      "noReviewsDesc": "لم يتلق هذا الشريك أي تقييمات بعد",
+      "viewAllProjects": "عرض جميع المشاريع",
+      "viewAllProducts": "عرض جميع المنتجات",
+      "specializationLabels": {
+        "general_contracting": "مقاولات عامة",
+        "civil_works": "أعمال مدنية",
+        "electrical": "كهربائية",
+        "plumbing": "سباكة",
+        "hvac": "تكييف وتبريد",
+        "steel_structures": "هياكل فولاذية",
+        "concrete_works": "أعمال خرسانية",
+        "road_construction": "بناء طرق",
+        "landscaping": "تنسيق حدائق",
+        "interior_design": "تصميم داخلي",
+        "painting": "أعمال دهان",
+        "waterproofing": "عزل مائي",
+        "fire_safety": "سلامة حريق",
+        "demolition": "هدم",
+        "flooring": "أرضيات",
+        "glass_aluminum": "زجاج وألومنيوم",
+        "building_materials": "مواد بناء",
+        "heavy_equipment": "معدات ثقيلة",
+        "safety_equipment": "معدات سلامة",
+        "tools_hardware": "أدوات وعتاد",
+        "pipes_fittings": "أنابيب وتوصيلات",
+        "cement_aggregate": "أسمنت وركام",
+        "wood_timber": "خشب وأخشاب",
+        "insulation": "عزل",
+        "tiles_ceramics": "بلاط وسيراميك"
+      }
     },
     "projectDetail": {
       "backToProjects": "العودة لقائمة المشاريع",
@@ -1543,7 +2177,10 @@
       "bids": "العروض:",
       "projectOwner": "صاحب المشروع",
       "defaultOwner": "مالك المشروع",
-      "publishedAt": "تم النشر: {date}"
+      "publishedAt": "تم النشر: {date}",
+      "documentsAndFiles": "المستندات والملفات",
+      "moreFromOwner": "مزيد من مشاريع هذا المالك",
+      "manageListing": "إدارة الإعلان"
     },
     "productDetail": {
       "backToMarketplace": "العودة للسوق",
@@ -1566,7 +2203,11 @@
       "pricingType": "نوع التسعير",
       "fixedPrice": "سعر ثابت",
       "status": "الحالة",
-      "supplierLabel": "المورد"
+      "supplierLabel": "المورد",
+      "catalogs": "الكتالوجات والمستندات",
+      "downloadCatalog": "تحميل",
+      "moreFromSupplier": "مزيد من منتجات هذا المورد",
+      "manageListing": "إدارة الإعلان"
     },
     "rfqDetail": {
       "backToRfqs": "العودة إلى طلبات عروض الأسعار",
@@ -1703,7 +2344,23 @@
       "createProject": "إنشاء المشروع",
       "saveChanges": "حفظ التعديلات",
       "createSuccess": "تم إنشاء المشروع بنجاح كمسودة",
-      "updateSuccess": "تم تحديث المشروع بنجاح"
+      "updateSuccess": "تم تحديث المشروع بنجاح",
+      "files": {
+        "title": "المستندات والملفات",
+        "hint": "ارفع مستندات المشروع مثل جداول الكميات والرسومات والمواصفات والصور",
+        "category": "تصنيف الملف",
+        "boq": "جدول كميات",
+        "drawings": "رسومات",
+        "images": "صور",
+        "specs": "مواصفات",
+        "general": "عام",
+        "addFiles": "إضافة ملفات",
+        "uploading": "جارٍ الرفع...",
+        "fileLimit": "الحد الأقصى 10 ميجابايت لكل ملف (PDF، Word، Excel، أو صور)",
+        "remove": "حذف",
+        "existingFiles": "الملفات الحالية",
+        "selectCategory": "اختر التصنيف"
+      }
     },
     "variant": {
       "title": "المتغيرات",
@@ -1727,6 +2384,14 @@
       "reasonPlaceholder": "اشرح سبب طلب إلغاء الصفقة...",
       "submitting": "جاري الإرسال...",
       "submitRequest": "طلب الإلغاء"
+    },
+    "skipToFinish": {
+      "requestSent": "تم إرسال طلب التخطي إلى الإنهاء وبانتظار موافقة الطرف الآخر",
+      "reasonLabel": "سبب التخطي إلى الإنهاء *",
+      "reasonPlaceholder": "اشرح سبب طلب تخطي المراحل المتبقية وإنهاء الصفقة...",
+      "submitting": "جاري الإرسال...",
+      "submitRequest": "طلب التخطي إلى الإنهاء",
+      "cancel": "إلغاء"
     },
     "bid": {
       "successMessage": "تم تقديم العرض بنجاح ✓",
@@ -1771,7 +2436,9 @@
       "warrantyEnPlaceholder": "Warranty clauses...",
       "governingLaw": "القانون الحاكم",
       "clauseLibrary": "مكتبة البنود ({count})",
-      "clauseLibraryHint": "اختر البنود لإضافتها للعقد (قريباً)",
+      "clauseLibraryHint": "انقر لاختيار البنود لتضمينها في العقد",
+      "selectedCount": "{count} مُختار",
+      "reorderHint": "اسحب لإعادة ترتيب البنود المختارة",
       "createContract": "إنشاء العقد"
     },
     "fileUpload": {
@@ -1841,7 +2508,23 @@
       "createProduct": "إنشاء المنتج",
       "saveChanges": "حفظ التعديلات",
       "createSuccess": "تم إنشاء المنتج بنجاح كمسودة",
-      "updateSuccess": "تم تحديث المنتج بنجاح"
+      "updateSuccess": "تم تحديث المنتج بنجاح",
+      "media": {
+        "imagesTitle": "صور المنتج",
+        "imagesHint": "ارفع صور المنتج (JPEG، PNG، WebP)",
+        "imageHint": "10 صور كحد أقصى، بحجم لا يتجاوز 5 ميغابايت (JPEG، PNG، WebP)",
+        "addImages": "إضافة صور",
+        "uploading": "جاري الرفع...",
+        "primary": "الرئيسية",
+        "setPrimary": "تعيين كرئيسية",
+        "imageLimit": "10 صور كحد أقصى، بحجم لا يتجاوز 5 ميغابايت للصورة",
+        "specsTitle": "الكتالوجات والمواصفات الفنية",
+        "specHint": "5 ملفات كحد أقصى، بحجم لا يتجاوز 10 ميغابايت (PDF، Word، أو صور)",
+        "catalogsTitle": "الكتالوجات والمواصفات الفنية",
+        "catalogsHint": "ارفع كتالوجات المنتج والمواصفات الفنية",
+        "addCatalog": "إضافة كتالوج",
+        "catalogLimit": "5 ملفات كحد أقصى، بحجم لا يتجاوز 10 ميغابايت (PDF، Word، Excel، أو صور)"
+      }
     },
     "profile": {
       "updateSuccess": "تم تحديث الملف الشخصي بنجاح",
@@ -1859,6 +2542,77 @@
       "bioTitle": "النبذة التعريفية",
       "bioAr": "نبذة (عربي)",
       "bioEn": "نبذة (إنجليزي)",
+      "establishedYear": "سنة التأسيس",
+      "establishedYearLabel": "سنة التأسيس",
+      "socialLinksTitle": "روابط التواصل الاجتماعي",
+      "specializationsTitle": "التخصصات",
+      "specializationsHint": "حدد المجالات التي تتخصص فيها شركتك",
+      "specializations": {
+        "general_contracting": "مقاولات عامة",
+        "civil_works": "أعمال مدنية",
+        "electrical": "كهربائية",
+        "plumbing": "سباكة",
+        "hvac": "تكييف وتبريد",
+        "steel_structures": "هياكل فولاذية",
+        "concrete_works": "أعمال خرسانية",
+        "road_construction": "بناء طرق",
+        "landscaping": "تنسيق حدائق",
+        "interior_design": "تصميم داخلي",
+        "painting": "أعمال دهان",
+        "waterproofing": "عزل مائي",
+        "fire_safety": "سلامة حريق",
+        "demolition": "هدم",
+        "flooring": "أرضيات",
+        "glass_aluminum": "زجاج وألومنيوم",
+        "building_materials": "مواد بناء",
+        "heavy_equipment": "معدات ثقيلة",
+        "safety_equipment": "معدات سلامة",
+        "tools_hardware": "أدوات وعتاد",
+        "pipes_fittings": "أنابيب وتوصيلات",
+        "cement_aggregate": "أسمنت وركام",
+        "wood_timber": "خشب وأخشاب",
+        "insulation": "عزل",
+        "tiles_ceramics": "بلاط وسيراميك"
+      },
+      "visibilityTitle": "إعدادات الخصوصية",
+      "visibilityHint": "تحكم بالمعلومات التي تظهر في ملفك العام",
+      "visibilityCompanyName": "إظهار اسم الشركة",
+      "visibilityPhone": "إظهار رقم الجوال",
+      "visibilityWebsite": "إظهار الموقع الإلكتروني",
+      "visibilityCrNumber": "إظهار رقم السجل التجاري",
+      "visibilityBio": "إظهار النبذة التعريفية",
+      "visibilityCity": "إظهار المدينة",
+      "visibilityEstablishedYear": "إظهار سنة التأسيس",
+      "visibilitySocialLinks": "إظهار روابط التواصل الاجتماعي",
+      "visibilitySpecializations": "إظهار التخصصات",
+      "visibilityDocuments": "إظهار مستندات الشركة",
+      "documents": {
+        "title": "مستندات الشركة",
+        "subtitle": "{count} من {max} مستندات مرفوعة",
+        "documentName": "اسم المستند",
+        "documentNamePlaceholder": "مثال: ملف الشركة، شهادة...",
+        "dropzone": "اضغط لرفع ملف PDF",
+        "pdfOnly": "PDF فقط، حجم أقصى 10 ميجابايت",
+        "enterNameFirst": "أدخل اسم المستند أولاً",
+        "maxReached": "تم الوصول للحد الأقصى (3 مستندات)",
+        "nameRequired": "الرجاء إدخال اسم المستند"
+      },
+      "completeness": {
+        "title": "اكتمال الملف الشخصي",
+        "description": "{completed} من {total} حقول مكتملة",
+        "fields": {
+          "full_name": "الاسم الكامل",
+          "phone": "رقم الجوال",
+          "city": "المدينة",
+          "bio": "النبذة",
+          "avatar": "الصورة الشخصية",
+          "logo": "شعار الشركة",
+          "website": "الموقع الإلكتروني",
+          "cr_number": "السجل التجاري",
+          "documents": "المستندات",
+          "specializations": "التخصصات"
+        }
+      },
       "saveChanges": "حفظ التغييرات"
     },
     "proof": {
@@ -1920,7 +2674,35 @@
       "city": "المدينة",
       "allCities": "كل المدن",
       "creating": "جارٍ الإنشاء...",
-      "createRfq": "إنشاء طلب عرض الأسعار"
+      "createRfq": "إنشاء طلب عرض الأسعار",
+      "files": {
+        "title": "المرفقات",
+        "hint": "ارفع المستندات الداعمة (جداول كميات، رسومات، مواصفات)",
+        "category": "تصنيف الملف",
+        "boq": "جدول كميات",
+        "drawings": "رسومات",
+        "specs": "مواصفات",
+        "general": "عام",
+        "addFiles": "إضافة ملفات",
+        "uploading": "جارٍ الرفع...",
+        "fileLimit": "الحد الأقصى 10 ميجابايت لكل ملف (PDF، Word، Excel، أو صور)",
+        "remove": "حذف",
+        "existingFiles": "الملفات الحالية",
+        "selectCategory": "اختر التصنيف"
+      },
+      "productSelector": {
+        "label": "ربط بمنتج (اختياري)",
+        "placeholder": "ابحث في المنتجات المنشورة...",
+        "noResults": "لم يتم العثور على منتجات",
+        "searching": "جارٍ البحث...",
+        "clear": "إلغاء الاختيار",
+        "selected": "المنتج المختار",
+        "inStock": "متوفر",
+        "outOfStock": "غير متوفر",
+        "minOrder": "الحد الأدنى للطلب: {qty}",
+        "leadTime": "مدة التسليم: {days} يوم",
+        "price": "السعر"
+      }
     },
     "rfqResponse": {
       "successMessage": "تم تقديم ردك بنجاح",
@@ -2017,6 +2799,7 @@
     },
     "activityFeed": {
       "noActivity": "لا يوجد نشاط بعد",
+      "byActor": "بواسطة {name}",
       "proofType": "نوع",
       "proofPercentage": "نسبة",
       "newProgress": "التقدم الجديد",
@@ -2035,7 +2818,11 @@
         "cancellation_requested": "طلب إلغاء",
         "cancellation_rejected": "تم رفض طلب الإلغاء",
         "skip_milestone_requested": "طلب تخطي مرحلة",
-        "skip_milestone_approved": "تمت الموافقة على تخطي المرحلة"
+        "skip_milestone_approved": "تمت الموافقة على تخطي المرحلة",
+        "skip_milestone_rejected": "تم رفض طلب تخطي المرحلة",
+        "document_uploaded": "تم رفع مستند",
+        "milestone_progress_updated": "تم تحديث تقدم المرحلة",
+        "deal_started": "بدأت الصفقة"
       }
     },
     "commissionActions": {
@@ -2076,6 +2863,7 @@
     "chatThread": {
       "startConversation": "ابدأ المحادثة بإرسال رسالة",
       "quickReplies": "ردود سريعة",
+      "attachFile": "إرفاق ملف",
       "typeMessage": "اكتب رسالتك..."
     },
     "reviewCard": {
@@ -2175,7 +2963,9 @@
       "acceptQuotation": "قبول عرض السعر",
       "rejectPrompt": "سبب الرفض (اختياري):",
       "rejecting": "جارٍ الرفض...",
-      "reject": "رفض"
+      "reject": "رفض",
+      "duplicating": "جارٍ النسخ...",
+      "duplicate": "نسخ"
     },
     "rfqActions": {
       "sending": "جارٍ الإرسال...",
@@ -2186,11 +2976,41 @@
       "rejecting": "...",
       "reject": "رفض"
     },
+    "productInquiry": {
+      "requestQuote": "طلب عرض سعر",
+      "quantity": "الكمية",
+      "messageAr": "الرسالة (عربي)",
+      "messageEn": "الرسالة (إنجليزي)",
+      "messagePlaceholderAr": "اكتب رسالتك هنا...",
+      "messagePlaceholderEn": "Write your message here...",
+      "sending": "جارٍ الإرسال...",
+      "submit": "إرسال الاستفسار",
+      "inquirySent": "تم إرسال استفسارك بنجاح! سيستجيب المورد قريباً."
+    },
     "adminSettings": {
       "keyPlaceholder": "المفتاح (مثال: commission_rates)",
       "valuePlaceholder": "القيمة (نص أو JSON)",
       "updateSuccess": "تم التحديث بنجاح",
       "saveSetting": "حفظ الإعداد"
+    },
+    "mergeClients": {
+      "findDuplicates": "البحث عن مكررات",
+      "title": "دمج العملاء المكررين",
+      "description": "حدد العميل المكرر لدمجه في السجل الحالي",
+      "primaryClient": "العميل الأساسي (يتم الاحتفاظ به)",
+      "searching": "جاري البحث عن المكررات...",
+      "noDuplicates": "لم يتم العثور على مكررات محتملة",
+      "potentialDuplicates": "تم العثور على {count} مكرر(ات) محتملة",
+      "mergeSelected": "دمج المحدد",
+      "keepSeparate": "إبقاء منفصلين",
+      "close": "إغلاق",
+      "mergeSuccess": "تم دمج العملاء بنجاح",
+      "matchReason": {
+        "phone": "الهاتف",
+        "email": "البريد الإلكتروني",
+        "company": "الشركة",
+        "name": "الاسم"
+      }
     },
     "clientActions": {
       "quickActions": "إجراءات سريعة",
@@ -2255,6 +3075,8 @@
       "issuesPlaceholder": "أي مشاكل واجهتها اليوم...",
       "safetyNotes": "ملاحظات السلامة",
       "safetyNotesPlaceholder": "ملاحظات حول السلامة في الموقع...",
+      "photos": "صور الموقع",
+      "photosHint": "حتى 10 صور، بحد أقصى 5 ميجابايت لكل صورة (JPEG, PNG, WebP)",
       "save": "حفظ سجل اليوم"
     },
     "dealActions": {
@@ -2267,7 +3089,8 @@
       "rejectCancel": "رفض طلب الإلغاء",
       "acceptSuggestion": "قبول الاقتراح",
       "rejectSuggestion": "رفض الاقتراح",
-      "approveSkip": "الموافقة على تخطي المرحلة"
+      "approveSkip": "الموافقة على تخطي المرحلة",
+      "rejectSkip": "رفض التخطي"
     },
     "markAllRead": {
       "updating": "جارٍ التحديث...",
@@ -2372,7 +3195,10 @@
       "contact": {
         "title": "التواصل معنا",
         "description": "لأي استفسارات حول خصوصية بياناتك، يرجى التواصل عبر: privacy@muqawilhub.com"
-      }
+      },
+      "seeAlso": "انظر أيضاً",
+      "termsLink": "الشروط والأحكام",
+      "cookiesLink": "سياسة ملفات تعريف الارتباط"
     },
     "terms": {
       "title": "الشروط والأحكام",
@@ -2420,7 +3246,10 @@
       "modifications": {
         "title": "التعديلات",
         "description": "نحتفظ بحق تعديل هذه الشروط في أي وقت. سيتم إخطار المستخدمين بأي تغييرات جوهرية."
-      }
+      },
+      "seeAlso": "انظر أيضاً",
+      "privacyLink": "سياسة الخصوصية",
+      "cookiesLink": "سياسة ملفات تعريف الارتباط"
     },
     "cookies": {
       "title": "سياسة ملفات تعريف الارتباط",
@@ -2456,24 +3285,71 @@
       "contact": {
         "title": "التواصل معنا",
         "description": "لأي استفسارات حول ملفات تعريف الارتباط: privacy@muqawilhub.com"
-      }
+      },
+      "seeAlso": "انظر أيضاً",
+      "privacyLink": "سياسة الخصوصية",
+      "termsLink": "الشروط والأحكام"
     }
   },
   "metadata": {
     "home": {
-      "title": "منصة مهندس — منصة قطاع الإنشاءات في السعودية | Muhaned Hub",
+      "title": "منصة مهندس — منصة قطاع الإنشاءات في السعودية | Muhandes HUB",
       "description": "منظومة رقمية متكاملة تربط أصحاب المشاريع والمقاولين والموردين والمشترين في قطاع الإنشاءات السعودي. ابدأ الآن مجاناً.",
-      "ogTitle": "منصة مهندس — منصة قطاع الإنشاءات | Muhaned Hub",
+      "ogTitle": "منصة مهندس — منصة قطاع الإنشاءات | Muhandes HUB",
       "ogDescription": "منظومة رقمية متكاملة لقطاع الإنشاءات — مشاريع، عقود، عروض أسعار، وإدارة صفقات."
     },
     "default": {
-      "title": "Muhaned Hub | منصة مهندس",
+      "title": "Muhandes HUB | منصة مهندس",
       "description": "منصة رقمية متكاملة لقطاع الإنشاءات في المملكة العربية السعودية"
+    }
+  },
+  "tierGate": {
+    "upgrade": "ترقية الاشتراك",
+    "hasKanban": {
+      "title": "لوحة كانبان مقفلة",
+      "description": "لوحة كانبان متاحة لمشتركي باقة المحترف وأعلى. قم بالترقية لإدارة مهام صفقاتك بصرياً."
+    },
+    "hasAnalytics": {
+      "title": "التحليلات غير متاحة",
+      "description": "لوحة التحليلات متاحة لمشتركي باقة المحترف وأعلى. قم بالترقية للوصول إلى رؤى الأعمال."
+    },
+    "hasBulkUpload": {
+      "title": "الرفع الجماعي مقفل",
+      "description": "الرفع الجماعي متاح لمشتركي باقة الأعمال وأعلى. قم بالترقية لرفع المنتجات بالجملة."
+    },
+    "hasClauseLibrary": {
+      "title": "مكتبة البنود مقفلة",
+      "description": "مكتبة البنود متاحة لمشتركي باقة المحترف وأعلى. قم بالترقية لحفظ وإعادة استخدام بنود العقود."
+    },
+    "hasCustomContracts": {
+      "title": "العقود المخصصة مقفلة",
+      "description": "قوالب العقود المخصصة متاحة لمشتركي باقة الأعمال وأعلى. قم بالترقية لإنشاء قوالبك الخاصة."
+    },
+    "bidsPerMonth": {
+      "title": "تم الوصول لحد العروض",
+      "description": "لقد وصلت للحد الأقصى من العروض الشهرية في باقة {tier}. قم بالترقية لتقديم المزيد من العروض."
+    },
+    "productPosts": {
+      "title": "تم الوصول لحد المنتجات",
+      "description": "لقد وصلت للحد الأقصى من المنتجات في باقة {tier}. قم بالترقية لإضافة المزيد من المنتجات."
+    },
+    "crmClients": {
+      "title": "تم الوصول لحد العملاء",
+      "description": "لقد وصلت للحد الأقصى من عملاء CRM في باقة {tier}. قم بالترقية لإدارة المزيد من العملاء."
+    },
+    "quotationsPerMonth": {
+      "title": "تم الوصول لحد عروض الأسعار",
+      "description": "لقد وصلت للحد الأقصى من عروض الأسعار الشهرية في باقة {tier}. قم بالترقية لإرسال المزيد."
+    },
+    "contractsPerMonth": {
+      "title": "تم الوصول لحد العقود",
+      "description": "لقد وصلت للحد الأقصى من العقود الشهرية في باقة {tier}. قم بالترقية لإنشاء المزيد من العقود."
     }
   },
   "actions": {
     "auth": {
       "tooManyLoginAttempts": "محاولات تسجيل دخول كثيرة. يرجى المحاولة بعد قليل",
+      "tooManyResetAttempts": "محاولات إعادة تعيين كلمة المرور كثيرة. يرجى المحاولة بعد قليل",
       "invalidData": "بيانات غير صالحة",
       "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
       "accountBanned": "تم حظر هذا الحساب",
@@ -2493,7 +3369,10 @@
       "documentUploadError": "حدث خطأ أثناء رفع المستندات",
       "statusUpdateError": "حدث خطأ أثناء تحديث الحالة",
       "resendVerificationError": "حدث خطأ أثناء إعادة إرسال رابط التحقق",
-      "mustLogin": "يجب تسجيل الدخول أولاً"
+      "mustLogin": "يجب تسجيل الدخول أولاً",
+      "invalidReceipt": "إيصال غير صالح. يجب أن يكون PDF أو JPEG أو PNG بحجم أقل من 5 ميغابايت",
+      "receiptUploadError": "حدث خطأ أثناء رفع إيصال البنك",
+      "sessionReplaced": "تم تسجيل خروجك لأنه تم تسجيل الدخول من جهاز آخر"
     },
     "bids": {
       "mustLogin": "يجب تسجيل الدخول أولاً",
@@ -2519,6 +3398,7 @@
     },
     "projects": {
       "mustLogin": "يجب تسجيل الدخول أولاً",
+      "tooManyRequests": "طلبات كثيرة جداً. يرجى المحاولة لاحقاً",
       "noPermissionCreate": "ليس لديك صلاحية إنشاء مشاريع",
       "invalidData": "بيانات غير صالحة",
       "createError": "حدث خطأ أثناء إنشاء المشروع",
@@ -2535,6 +3415,7 @@
     },
     "products": {
       "mustLogin": "يجب تسجيل الدخول أولاً",
+      "tooManyRequests": "طلبات كثيرة جداً. يرجى المحاولة لاحقاً",
       "suppliersOnly": "فقط الموردون يمكنهم إضافة منتجات",
       "productLimitReached": "وصلت للحد الأقصى من المنتجات ({limit}). يرجى ترقية اشتراكك",
       "invalidVariants": "صيغة المتغيرات غير صالحة",
@@ -2559,7 +3440,14 @@
       "rowColumnMismatch": "سطر {line}: عدد الأعمدة غير متطابق",
       "rowTitleRequired": "سطر {line}: title_ar مطلوب",
       "rowInvalidPrice": "سطر {line}: السعر غير صالح",
-      "noValidProducts": "لم يتم العثور على منتجات صالحة في الملف"
+      "noValidProducts": "لم يتم العثور على منتجات صالحة في الملف",
+      "imageLimitReached": "وصلت للحد الأقصى 10 صور",
+      "noImageSelected": "لم يتم اختيار صورة",
+      "imageUploadError": "فشل في رفع الصورة",
+      "imageNotFound": "الصورة غير موجودة",
+      "specLimitReached": "وصلت للحد الأقصى 5 كتالوجات",
+      "noFileSelected": "لم يتم اختيار ملف",
+      "specUploadError": "فشل في رفع الكتالوج"
     },
     "deals": {
       "mustLogin": "يجب تسجيل الدخول أولاً",
@@ -2595,10 +3483,12 @@
       "noPermission": "ليس لديك صلاحية",
       "skipRequestNotFound": "طلب التخطي غير موجود",
       "cannotApproveOwnSkip": "لا يمكنك الموافقة على طلبك الخاص",
+      "cannotRejectOwnSkip": "لا يمكنك رفض طلبك الخاص",
       "skipRequestError": "فشل في إنشاء طلب التخطي"
     },
     "quotations": {
       "mustLogin": "يجب تسجيل الدخول أولاً",
+      "tooManyRequests": "طلبات كثيرة جداً. يرجى المحاولة لاحقاً",
       "roleNotAllowed": "فقط المقاولون والموردون يمكنهم إنشاء عروض أسعار",
       "monthlyLimitReached": "لقد وصلت إلى الحد الشهري ({limit} عرض سعر). قم بالترقية لزيادة الحد",
       "invalidLineItems": "تنسيق البنود غير صالح",
@@ -2646,6 +3536,7 @@
     },
     "contracts": {
       "mustLogin": "يجب تسجيل الدخول",
+      "tooManyRequests": "طلبات كثيرة جداً. يرجى المحاولة لاحقاً",
       "invalidData": "بيانات غير صالحة",
       "customTemplateUpgradeRequired": "القوالب المخصصة متاحة للباقة الاحترافية وما فوق",
       "monthlyLimitReached": "وصلت الحد الأقصى للعقود ({limit}/شهر)",
@@ -2658,7 +3549,8 @@
       "clauseDeleteError": "فشل الحذف"
     },
     "contact": {
-      "validationErrors": "يرجى تصحيح الأخطاء"
+      "validationErrors": "يرجى تصحيح الأخطاء",
+      "tooManyRequests": "طلبات كثيرة جداً. يرجى المحاولة لاحقاً"
     },
     "subscriptions": {
       "mustLogin": "يجب تسجيل الدخول",
@@ -2669,7 +3561,11 @@
       "couponNotFound": "رمز الكوبون غير موجود أو غير صالح",
       "couponNotActive": "الكوبون غير فعال بعد",
       "couponExpired": "انتهت صلاحية الكوبون",
-      "couponExhausted": "تم استنفاد الكوبون"
+      "couponExhausted": "تم استنفاد الكوبون",
+      "mustUpgradeToHigherTier": "يجب اختيار درجة أعلى من الحالية",
+      "mustDowngradeToLowerTier": "يجب اختيار درجة أقل من الحالية",
+      "noActiveSubscription": "لا يوجد اشتراك فعال",
+      "cannotRenewStarter": "لا يمكن تجديد الباقة المجانية"
     },
     "crm": {
       "mustLogin": "يجب تسجيل الدخول",
@@ -2710,7 +3606,9 @@
       "csvHeaderArchived": "مؤرشف",
       "csvHeaderCreatedAt": "تاريخ الإضافة",
       "yes": "نعم",
-      "no": "لا"
+      "no": "لا",
+      "proPlusOnly": "هذه الميزة تتطلب اشتراك Pro أو أعلى",
+      "cannotMergeSame": "لا يمكن دمج العميل مع نفسه"
     },
     "inquiries": {
       "mustLogin": "يجب تسجيل الدخول أولاً",
@@ -2749,6 +3647,7 @@
     },
     "messages": {
       "mustLogin": "يجب تسجيل الدخول",
+      "tooManyRequests": "رسائل كثيرة جداً. يرجى التمهل",
       "invalidData": "بيانات غير صالحة",
       "notParticipant": "لست مشاركاً في هذه المحادثة",
       "sendError": "فشل إرسال الرسالة",
@@ -2760,7 +3659,8 @@
       "cannotDeleteOthersMessage": "لا يمكنك حذف هذه الرسالة",
       "deleteError": "فشل حذف الرسالة",
       "saveQuickReplyError": "فشل حفظ الرد السريع",
-      "deleteQuickReplyError": "فشل حذف الرد السريع"
+      "deleteQuickReplyError": "فشل حذف الرد السريع",
+      "dealNotFound": "الصفقة غير موجودة"
     },
     "notifications": {
       "createError": "فشل إنشاء الإشعار",
@@ -2799,6 +3699,7 @@
     },
     "uploads": {
       "mustLogin": "يجب تسجيل الدخول",
+      "tooManyRequests": "طلبات رفع كثيرة جداً. يرجى المحاولة لاحقاً",
       "invalidBucket": "مجلد غير صالح",
       "fileTooLarge": "حجم الملف يتجاوز الحد المسموح ({maxMB} ميجابايت)",
       "invalidFileType": "نوع الملف غير مسموح",
@@ -2850,7 +3751,9 @@
       "unbanError": "فشل في إلغاء حظر المستخدم",
       "restrictError": "فشل في تقييد المستخدم",
       "unrestrictError": "فشل في إلغاء تقييد المستخدم",
-      "userNotFound": "المستخدم غير موجود"
+      "userNotFound": "المستخدم غير موجود",
+      "validationError": "بيانات غير صالحة",
+      "resetLinkError": "فشل في إنشاء رابط إعادة تعيين كلمة المرور"
     },
     "adminSubscriptions": {
       "mustLogin": "يجب تسجيل الدخول",
@@ -2862,7 +3765,9 @@
       "cancelError": "فشل في إلغاء الاشتراك",
       "extendError": "فشل في تمديد الاشتراك",
       "invalidDays": "يجب أن تكون الأيام بين 1 و 365",
-      "noSubscription": "لا يوجد اشتراك لهذا المستخدم"
+      "noSubscription": "لا يوجد اشتراك لهذا المستخدم",
+      "alreadyActive": "هذا الاشتراك مفعّل بالفعل",
+      "approveError": "فشل في الموافقة على دفعة الاشتراك"
     },
     "adminContact": {
       "mustLogin": "يجب تسجيل الدخول",
@@ -2874,6 +3779,19 @@
       "deleteError": "فشل في حذف الرسالة",
       "fetchError": "فشل في تحميل رسائل التواصل",
       "userNotFound": "المستخدم غير موجود"
+    }
+  },
+  "components": {
+    "fileDisplay": {
+      "boq": "جدول كميات",
+      "drawings": "رسومات",
+      "images": "صور",
+      "specs": "مواصفات",
+      "catalog": "كتالوج",
+      "general": "عام",
+      "files": "ملفات",
+      "noFiles": "لم يتم رفع ملفات",
+      "download": "تحميل"
     }
   }
 }

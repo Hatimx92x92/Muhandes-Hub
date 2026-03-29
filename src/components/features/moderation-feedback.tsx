@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Moderation Feedback Display
+// Muhandes HUB — Moderation Feedback Display
 // =============================================================================
 
 import { AlertTriangle } from 'lucide-react';
@@ -29,16 +29,16 @@ export function ModerationFeedback({
   return (
     <div
       className={cn(
-        'flex gap-3 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950',
+        'flex gap-3 rounded-lg border border-destructive/20 bg-destructive/10 p-4',
         className,
       )}
     >
-      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
+      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
       <div>
-        <p className="text-sm font-medium text-red-800 dark:text-red-200">
+        <p className="text-sm font-medium text-destructive">
           {t('rejectionReason')}
         </p>
-        <p className="mt-1 text-sm text-red-700 dark:text-red-300">{display}</p>
+        <p className="mt-1 text-sm text-destructive/80">{display}</p>
       </div>
     </div>
   );

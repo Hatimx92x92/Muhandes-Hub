@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — TypeScript Enums (mirrors DATABASE.sql ENUM types)
+// Muhandes HUB — TypeScript Enums (mirrors DATABASE.sql ENUM types)
 // =============================================================================
 
 /** User roles — immutable after registration, one per account */
@@ -162,6 +162,9 @@ export const NotificationType = {
   SUPPLIER_HIRE_REQUEST_RECEIVED: 'supplier_hire_request_received',
   SUPPLIER_HIRE_QUOTATION_RECEIVED: 'supplier_hire_quotation_received',
   DEAL_FLAGGED_REVIEW: 'deal_flagged_review',
+  SUBSCRIPTION_UPGRADED: 'subscription_upgraded',
+  SUBSCRIPTION_RENEWED: 'subscription_renewed',
+  SUBSCRIPTION_PAYMENT_APPROVED: 'subscription_payment_approved',
 } as const;
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
 
@@ -200,6 +203,13 @@ export const CouponDiscountType = {
   FIXED: 'fixed',
 } as const;
 export type CouponDiscountType = (typeof CouponDiscountType)[keyof typeof CouponDiscountType];
+
+/** Auth provider */
+export const AuthProvider = {
+  EMAIL: 'email',
+  GOOGLE: 'google',
+} as const;
+export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider];
 
 /** Payment method */
 export const PaymentMethod = {

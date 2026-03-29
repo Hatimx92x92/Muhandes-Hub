@@ -8,8 +8,11 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/features/empty-state';
 import { ShoppingCart, Search, Banknote, Calendar, MessageSquare } from 'lucide-react';
-import { formatSAR, formatDate, getLocaleField } from '@/lib/utils';
+import { formatSAR, formatDate, getLocaleField, getEntitySlug } from '@/lib/utils';
 import { getTranslations, getLocale } from 'next-intl/server';
+import { BrowsePagination } from '@/components/features/browse-pagination';
+
+const PAGE_SIZE = 24;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -19,16 +22,19 @@ function db(supabase: any): any {
 export default async function PublicRFQsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
   const t = await getTranslations('public.rfqs');
   const locale = await getLocale();
+  const currentPage = Math.max(1, parseInt(params.page || '1', 10) || 1);
+  const from = (currentPage - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
 
   let query = db(supabase)
     .from('rfqs')
-    .select('id, title_ar, title_en, description_ar, description_en, quantity, budget_min, budget_max, deadline, response_count, created_at')
+    .select('id, title_ar, title_en, description_ar, description_en, quantity, budget_min, budget_max, deadline, response_count, created_at, slug_ar, slug_en', { count: 'exact' })
     .eq('status', 'published');
 
   if (params.q) {
@@ -47,7 +53,8 @@ export default async function PublicRFQsPage({
       query = query.order('created_at', { ascending: false });
   }
 
-  const { data: rfqs } = await query.limit(50);
+  const { data: rfqs, count } = await query.range(from, to);
+  const totalPages = Math.ceil((count ?? 0) / PAGE_SIZE);
 
   const items = (rfqs ?? []) as Array<{
     id: string;
@@ -64,7 +71,7 @@ export default async function PublicRFQsPage({
   }>;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <div className="py-16">
       <div className="mb-10">
         <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">{t('title')}</h1>
         <p className="mt-2 text-muted-foreground">{t('subtitle')}</p>
@@ -100,7 +107,7 @@ export default async function PublicRFQsPage({
         </form>
       </div>
 
-      <p className="mb-4 text-sm text-muted-foreground">{t('resultCount', { count: items.length })}</p>
+      <p className="mb-4 text-sm text-muted-foreground">{t('resultCount', { count: count ?? items.length })}</p>
 
       {items.length === 0 ? (
         <EmptyState
@@ -115,6 +122,13 @@ export default async function PublicRFQsPage({
           ))}
         </div>
       )}
+
+      <BrowsePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        searchParams={params as Record<string, string | undefined>}
+        labels={{ previous: t('previous'), next: t('next') }}
+      />
     </div>
   );
 }
@@ -139,6 +153,8 @@ function PublicRFQCard({
     deadline: string | null;
     response_count: number;
     created_at: string;
+    slug_ar?: string | null;
+    slug_en?: string | null;
   };
   locale: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -150,7 +166,7 @@ function PublicRFQCard({
   const isExpired = rfq.deadline && new Date(rfq.deadline) < new Date();
 
   return (
-    <Link href={`/rfqs/${rfq.id}`}>
+    <Link href={`/rfqs/${getEntitySlug(rfq, locale)}`}>
       <Card className="h-full p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/20">
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-2">

@@ -1,11 +1,12 @@
 // =============================================================================
-// Muqawil HUB — File Upload Utilities (Supabase Storage)
+// Muhandes HUB — File Upload Utilities (Supabase Storage)
 // =============================================================================
 
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
 import { getTranslations } from 'next-intl/server';
+import { apiLimiter, checkRateLimit } from '@/lib/rate-limit';
 import type { ActionResult } from '@/types';
 
 // ---------------------------------------------------------------------------
@@ -28,9 +29,14 @@ const BUCKET_CONFIG: Record<string, { allowed: string[]; maxSize: number }> = {
   'project-files': { allowed: [...ALLOWED_DOCUMENTS, ...ALLOWED_IMAGES], maxSize: 10 * 1024 * 1024 }, // 10MB
   'product-images': { allowed: ALLOWED_IMAGES, maxSize: 5 * 1024 * 1024 },
   'product-specs': { allowed: ALLOWED_SPECS, maxSize: 10 * 1024 * 1024 },
+  'rfq-files': { allowed: [...ALLOWED_DOCUMENTS, ...ALLOWED_IMAGES], maxSize: 10 * 1024 * 1024 }, // 10MB
   'deal-proofs': { allowed: [...ALLOWED_DOCUMENTS, ...ALLOWED_IMAGES], maxSize: 10 * 1024 * 1024 },
   'deal-documents': { allowed: [...ALLOWED_DOCUMENTS, ...ALLOWED_IMAGES], maxSize: 10 * 1024 * 1024 },
   'verification-docs': { allowed: ALLOWED_DOCUMENTS, maxSize: 10 * 1024 * 1024 },
+  'message-attachments': { allowed: [...ALLOWED_DOCUMENTS, ...ALLOWED_IMAGES], maxSize: 10 * 1024 * 1024 },
+  'site-log-photos': { allowed: ALLOWED_IMAGES, maxSize: 5 * 1024 * 1024 },
+  'company-documents': { allowed: ['application/pdf'], maxSize: 10 * 1024 * 1024 }, // 10MB PDF only
+  'bank-payments': { allowed: [...ALLOWED_DOCUMENTS, ...ALLOWED_IMAGES], maxSize: 10 * 1024 * 1024 }, // 10MB
 };
 
 // ---------------------------------------------------------------------------
@@ -47,6 +53,11 @@ export async function uploadFile(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: null, error: t('mustLogin') };
+
+  // 1b. Rate limit
+  const rl = apiLimiter();
+  const { success: rlOk } = await checkRateLimit(rl, user.id);
+  if (!rlOk) return { data: null, error: t('tooManyRequests') };
 
   // 2. Validate bucket
   const config = BUCKET_CONFIG[bucket];
@@ -268,13 +279,43 @@ export async function uploadDealProof(
 export async function uploadDealDocument(
   dealId: string,
   formData: FormData,
-): Promise<ActionResult<{ url: string }>> {
+): Promise<ActionResult<{ id: string; url: string }>> {
   const t = await getTranslations('actions.uploads');
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
   const file = formData.get('document') as File | null;
   if (!file || file.size === 0) return { data: null, error: t('noFileSelected') };
+
+  const category = (formData.get('category') as string) || 'general';
+  const notes = (formData.get('notes') as string) || null;
 
   const result = await uploadFile('deal-documents', file, `${dealId}/doc-${Date.now()}`);
   if (result.error) return { data: null, error: result.error };
 
-  return { data: { url: result.data!.url }, error: null };
+  // Insert record into deal_documents table
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: doc, error: dbError } = await (supabase as any)
+    .from('deal_documents')
+    .insert({
+      deal_id: dealId,
+      uploader_id: user.id,
+      category,
+      file_url: result.data!.url,
+      file_name: file.name,
+      file_size: file.size,
+      mime_type: file.type,
+      notes,
+    })
+    .select('id')
+    .single();
+
+  if (dbError) return { data: null, error: t('uploadError') };
+
+  const { revalidatePath } = await import('next/cache');
+  revalidatePath(`/dashboard/deals`);
+
+  return { data: { id: doc.id, url: result.data!.url }, error: null };
 }

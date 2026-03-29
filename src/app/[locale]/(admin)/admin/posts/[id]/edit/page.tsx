@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation';
 import { ArrowRight } from 'lucide-react';
 import { getPostDetails } from '@/actions/admin/moderation';
 import { PostEditForm } from '@/components/features/admin/post-edit-form';
+import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 
 export default async function AdminPostEditPage({
   params,
@@ -27,14 +28,7 @@ export default async function AdminPostEditPage({
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-3">
-        <Link href="/admin/posts" className="text-sm text-muted-foreground hover:text-foreground">
-          {t('title')}
-        </Link>
-        <ArrowRight className="h-3 w-3 text-muted-foreground rtl:rotate-180" />
-        <span className="text-sm font-medium">{t('editPost')}</span>
-      </div>
+      <BreadcrumbOverride segment={rawId} label={(data.title_ar as string) || (data.title_en as string) || ''} />
 
       <PostEditForm
         postId={postId}

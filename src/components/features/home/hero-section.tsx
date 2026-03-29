@@ -1,16 +1,17 @@
 'use client';
 
 import { Link } from '@/i18n/navigation';
-import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
+import { useReducedMotion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { FadeIn, FloatingElement } from '@/components/ui/motion';
-import { AnimatedCounter } from '@/components/ui/animated-counter';
+import { FadeIn } from '@/components/ui/motion';
 import { TypingText } from '@/components/ui/typing-text';
+import { NumberTicker } from '@/components/ui/number-ticker';
+import { DotPattern } from '@/components/ui/dot-pattern';
 import { useTranslations } from 'next-intl';
 
 /* ==========================================================================
-   HeroSection — Full-viewport animated hero with parallax + floating shapes
+   HeroSection — Full-viewport animated hero with dot pattern background
    ========================================================================== */
 
 export function HeroSection() {
@@ -22,14 +23,8 @@ export function HeroSection() {
 
   const heading1Text = t('heading1');
   const heading2Text = t('heading2');
-  // Compute when the rest of the UI should appear
-  const typingDelay1 = 0.3; // initial delay before heading1 starts
+  const typingDelay1 = 0.3;
   const charSpeed = 0.045;
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end start'],
-  });
 
   const stats = [
     { value: 4, suffix: '', label: t('stats.roles') },
@@ -37,59 +32,19 @@ export function HeroSection() {
     { value: 15, suffix: '%', label: t('stats.vatInclusive') },
   ];
 
-  // Parallax offsets for floating shapes
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, -80]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, -120]);
-  const y3 = useTransform(scrollYProgress, [0, 1], [0, -60]);
-
   return (
     <section
       ref={sectionRef}
       className="relative min-h-[90vh] flex items-center overflow-hidden bg-linear-to-b from-primary/5 via-primary/2 to-background"
     >
-      {/* Decorative grid pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-size-[4rem_4rem] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,black_70%,transparent_100%)]" />
-
-      {/* Floating decorative shapes with parallax */}
-      {!prefersReduced && (
-        <>
-          <motion.div
-            style={{ y: y1 }}
-            className="absolute top-[15%] inset-s-[8%] pointer-events-none"
-          >
-            <FloatingElement duration={7} delay={0} distance={24}>
-              <div className="h-20 w-20 rounded-full bg-primary/6 blur-sm" />
-            </FloatingElement>
-          </motion.div>
-
-          <motion.div
-            style={{ y: y2 }}
-            className="absolute top-[25%] inset-e-[12%] pointer-events-none"
-          >
-            <FloatingElement duration={8} delay={1} distance={18}>
-              <div className="h-32 w-32 rounded-3xl bg-secondary/8 blur-sm rotate-12" />
-            </FloatingElement>
-          </motion.div>
-
-          <motion.div
-            style={{ y: y3 }}
-            className="absolute bottom-[20%] inset-s-[15%] pointer-events-none"
-          >
-            <FloatingElement duration={9} delay={2} distance={16}>
-              <div className="h-16 w-16 rounded-2xl bg-primary/5 blur-sm -rotate-6" />
-            </FloatingElement>
-          </motion.div>
-
-          <motion.div
-            style={{ y: y1 }}
-            className="absolute top-[60%] inset-e-[8%] pointer-events-none"
-          >
-            <FloatingElement duration={6} delay={0.5} distance={20}>
-              <div className="h-14 w-14 rounded-full bg-secondary/6 blur-sm" />
-            </FloatingElement>
-          </motion.div>
-        </>
-      )}
+      {/* Dot pattern background */}
+      <DotPattern
+        width={24}
+        height={24}
+        cr={1.2}
+        glow={!prefersReduced}
+        className="absolute inset-0 text-primary/20 mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,black_70%,transparent_100%)]"
+      />
 
       {/* Main content */}
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8 lg:py-40 w-full">
@@ -139,7 +94,6 @@ export function HeroSection() {
                   href="/register"
                   className="group relative inline-flex h-13 items-center gap-2 rounded-xl bg-linear-to-r from-primary to-primary-dark px-8 text-base font-bold text-primary-foreground shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]"
                 >
-                  {/* Pulse ring on primary CTA */}
                   <span className="absolute inset-0 rounded-xl animate-pulse-ring opacity-0 group-hover:opacity-100" />
                   {t('ctaPrimary')}
                   <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5 rtl:rotate-180 rtl:group-hover:translate-x-0.5" />
@@ -154,18 +108,15 @@ export function HeroSection() {
             </FadeIn>
           )}
 
-          {/* Stats strip — animated counters */}
+          {/* Stats strip — Magic UI number tickers */}
           {heading2Done && (
             <FadeIn direction="up" delay={0.3} duration={0.5}>
               <div className="mt-16 flex flex-wrap items-center justify-center gap-8 sm:gap-16">
                 {stats.map((stat) => (
                   <div key={stat.label} className="text-center">
                     <div className="text-2xl font-extrabold text-foreground">
-                      <AnimatedCounter
-                        value={stat.value}
-                        suffix={stat.suffix}
-                        duration={1500}
-                      />
+                      <NumberTicker value={stat.value} delay={0.3} />
+                      {stat.suffix && <span>{stat.suffix}</span>}
                     </div>
                     <p className="text-xs font-medium text-muted-foreground mt-1">
                       {stat.label}

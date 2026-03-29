@@ -4,9 +4,9 @@
 
 import { Card } from '@/components/ui/card';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
-import { cn, formatSAR, formatDate } from '@/lib/utils';
+import { cn, formatSAR, formatDate, getLocaleField } from '@/lib/utils';
 import { Calendar, Banknote, CheckCircle } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
 
 const milestoneStatusBadge: Record<string, BadgeProps['variant']> = {
   pending: 'secondary',
@@ -22,6 +22,7 @@ interface MilestoneTimelineProps {
 
 export async function MilestoneTimeline({ milestones, className }: MilestoneTimelineProps) {
   const t = await getTranslations('features.milestoneTimeline');
+  const locale = await getLocale();
   if (milestones.length === 0) return null;
 
   return (
@@ -59,10 +60,7 @@ export async function MilestoneTimeline({ milestones, className }: MilestoneTime
               <Card className={cn('flex-1 p-4', isInProgress && 'border-primary')}>
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h4 className="font-semibold text-sm">{m.title_ar as string}</h4>
-                    {!!m.title_en && (
-                      <p className="text-xs text-muted-foreground">{m.title_en as string}</p>
-                    )}
+                    <h4 className="font-semibold text-sm">{getLocaleField(m, 'title', locale)}</h4>
                   </div>
                   <Badge variant={milestoneStatusBadge[status] ?? 'secondary'}>
                     {t(`status.${status}` as 'status.pending')}
@@ -70,7 +68,7 @@ export async function MilestoneTimeline({ milestones, className }: MilestoneTime
                 </div>
 
                 {!!m.description_ar && (
-                  <p className="mt-2 text-xs text-muted-foreground">{m.description_ar as string}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">{getLocaleField(m, 'description', locale)}</p>
                 )}
 
                 <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { shortlistBid, awardBid, rejectBid } from '@/actions/bids';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ export function BidActions({ bidId, status }: BidActionsProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const t = useTranslations('features.bidActions');
+  const router = useRouter();
 
   const handleShortlist = () => {
     setError(null);
@@ -29,7 +31,11 @@ export function BidActions({ bidId, status }: BidActionsProps) {
     setError(null);
     startTransition(async () => {
       const result = await awardBid(bidId);
-      if (result.error) setError(result.error);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        router.push('/dashboard/deals');
+      }
     });
   };
 

@@ -1,4 +1,4 @@
-# Muqawil HUB — Feature Specification
+# Muhandes HUB — Feature Specification
 
 > **Production**: https://www.muqawilhub.com
 > **Stack**: Next.js 16 (App Router), React 19, TypeScript, Supabase, Tailwind CSS v4
@@ -9,9 +9,9 @@
 
 ## 1. Platform Overview
 
-**EN** — Muqawil HUB is a specialized B2B ecosystem designed to streamline the Saudi construction sector by bridging the gap between project execution and resource procurement.
+**EN** — Muhandes HUB is a specialized B2B ecosystem designed to streamline the Saudi construction sector by bridging the gap between project execution and resource procurement.
 
-**AR** — تُعد منصة مقاول هب (Muqawil HUB) منظومة رقمية متكاملة (B2B) صُممت خصيصاً لتمكين قطاع الإنشاءات في المملكة العربية السعودية، من خلال الربط الذكي بين أطراف العمل الرئيسية لضمان تنفيذ المشاريع بكفاءة وموثوقية عالية.
+**AR** — تُعد منصة مقاول هب (Muhandes HUB) منظومة رقمية متكاملة (B2B) صُممت خصيصاً لتمكين قطاع الإنشاءات في المملكة العربية السعودية، من خلال الربط الذكي بين أطراف العمل الرئيسية لضمان تنفيذ المشاريع بكفاءة وموثوقية عالية.
 
 ---
 
@@ -287,7 +287,7 @@ Create quotations independently, sent to any client (on- or off-platform).
 - **Cancellation requests**: end deal (requires counterparty approval)
 - **Activity log**: complete audit trail of all deal events
 - **Completion**: both bars at 100% → status `completed`
-- **PDF export**: professional PDF with Muqawil HUB branding, party logos, QR verification code
+- **PDF export**: professional PDF with Muhandes HUB branding, party logos, QR verification code
 
 **Deal statuses**:
 
@@ -377,7 +377,7 @@ Each notification type routes to specific channels. Users can override email pre
 
 **Email template strategy**:
 
-- **Generic wrapper**: single responsive HTML template (Muqawil HUB header, bilingual body slot, footer with unsubscribe link)
+- **Generic wrapper**: single responsive HTML template (Muhandes HUB header, bilingual body slot, footer with unsubscribe link)
 - **Per-type content block**: each notification type defines a subject line (AR + EN), body paragraph, and CTA button linking to the relevant dashboard page
 - **Digest option** (future): users can opt into a daily digest instead of individual emails for non-critical notifications
 

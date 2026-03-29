@@ -5,7 +5,7 @@ import { getLocale } from 'next-intl/server';
 import './globals.css';
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({subsets:['latin'],variable:'--font-sans',display:'swap'});
 
 const inter = Inter({
   variable: '--font-inter',
@@ -22,8 +22,8 @@ const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Muhaned Hub | منصة مهندس',
-    template: '%s | Muhaned Hub',
+    default: 'Muhandes HUB | منصة مهندس',
+    template: '%s | Muhandes HUB',
   },
   description:
     'Bilingual B2B marketplace for the Saudi construction industry — connecting project owners, contractors, suppliers & buyers. | منصة رقمية متكاملة لقطاع الإنشاءات في المملكة العربية السعودية',
@@ -37,12 +37,12 @@ export const metadata: Metadata = {
     'المملكة العربية السعودية',
     'منصة مهندس',
   ],
-  authors: [{ name: 'Muhaned Hub' }],
+  authors: [{ name: 'Muhandes HUB' }],
   openGraph: {
     type: 'website',
     locale: 'ar_SA',
     alternateLocale: 'en_US',
-    siteName: 'Muhaned Hub',
+    siteName: 'Muhandes HUB',
   },
 };
 

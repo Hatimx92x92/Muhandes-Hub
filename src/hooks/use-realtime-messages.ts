@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Realtime Messaging Hook
+// Muhandes HUB — Realtime Messaging Hook
 // Handles message streaming + typing indicators via Supabase Realtime
 // =============================================================================
 

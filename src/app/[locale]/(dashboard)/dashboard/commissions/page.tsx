@@ -2,9 +2,10 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { getTranslations, getLocale } from 'next-intl/server';
-import { Banknote, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Banknote, Clock, AlertTriangle, CheckCircle, Download } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/features/empty-state';
 import { CommissionActions } from '@/components/features/commissions/commission-actions';
 
@@ -218,13 +219,21 @@ export default async function CommissionsPage({
                   </div>
 
                   {/* Actions */}
-                  {(canPay || canDispute) && (
-                    <CommissionActions
-                      commissionId={commission.id as string}
-                      canPay={canPay}
-                      canDispute={canDispute}
-                    />
-                  )}
+                  <div className="flex items-center gap-2">
+                    <a href={`/api/pdf/invoice/${commission.id}`} target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4" />
+                        {t('downloadInvoice')}
+                      </Button>
+                    </a>
+                    {(canPay || canDispute) && (
+                      <CommissionActions
+                        commissionId={commission.id as string}
+                        canPay={canPay}
+                        canDispute={canDispute}
+                      />
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             );

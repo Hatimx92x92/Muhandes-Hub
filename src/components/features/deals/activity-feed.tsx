@@ -2,16 +2,20 @@
 // Activity Feed Component — Chronological deal event log
 // =============================================================================
 
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { Card } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatRelativeTime } from '@/lib/utils';
 import {
   Activity, CheckCircle, XCircle, Plus, Send, Ban, Edit, Flag,
-  ShieldCheck, ListChecks,
+  ShieldCheck, ListChecks, Upload, TrendingUp, Play,
 } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
 
-const actionIcons: Record<string, React.ReactNode> = {
+const ACTION_ICONS: Record<string, React.ReactElement> = {
   deal_created: <Plus className="h-4 w-4 text-primary" />,
+  deal_started: <Play className="h-4 w-4 text-primary" />,
   deal_completed: <CheckCircle className="h-4 w-4 text-success" />,
   deal_cancelled: <Ban className="h-4 w-4 text-destructive" />,
   deal_flagged_admin: <Flag className="h-4 w-4 text-warning" />,
@@ -19,9 +23,11 @@ const actionIcons: Record<string, React.ReactNode> = {
   milestone_suggestion: <Edit className="h-4 w-4 text-info" />,
   milestone_suggestion_approved: <CheckCircle className="h-4 w-4 text-success" />,
   milestone_suggestion_rejected: <XCircle className="h-4 w-4 text-destructive" />,
+  milestone_progress_updated: <TrendingUp className="h-4 w-4 text-info" />,
   proof_submitted: <Send className="h-4 w-4 text-primary" />,
   proof_confirmed: <ShieldCheck className="h-4 w-4 text-success" />,
   proof_rejected: <XCircle className="h-4 w-4 text-destructive" />,
+  document_uploaded: <Upload className="h-4 w-4 text-primary" />,
   cancellation_requested: <Ban className="h-4 w-4 text-warning" />,
   cancellation_rejected: <XCircle className="h-4 w-4 text-destructive" />,
   skip_milestone_requested: <Edit className="h-4 w-4 text-warning" />,
@@ -30,10 +36,11 @@ const actionIcons: Record<string, React.ReactNode> = {
 
 interface ActivityFeedProps {
   activities: Array<Record<string, unknown>>;
+  locale: string;
 }
 
-export async function ActivityFeed({ activities }: ActivityFeedProps) {
-  const t = await getTranslations('features.activityFeed');
+export function ActivityFeed({ activities, locale }: ActivityFeedProps) {
+  const t = useTranslations('features.activityFeed');
   if (activities.length === 0) {
     return (
       <Card className="p-8 text-center">
@@ -48,6 +55,9 @@ export async function ActivityFeed({ activities }: ActivityFeedProps) {
       {activities.map((activity, idx) => {
         const action = activity.action as string;
         const details = (activity.details ?? {}) as Record<string, unknown>;
+        const actor = activity.actor as Record<string, unknown> | null | undefined;
+        const actorName = actor?.full_name as string | undefined;
+        const actorAvatar = actor?.avatar_url as string | undefined;
 
         return (
           <div
@@ -57,7 +67,7 @@ export async function ActivityFeed({ activities }: ActivityFeedProps) {
             {/* Icon + connector line */}
             <div className="relative flex flex-col items-center">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-card border border-border">
-                {actionIcons[action] ?? <Activity className="h-4 w-4 text-muted-foreground" />}
+                {ACTION_ICONS[action] ?? <Activity className="h-4 w-4 text-muted-foreground" />}
               </div>
               {idx < activities.length - 1 && (
                 <div className="absolute top-8 h-full w-px bg-border" />
@@ -66,9 +76,22 @@ export async function ActivityFeed({ activities }: ActivityFeedProps) {
 
             {/* Content */}
             <div className="min-w-0 flex-1 pb-3">
-              <p className="text-sm font-medium text-foreground">
-                {t.has(`actions.${action}`) ? t(`actions.${action}` as 'actions.deal_created') : action}
-              </p>
+              <div className="flex items-center gap-2">
+                {actor && (
+                  <Avatar size="sm">
+                    {actorAvatar ? <AvatarImage src={actorAvatar} /> : null}
+                    <AvatarFallback>{actorName?.charAt(0) ?? '?'}</AvatarFallback>
+                  </Avatar>
+                )}
+                <p className="text-sm font-medium text-foreground">
+                  {t.has(`actions.${action}`) ? t(`actions.${action}` as 'actions.deal_created') : action}
+                </p>
+              </div>
+              {actorName && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {t('byActor', { name: actorName })}
+                </p>
+              )}
               {/* Show relevant details */}
               {!!details.reason && (
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -86,7 +109,7 @@ export async function ActivityFeed({ activities }: ActivityFeedProps) {
                 </p>
               )}
               <p className="text-xs text-muted-foreground mt-1">
-                {formatRelativeTime(activity.created_at as string)}
+                {formatRelativeTime(activity.created_at as string, locale)}
               </p>
             </div>
           </div>

@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/server';
 import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { ContractForm } from '@/components/forms/contract-form';
+import { TIER_LIMITS } from '@/types';
+import { TierGate } from '@/components/features/tier-gate';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any { return supabase; }
@@ -21,6 +23,47 @@ export default async function NewContractPage({
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+
+  // Tier limit check for contracts per month
+  const { data: subscription } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .single();
+
+  const tier = (subscription?.tier || 'starter') as keyof typeof TIER_LIMITS;
+  const limits = TIER_LIMITS[tier];
+  const maxContracts = limits?.contractsPerMonth ?? Infinity;
+
+  if (maxContracts !== Infinity) {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const { count } = await db(supabase)
+      .from('contracts')
+      .select('id', { count: 'exact', head: true })
+      .eq('creator_id', user.id)
+      .gte('created_at', startOfMonth);
+
+    if ((count ?? 0) >= maxContracts) {
+      const tGate = await getTranslations('tierGate');
+      return (
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{t('newPage.title')}</h1>
+          </div>
+          <TierGate
+            isLocked
+            title={tGate('contractsPerMonth.title')}
+            description={tGate('contractsPerMonth.description', { tier })}
+            upgradeLabel={tGate('upgrade')}
+            variant="limit"
+            mode="inline"
+          />
+        </div>
+      );
+    }
+  }
 
   // Get user profile for auto-fill
   const { data: profile } = await db(supabase)

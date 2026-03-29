@@ -5,26 +5,18 @@
 import { Link } from '@/i18n/navigation';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { Card } from '@/components/ui/card';
-import { Badge, type BadgeProps } from '@/components/ui/badge';
-import { EmptyState } from '@/components/features/empty-state';
-import { Receipt, Plus, User, Calendar, Banknote } from 'lucide-react';
-import { formatSAR, formatDate } from '@/lib/utils';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { Plus } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
+import {
+  QuotationsTableClient,
+  type QuotationItem,
+} from '@/components/features/quotations/quotations-table-client';
+import { bulkDeleteDraftQuotations, bulkSendQuotations } from '@/actions/quotations';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
   return supabase;
 }
-
-const statusBadge: Record<string, BadgeProps['variant']> = {
-  draft: 'draft',
-  sent: 'pending',
-  viewed: 'info',
-  accepted: 'success',
-  rejected: 'rejected',
-  expired: 'secondary',
-};
 
 export default async function QuotationsPage({
   searchParams,
@@ -70,33 +62,54 @@ export default async function QuotationsPage({
     .order('created_at', { ascending: false })
     .limit(100);
 
-  const sentItems = (sentQuotations ?? []) as Array<{
-    id: string;
-    number: string;
-    mode: string;
-    recipient_id: string | null;
-    client_name: string | null;
-    subtotal: number;
-    vat_amount: number;
-    total: number;
-    validity_days: number;
-    status: string;
-    created_at: string;
-  }>;
+  const sentItems: QuotationItem[] = (sentQuotations ?? []).map((q: Record<string, unknown>) => ({
+    id: q.id as string,
+    number: q.number as string,
+    mode: q.mode as string,
+    client_name: q.client_name as string | null,
+    subtotal: q.subtotal as number,
+    vat_amount: q.vat_amount as number,
+    total: q.total as number,
+    validity_days: q.validity_days as number,
+    status: q.status as string,
+    created_at: q.created_at as string,
+  }));
 
-  const receivedItems = (receivedQuotations ?? []) as Array<{
-    id: string;
-    number: string;
-    mode: string;
-    sender_id: string;
-    client_name: string | null;
-    subtotal: number;
-    vat_amount: number;
-    total: number;
-    validity_days: number;
-    status: string;
-    created_at: string;
-  }>;
+  const receivedItems: QuotationItem[] = (receivedQuotations ?? []).map((q: Record<string, unknown>) => ({
+    id: q.id as string,
+    number: q.number as string,
+    mode: q.mode as string,
+    client_name: q.client_name as string | null,
+    subtotal: q.subtotal as number,
+    vat_amount: q.vat_amount as number,
+    total: q.total as number,
+    validity_days: q.validity_days as number,
+    status: q.status as string,
+    created_at: q.created_at as string,
+  }));
+
+  // Build translation map for client component
+  const translations: Record<string, string> = {
+    number: '#',
+    status: tCommon('status'),
+    client: t('client'),
+    total: t('total'),
+    validity: t('validity'),
+    days: tCommon('days'),
+    created: tCommon('createdAt'),
+    markSent: t('markSent'),
+    deleteDraft: tCommon('delete'),
+    noSent: t('noSentQuotations'),
+    noSentDesc: t('noSentQuotationsDesc'),
+    noReceived: t('noReceivedQuotations'),
+    noReceivedDesc: t('noReceivedQuotationsDesc'),
+    status_draft: tCommon('draft'),
+    status_sent: t('sent'),
+    status_viewed: tCommon('viewed'),
+    status_accepted: t('accepted'),
+    status_rejected: tCommon('rejected'),
+    status_expired: tCommon('expired'),
+  };
 
   return (
     <div>
@@ -148,19 +161,19 @@ export default async function QuotationsPage({
           <h2 className="mb-4 text-lg font-semibold text-foreground">
             {t('sentQuotations')} ({sentItems.length})
           </h2>
-          {sentItems.length === 0 ? (
-            <EmptyState
-              icon={<Receipt className="h-12 w-12" />}
-              title={t('noSentQuotations')}
-              description={t('noSentQuotationsDesc')}
-            />
-          ) : (
-            <div className="space-y-3">
-              {sentItems.map((q) => (
-                <QuotationCard key={q.id} quotation={q} direction="sent" />
-              ))}
-            </div>
-          )}
+          <QuotationsTableClient
+            items={sentItems}
+            direction="sent"
+            translations={translations}
+            onBulkDelete={async (ids: string[]) => {
+              'use server';
+              await bulkDeleteDraftQuotations(ids);
+            }}
+            onBulkSend={async (ids: string[]) => {
+              'use server';
+              await bulkSendQuotations(ids);
+            }}
+          />
         </section>
       )}
 
@@ -169,97 +182,12 @@ export default async function QuotationsPage({
         <h2 className="mb-4 text-lg font-semibold text-foreground">
           {t('receivedQuotations')} ({receivedItems.length})
         </h2>
-        {receivedItems.length === 0 ? (
-          <EmptyState
-            icon={<Receipt className="h-12 w-12" />}
-            title={t('noReceivedQuotations')}
-            description={t('noReceivedQuotationsDesc')}
-          />
-        ) : (
-          <div className="space-y-3">
-            {receivedItems.map((q) => (
-              <QuotationCard key={q.id} quotation={q} direction="received" />
-            ))}
-          </div>
-        )}
+        <QuotationsTableClient
+          items={receivedItems}
+          direction="received"
+          translations={translations}
+        />
       </section>
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Quotation Card
-// ---------------------------------------------------------------------------
-async function QuotationCard({
-  quotation,
-  direction,
-}: {
-  quotation: {
-    id: string;
-    number: string;
-    mode: string;
-    client_name: string | null;
-    total: number;
-    status: string;
-    created_at: string;
-  };
-  direction: 'sent' | 'received';
-}) {
-  const t = await getTranslations('dashboard.quotations');
-  const tCommon = await getTranslations('dashboard.common');
-
-  const getStatusLabel = (status: string) => {
-    if (status === 'sent') return t('sent');
-    if (status === 'accepted') return t('accepted');
-    if (status === 'expired') return t('expired');
-    if (status === 'viewed') return tCommon('viewed');
-    return tCommon(status as 'draft' | 'rejected');
-  };
-
-  const getModeLabel = (mode: string) => {
-    if (mode === 'inquiry_response') return t('modeInquiryResponse');
-    if (mode === 'standalone') return t('modeStandalone');
-    return mode;
-  };
-
-  return (
-    <Link href={`/dashboard/quotations/${quotation.id}`}>
-      <Card className="p-4 transition-colors hover:bg-card/80">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0 space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-sm font-semibold text-foreground">
-                {quotation.number}
-              </span>
-              <Badge variant={statusBadge[quotation.status] || 'secondary'}>
-                {getStatusLabel(quotation.status)}
-              </Badge>
-              <Badge variant="outline">
-                {getModeLabel(quotation.mode)}
-              </Badge>
-            </div>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-              {quotation.client_name && (
-                <span className="flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  {quotation.client_name}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                {formatDate(quotation.created_at)}
-              </span>
-              <span className="flex items-center gap-1">
-                <Banknote className="h-3 w-3" />
-                {formatSAR(quotation.total)}
-              </span>
-            </div>
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {direction === 'sent' ? t('sentDirection') : t('receivedDirection')}
-          </div>
-        </div>
-      </Card>
-    </Link>
   );
 }

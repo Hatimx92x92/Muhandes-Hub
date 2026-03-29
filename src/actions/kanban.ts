@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Kanban & Daily Site Log Server Actions
+// Muhandes HUB — Kanban & Daily Site Log Server Actions
 // =============================================================================
 
 'use server';
@@ -14,6 +14,7 @@ import {
   DailyLogSchema,
 } from '@/schemas/crm';
 import type { ActionResult } from '@/types';
+import { uploadFile } from '@/actions/uploads';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: Awaited<ReturnType<typeof createClient>>): any {
@@ -119,6 +120,19 @@ export async function createKanbanCard(
   const check = await verifyContractor(supabase, parsed.data.deal_id, user.id);
   if (check.error) return { data: null, error: check.error };
 
+  // Handle file uploads
+  const files = formData.getAll('files') as File[];
+  const fileUrls: string[] = [];
+  for (let i = 0; i < files.length; i++) {
+    if (files[i].size === 0) continue;
+    const result = await uploadFile(
+      'deal-documents',
+      files[i],
+      `kanban/${parsed.data.deal_id}/${Date.now()}-${i}`,
+    );
+    if (result.data) fileUrls.push(result.data.url);
+  }
+
   // Auto sort_order
   const { count } = await db(supabase)
     .from('kanban_cards')
@@ -127,7 +141,11 @@ export async function createKanbanCard(
 
   const { data: card, error } = await db(supabase)
     .from('kanban_cards')
-    .insert({ ...parsed.data, sort_order: count ?? 0 })
+    .insert({
+      ...parsed.data,
+      sort_order: count ?? 0,
+      ...(fileUrls.length > 0 && { file_urls: fileUrls }),
+    })
     .select('id')
     .single();
 
@@ -271,11 +289,25 @@ export async function createDailyLog(
   const check = await verifyContractor(supabase, parsed.data.deal_id, user.id);
   if (check.error) return { data: null, error: check.error };
 
+  // Handle photo uploads
+  const photos = formData.getAll('photos') as File[];
+  const photoUrls: string[] = [];
+  for (let i = 0; i < photos.length; i++) {
+    if (photos[i].size === 0) continue;
+    const result = await uploadFile(
+      'site-log-photos',
+      photos[i],
+      `${parsed.data.deal_id}/${parsed.data.log_date}-${Date.now()}-${i}`,
+    );
+    if (result.data) photoUrls.push(result.data.url);
+  }
+
   const { data: log, error } = await db(supabase)
     .from('daily_site_logs')
     .insert({
       ...parsed.data,
       author_id: user.id,
+      ...(photoUrls.length > 0 && { photo_urls: photoUrls }),
     })
     .select('id')
     .single();

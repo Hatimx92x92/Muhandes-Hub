@@ -8,6 +8,8 @@ import { Link } from '@/i18n/navigation';
 import { login, loginWithGoogle } from '@/actions/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import type { ActionResult } from '@/types';
 
 // =============================================================================
@@ -18,7 +20,9 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const registered = searchParams.get('registered');
+  const reason = searchParams.get('reason');
   const t = useTranslations('auth.login');
+  const tActions = useTranslations('actions.auth');
   const tc = useTranslations('common');
 
   const [state, formAction, pending] = useActionState<ActionResult<{ redirectTo: string }> | null, FormData>(
@@ -42,6 +46,11 @@ export function LoginForm() {
 
   return (
     <div className="space-y-4">
+      {/* Session replaced — logged out from another device */}
+      {reason === 'session_replaced' && (
+        <AlertBanner variant="warning">{tActions('sessionReplaced')}</AlertBanner>
+      )}
+
       {/* Success message from registration */}
       {registered === 'true' && (
         <div className="rounded-lg bg-primary/10 border border-primary/30 p-3 text-sm text-primary">
@@ -49,16 +58,14 @@ export function LoginForm() {
         </div>
       )}
       {registered === 'pending' && (
-        <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-3 text-sm text-amber-700 dark:text-amber-400">
+        <div className="rounded-lg bg-warning/10 border border-warning/30 p-3 text-sm text-warning">
           {t('registeredPending')}
         </div>
       )}
 
       {/* Server error */}
       {state?.error && (
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-          {state.error}
-        </div>
+        <AlertBanner variant="error">{state.error}</AlertBanner>
       )}
 
       <form action={formAction} className="space-y-4">
@@ -72,10 +79,9 @@ export function LoginForm() {
           error={state?.error ? state.fieldErrors?.email?.[0] : undefined}
         />
 
-        <Input
+        <PasswordInput
           label={t('password')}
           name="password"
-          type="password"
           dir="ltr"
           required
           placeholder="••••••••"

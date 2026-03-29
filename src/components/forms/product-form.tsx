@@ -1,18 +1,36 @@
 'use client';
 
 // =============================================================================
-// Muqawil HUB — Product Form (Create/Edit)
+// Muhandes HUB — Product Form (Create/Edit)
 // =============================================================================
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { BilingualFieldPair } from '@/components/ui/bilingual-field-pair';
 import { CurrencyInput } from '@/components/forms/currency-input';
 import { VariantEditor, type VariantRow } from '@/components/forms/variant-editor';
-import { createProduct, updateProduct } from '@/actions/products';
+import { FileUpload } from '@/components/forms/file-upload';
+import { createProduct, updateProduct, removeProductImage, removeProductSpecSheet, setPrimaryImage } from '@/actions/products';
+import { AlertBanner } from '@/components/ui/alert-banner';
+import { X, Star, FileText, Image as ImageIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { ActionResult } from '@/types';
+
+interface ExistingImage {
+  id: string;
+  image_url: string;
+  display_order: number;
+  is_primary: boolean;
+}
+
+interface ExistingSpec {
+  id: string;
+  file_url: string;
+  file_name: string;
+  file_size: number;
+}
 
 interface ProductFormProps {
   mode: 'create' | 'edit';
@@ -30,11 +48,14 @@ interface ProductFormProps {
     min_order_qty?: number;
     lead_time_days?: number;
     variants?: VariantRow[];
+    existingImages?: ExistingImage[];
+    existingSpecs?: ExistingSpec[];
   };
 }
 
 export function ProductForm({ mode, defaultValues }: ProductFormProps) {
   const t = useTranslations('forms.product');
+  const tMedia = useTranslations('forms.product.media');
   const action = mode === 'create' ? createProduct : updateProduct;
   const [state, formAction, isPending] = useActionState<
     ActionResult<{ id: string; status?: string }> | null,
@@ -43,6 +64,11 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
 
   const [pricingModel, setPricingModel] = useState(defaultValues?.pricing_model || 'fixed');
   const [variants, setVariants] = useState<VariantRow[]>(defaultValues?.variants || []);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [specFiles, setSpecFiles] = useState<File[]>([]);
+  const [images, setImages] = useState<ExistingImage[]>(defaultValues?.existingImages ?? []);
+  const [specs, setSpecs] = useState<ExistingSpec[]>(defaultValues?.existingSpecs ?? []);
+  const [isRemoving, startRemoveTransition] = useTransition();
 
   const getError = (field: string) =>
     state?.error ? state.fieldErrors?.[field]?.[0] : undefined;
@@ -63,6 +89,11 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
           formData.set('variants', JSON.stringify(variantsData));
         }
         formData.set('pricing_model', pricingModel);
+
+        // Append image and spec files
+        imageFiles.forEach((file) => formData.append('image_files', file));
+        specFiles.forEach((file) => formData.append('spec_files', file));
+
         formAction(formData);
       }}
       className="space-y-8"
@@ -74,54 +105,38 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
 
       {/* Global error */}
       {state?.error && !state.fieldErrors && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
-          {state.error}
-        </div>
+        <AlertBanner variant="error">{state.error}</AlertBanner>
       )}
 
       {/* Success */}
       {state?.data && (
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300">
-          {mode === 'create' ? t('createSuccess') : t('updateSuccess')}
-        </div>
+        <AlertBanner variant="success">{mode === 'create' ? t('createSuccess') : t('updateSuccess')}</AlertBanner>
       )}
 
       {/* Section: Product Info */}
       <section>
         <h2 className="mb-4 text-lg font-semibold text-foreground">{t('infoTitle')}</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Input
-            name="name_ar"
-            label={t('nameAr')}
-            defaultValue={defaultValues?.name_ar}
-            error={getError('name_ar')}
-            required
-          />
-          <Input
-            name="name_en"
-            label={t('nameEn')}
-            defaultValue={defaultValues?.name_en}
-            error={getError('name_en')}
-            dir="ltr"
-            required
-          />
-        </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Textarea
-            name="description_ar"
-            label={t('descAr')}
-            defaultValue={defaultValues?.description_ar}
-            error={getError('description_ar')}
+        <BilingualFieldPair
+          baseName="name"
+          labelAr={t('nameAr')}
+          labelEn={t('nameEn')}
+          defaultValueAr={defaultValues?.name_ar}
+          defaultValueEn={defaultValues?.name_en}
+          errorAr={getError('name_ar')}
+          errorEn={getError('name_en')}
+          required
+        />
+        <div className="mt-4">
+          <BilingualFieldPair
+            baseName="description"
+            type="textarea"
             rows={4}
-            required
-          />
-          <Textarea
-            name="description_en"
-            label={t('descEn')}
-            defaultValue={defaultValues?.description_en}
-            error={getError('description_en')}
-            dir="ltr"
-            rows={4}
+            labelAr={t('descAr')}
+            labelEn={t('descEn')}
+            defaultValueAr={defaultValues?.description_ar}
+            defaultValueEn={defaultValues?.description_en}
+            errorAr={getError('description_ar')}
+            errorEn={getError('description_en')}
             required
           />
         </div>
@@ -182,7 +197,7 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
           <VariantEditor value={variants} onChange={setVariants} />
         )}
         {getError('variants') && (
-          <p className="mt-2 text-sm text-red-500">{getError('variants')}</p>
+          <p className="mt-2 text-sm text-destructive">{getError('variants')}</p>
         )}
       </section>
 
@@ -221,7 +236,124 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
         </div>
       </section>
 
-      {/* TODO: Image gallery and spec sheet upload (Tasks #115-116) */}
+      {/* Section: Images */}
+      <section>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">{tMedia('imagesTitle')}</h2>
+
+        {/* Existing images (edit mode) */}
+        {mode === 'edit' && images.length > 0 && (
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {images.map((img) => (
+              <div key={img.id} className="group relative overflow-hidden rounded-lg border">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img.image_url}
+                  alt=""
+                  className="aspect-square w-full object-cover"
+                />
+                <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/50 px-2 py-1">
+                  <button
+                    type="button"
+                    disabled={isRemoving}
+                    onClick={() => {
+                      if (!defaultValues?.product_id) return;
+                      startRemoveTransition(async () => {
+                        await setPrimaryImage(defaultValues.product_id!, img.id);
+                        setImages((prev) => prev.map((i) => ({ ...i, is_primary: i.id === img.id })));
+                      });
+                    }}
+                    className={cn(
+                      'rounded p-1 transition-colors',
+                      img.is_primary ? 'text-yellow-400' : 'text-white/60 hover:text-yellow-400',
+                    )}
+                    title={tMedia('setPrimary')}
+                  >
+                    <Star className="h-4 w-4" fill={img.is_primary ? 'currentColor' : 'none'} />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isRemoving}
+                    onClick={() => {
+                      if (!defaultValues?.product_id) return;
+                      startRemoveTransition(async () => {
+                        await removeProductImage(defaultValues.product_id!, img.id);
+                        setImages((prev) => prev.filter((i) => i.id !== img.id));
+                      });
+                    }}
+                    className="rounded p-1 text-white/60 transition-colors hover:text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <FileUpload
+          name="images"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          maxSize={5}
+          maxFiles={10}
+          hint={tMedia('imageHint')}
+          onUpload={setImageFiles}
+        />
+      </section>
+
+      {/* Section: Spec Sheets / Catalogs */}
+      <section>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">{tMedia('specsTitle')}</h2>
+
+        {/* Existing specs (edit mode) */}
+        {mode === 'edit' && specs.length > 0 && (
+          <ul className="mb-4 space-y-2">
+            {specs.map((spec) => (
+              <li
+                key={spec.id}
+                className="flex items-center gap-2 rounded-lg border p-2 text-sm"
+              >
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <a
+                  href={spec.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 truncate text-primary underline-offset-2 hover:underline"
+                >
+                  {spec.file_name}
+                </a>
+                <span className="text-xs text-muted-foreground">
+                  {(spec.file_size / 1024).toFixed(0)} KB
+                </span>
+                <button
+                  type="button"
+                  disabled={isRemoving}
+                  onClick={() => {
+                    if (!defaultValues?.product_id) return;
+                    startRemoveTransition(async () => {
+                      await removeProductSpecSheet(defaultValues.product_id!, spec.id);
+                      setSpecs((prev) => prev.filter((s) => s.id !== spec.id));
+                    });
+                  }}
+                  className="rounded p-1 text-muted-foreground transition-colors hover:text-destructive"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <FileUpload
+          name="specs"
+          accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/png,image/webp"
+          multiple
+          maxSize={10}
+          maxFiles={5}
+          hint={tMedia('specHint')}
+          onUpload={setSpecFiles}
+        />
+      </section>
 
       {/* Submit */}
       <div className="flex gap-3">

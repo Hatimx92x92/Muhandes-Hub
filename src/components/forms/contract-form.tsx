@@ -4,13 +4,33 @@
 
 'use client';
 
-import { useActionState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useState, useActionState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
+import { Check, GripVertical } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { BilingualFieldPair } from '@/components/ui/bilingual-field-pair';
 import { FormField } from '@/components/forms/form-field';
 import { createContract } from '@/actions/contracts';
+import { cn } from '@/lib/utils';
+import { getLocaleField } from '@/lib/utils';
 import type { ActionResult } from '@/types';
 
 interface ContractFormProps {
@@ -22,9 +42,66 @@ interface ContractFormProps {
 
 type State = ActionResult<{ id: string }> | null;
 
+// Sortable clause item in the reorder list
+function SortableClauseItem({ id, clause, locale, onRemove }: {
+  id: string;
+  clause: Record<string, unknown>;
+  locale: string;
+  onRemove: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 rounded-lg border border-border bg-card p-2 text-xs"
+    >
+      <button type="button" className="cursor-grab touch-none text-muted-foreground" {...attributes} {...listeners}>
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <span className="flex-1 truncate font-medium">{getLocaleField(clause, 'title', locale)}</span>
+      <button
+        type="button"
+        onClick={() => onRemove(id)}
+        className="text-muted-foreground hover:text-destructive transition-colors text-xs px-1"
+      >
+        ✕
+      </button>
+    </div>
+  );
+}
+
 export function ContractForm({ dealId, profile, dealInfo, clauses }: ContractFormProps) {
   const t = useTranslations('forms.contract');
+  const locale = useLocale();
   const [state, formAction, isPending] = useActionState<State, FormData>(createContract, null);
+  const [selectedClauseIds, setSelectedClauseIds] = useState<string[]>([]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const toggleClause = (id: string) => {
+    setSelectedClauseIds(prev =>
+      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+    );
+  };
+
+  const handleClauseDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setSelectedClauseIds(prev => {
+        const oldIndex = prev.indexOf(active.id as string);
+        const newIndex = prev.indexOf(over.id as string);
+        return arrayMove(prev, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const clauseMap = Object.fromEntries(clauses.map(c => [c.id as string, c]));
 
   // Auto-fill Party A from profile
   const partyA = {
@@ -53,7 +130,7 @@ export function ContractForm({ dealId, profile, dealInfo, clauses }: ContractFor
       {dealId && <input type="hidden" name="deal_id" value={dealId} />}
       <input type="hidden" name="party_a" value={JSON.stringify(partyA)} />
       <input type="hidden" name="party_b" value={JSON.stringify(partyB)} />
-      <input type="hidden" name="additional_clauses" value="[]" />
+      <input type="hidden" name="additional_clauses" value={JSON.stringify(selectedClauseIds)} />
 
       {state?.error && (
         <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
@@ -96,25 +173,28 @@ export function ContractForm({ dealId, profile, dealInfo, clauses }: ContractFor
       </div>
 
       {/* Scope */}
-      <FormField
-        label={t('scopeAr')}
-        error={state?.error ? state.fieldErrors?.scope_ar?.[0] : undefined}
-      >
-        <Textarea name="scope_ar" rows={4} placeholder={t('scopeArPlaceholder')} />
-      </FormField>
-
-      <FormField label={t('scopeEn')}>
-        <Textarea name="scope_en" rows={4} placeholder={t('scopeEnPlaceholder')} />
-      </FormField>
+      <BilingualFieldPair
+        baseName="scope"
+        type="textarea"
+        rows={4}
+        labelAr={t('scopeAr')}
+        labelEn={t('scopeEn')}
+        placeholderAr={t('scopeArPlaceholder')}
+        placeholderEn={t('scopeEnPlaceholder')}
+        errorAr={state?.error ? state.fieldErrors?.scope_ar?.[0] : undefined}
+        errorEn={state?.error ? state.fieldErrors?.scope_en?.[0] : undefined}
+      />
 
       {/* Payment Terms */}
-      <FormField label={t('paymentTermsAr')}>
-        <Textarea name="payment_terms_ar" rows={3} placeholder={t('paymentTermsArPlaceholder')} />
-      </FormField>
-
-      <FormField label={t('paymentTermsEn')}>
-        <Textarea name="payment_terms_en" rows={3} placeholder={t('paymentTermsEnPlaceholder')} />
-      </FormField>
+      <BilingualFieldPair
+        baseName="payment_terms"
+        type="textarea"
+        rows={3}
+        labelAr={t('paymentTermsAr')}
+        labelEn={t('paymentTermsEn')}
+        placeholderAr={t('paymentTermsArPlaceholder')}
+        placeholderEn={t('paymentTermsEnPlaceholder')}
+      />
 
       {/* Timeline */}
       <FormField label={t('timeline')}>
@@ -122,24 +202,26 @@ export function ContractForm({ dealId, profile, dealInfo, clauses }: ContractFor
       </FormField>
 
       {/* Penalties */}
-      <div className="grid gap-6 sm:grid-cols-2">
-        <FormField label={t('penaltiesAr')}>
-          <Textarea name="penalties_ar" rows={2} placeholder={t('penaltiesArPlaceholder')} />
-        </FormField>
-        <FormField label={t('penaltiesEn')}>
-          <Textarea name="penalties_en" rows={2} placeholder={t('penaltiesEnPlaceholder')} />
-        </FormField>
-      </div>
+      <BilingualFieldPair
+        baseName="penalties"
+        type="textarea"
+        rows={2}
+        labelAr={t('penaltiesAr')}
+        labelEn={t('penaltiesEn')}
+        placeholderAr={t('penaltiesArPlaceholder')}
+        placeholderEn={t('penaltiesEnPlaceholder')}
+      />
 
       {/* Warranty */}
-      <div className="grid gap-6 sm:grid-cols-2">
-        <FormField label={t('warrantyAr')}>
-          <Textarea name="warranty_ar" rows={2} placeholder={t('warrantyArPlaceholder')} />
-        </FormField>
-        <FormField label={t('warrantyEn')}>
-          <Textarea name="warranty_en" rows={2} placeholder={t('warrantyEnPlaceholder')} />
-        </FormField>
-      </div>
+      <BilingualFieldPair
+        baseName="warranty"
+        type="textarea"
+        rows={2}
+        labelAr={t('warrantyAr')}
+        labelEn={t('warrantyEn')}
+        placeholderAr={t('warrantyArPlaceholder')}
+        placeholderEn={t('warrantyEnPlaceholder')}
+      />
 
       {/* Governing Law */}
       <FormField label={t('governingLaw')}>
@@ -150,15 +232,70 @@ export function ContractForm({ dealId, profile, dealInfo, clauses }: ContractFor
       {clauses.length > 0 && (
         <div className="space-y-3">
           <h3 className="font-semibold text-sm">{t('clauseLibrary', { count: clauses.length })}</h3>
-          <p className="text-xs text-muted-foreground">{t('clauseLibraryHint')}</p>
+          <p className="text-xs text-muted-foreground">
+            {t('clauseLibraryHint')}
+            {selectedClauseIds.length > 0 && (
+              <span className="ms-2 font-medium text-primary">
+                ({t('selectedCount', { count: selectedClauseIds.length })})
+              </span>
+            )}
+          </p>
           <div className="grid gap-2 sm:grid-cols-2">
-            {clauses.map(clause => (
-              <div key={clause.id as string} className="rounded-lg border border-border p-3 text-xs">
-                <p className="font-medium">{clause.title_ar as string}</p>
-                <p className="text-muted-foreground mt-1 line-clamp-2">{clause.content_ar as string}</p>
-              </div>
-            ))}
+            {clauses.map(clause => {
+              const id = clause.id as string;
+              const isSelected = selectedClauseIds.includes(id);
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => toggleClause(id)}
+                  className={cn(
+                    'rounded-lg border p-3 text-xs text-start transition-colors',
+                    isSelected
+                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                      : 'border-border hover:border-primary/50'
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium">{getLocaleField(clause, 'title', locale)}</p>
+                      <p className="text-muted-foreground mt-1 line-clamp-2">
+                        {getLocaleField(clause, 'content', locale)}
+                      </p>
+                    </div>
+                    {isSelected && (
+                      <Check className="h-4 w-4 shrink-0 text-primary" />
+                    )}
+                  </div>
+                  <span className="mt-2 inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+                    {clause.category as string}
+                  </span>
+                </button>
+              );
+            })}
           </div>
+
+          {/* Reorderable selected clauses */}
+          {selectedClauseIds.length > 1 && (
+            <div className="space-y-2 pt-2">
+              <p className="text-xs font-medium text-muted-foreground">{t('reorderHint')}</p>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleClauseDragEnd}>
+                <SortableContext items={selectedClauseIds} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-1">
+                    {selectedClauseIds.map(id => (
+                      <SortableClauseItem
+                        key={id}
+                        id={id}
+                        clause={clauseMap[id]}
+                        locale={locale}
+                        onRemove={(cid) => toggleClause(cid)}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </div>
+          )}
         </div>
       )}
 

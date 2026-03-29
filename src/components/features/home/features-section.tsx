@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import {
   Zap,
   FileCheck,
@@ -12,10 +11,11 @@ import {
 import { type LucideIcon } from 'lucide-react';
 import { FadeIn, StaggerContainer, StaggerItem } from '@/components/ui/motion';
 import { AnimatedIcon } from '@/components/ui/animated-icon';
+import { MagicCard } from '@/components/ui/magic-card';
 import { useTranslations } from 'next-intl';
 
 /* ==========================================================================
-   FeaturesSection — Platform features with animated icons + hover cards
+   FeaturesSection — Platform features with Magic Card spotlight effect
    ========================================================================== */
 
 const featureCards: { key: string; icon: LucideIcon }[] = [
@@ -43,19 +43,16 @@ export function FeaturesSection() {
           </p>
         </FadeIn>
 
-        {/* Feature cards grid with stagger */}
+        {/* Feature cards grid with stagger + Magic Card spotlight */}
         <StaggerContainer
           stagger={0.1}
           className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
         >
           {featureCards.map((feature) => (
             <StaggerItem key={feature.key}>
-              <motion.div
-                whileHover={{
-                  y: -4,
-                  transition: { duration: 0.25, ease: 'easeOut' },
-                }}
+              <MagicCard
                 className="rounded-2xl border border-border bg-card p-6 transition-shadow duration-300 hover:shadow-md hover:border-primary/20"
+                gradientColor="hsl(var(--primary) / 0.07)"
               >
                 {/* Animated icon */}
                 <AnimatedIcon
@@ -71,7 +68,7 @@ export function FeaturesSection() {
                 <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
                   {t(`${feature.key}.desc`)}
                 </p>
-              </motion.div>
+              </MagicCard>
             </StaggerItem>
           ))}
         </StaggerContainer>

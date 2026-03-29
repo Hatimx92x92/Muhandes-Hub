@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Typesense DB Webhook Sync
+// Muhandes HUB — Typesense DB Webhook Sync
 // Called by Supabase Database Webhooks when rows change in:
 // projects, products, rfqs, profiles (partners)
 // =============================================================================

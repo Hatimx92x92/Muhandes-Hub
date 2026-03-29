@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Admin Subscription Actions
+// Muhandes HUB — Admin Subscription Actions
 // =============================================================================
 // ⚠️ All actions require is_admin = true. Uses Admin client for bypassing RLS.
 // =============================================================================
@@ -11,7 +11,7 @@ import { headers } from 'next/headers';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { getTranslations } from 'next-intl/server';
-import type { ActionResult } from '@/types';
+import { VAT_RATE, type ActionResult } from '@/types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -108,12 +108,6 @@ export async function changeUserSubscription(
     if (error) return { data: null, error: t('createError') };
   }
 
-  // Update profile subscription_tier
-  await db(adminClient)
-    .from('profiles')
-    .update({ subscription_tier: newTier })
-    .eq('id', userId);
-
   await logAudit(auth.adminId, 'change_subscription', 'user', userId, {
     new_tier: newTier,
     previous_tier: sub?.tier ?? 'none',
@@ -204,12 +198,6 @@ export async function cancelUserSubscription(
 
   if (error) return { data: null, error: t('cancelError') };
 
-  // Reset profile to starter
-  await db(adminClient)
-    .from('profiles')
-    .update({ subscription_tier: 'starter' })
-    .eq('id', userId);
-
   await logAudit(auth.adminId, 'cancel_subscription', 'user', userId, {
     tier: sub.tier,
     reason,
@@ -219,4 +207,84 @@ export async function cancelUserSubscription(
   revalidatePath('/admin/users');
 
   return { data: { cancelled: true }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// APPROVE SUBSCRIPTION PAYMENT (bank transfer receipt verified)
+// ---------------------------------------------------------------------------
+export async function approveSubscriptionPayment(
+  subscriptionId: string,
+): Promise<ActionResult<{ invoiceId?: string }>> {
+  const t = await getTranslations('actions.adminSubscriptions');
+  const auth = await verifyAdmin();
+  if ('error' in auth) return { data: null, error: auth.error };
+
+  const adminClient = createAdminClient();
+
+  // Fetch the pending subscription
+  const { data: sub, error: fetchError } = await db(adminClient)
+    .from('subscriptions')
+    .select('*')
+    .eq('id', subscriptionId)
+    .single();
+
+  if (fetchError || !sub) return { data: null, error: t('notFound') };
+  if (sub.is_active && sub.payment_status === 'completed') {
+    return { data: null, error: t('alreadyActive') };
+  }
+
+  const now = new Date().toISOString();
+
+  // Deactivate any current active subscription for this user
+  await db(adminClient)
+    .from('subscriptions')
+    .update({ is_active: false })
+    .eq('user_id', sub.user_id)
+    .eq('is_active', true)
+    .neq('id', subscriptionId);
+
+  // Activate the subscription
+  const { error: updateError } = await db(adminClient)
+    .from('subscriptions')
+    .update({
+      is_active: true,
+      payment_status: 'completed',
+      payment_method: 'bank_transfer',
+      starts_at: now,
+    })
+    .eq('id', subscriptionId);
+
+  if (updateError) return { data: null, error: t('updateError') };
+
+  // Create invoice record
+  const total = Number(sub.final_price || 0);
+  const vat = total * VAT_RATE / (1 + VAT_RATE);
+  const subtotal = total - vat;
+
+  const { data: invoice } = await db(adminClient).from('invoices').insert({
+    user_id: sub.user_id,
+    type: 'subscription',
+    reference_id: subscriptionId,
+    subtotal,
+    vat,
+    total,
+    issued_at: now,
+  }).select('id').single();
+
+  await logAudit(auth.adminId, 'approve_subscription_payment', 'subscription', subscriptionId, {
+    tier: sub.tier,
+    total,
+    payment_method: 'bank_transfer',
+  });
+
+  // Notify user
+  try {
+    const { notifySubscriptionPaymentApproved } = await import('@/actions/notification-triggers');
+    await notifySubscriptionPaymentApproved({ userId: sub.user_id as string, tier: sub.tier as string });
+  } catch { /* non-critical */ }
+
+  revalidatePath('/admin/subscriptions');
+  revalidatePath('/admin/users');
+
+  return { data: { invoiceId: invoice?.id }, error: null };
 }

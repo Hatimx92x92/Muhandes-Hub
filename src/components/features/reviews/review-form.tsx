@@ -6,6 +6,7 @@ import { submitReview, editReview } from '@/actions/reviews';
 import { StarRating } from './star-rating';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import type { ActionResult } from '@/types';
 
 type State = ActionResult<{ id: string }> | null;
@@ -53,16 +54,12 @@ export function ReviewForm({ dealId, existingReview }: ReviewFormProps) {
 
       {/* Error message */}
       {state?.error && (
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-          {state.error}
-        </div>
+        <AlertBanner variant="error">{state.error}</AlertBanner>
       )}
 
       {/* Success message */}
       {state?.data && (
-        <div className="rounded-lg border border-success/50 bg-success/10 p-3 text-sm text-success">
-          {isEdit ? t('editSuccess') : t('submitSuccess')}
-        </div>
+        <AlertBanner variant="success">{isEdit ? t('editSuccess') : t('submitSuccess')}</AlertBanner>
       )}
 
       {/* Overall Rating */}

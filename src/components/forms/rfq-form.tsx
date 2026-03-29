@@ -4,13 +4,16 @@
 
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { BilingualFieldPair } from '@/components/ui/bilingual-field-pair';
 import { FormField } from '@/components/forms/form-field';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import { CurrencyInput } from '@/components/forms/currency-input';
+import { FileUpload } from '@/components/forms/file-upload';
+import { ProductSelector } from '@/components/forms/product-selector';
 import { createRFQ } from '@/actions/rfqs';
 import type { ActionResult } from '@/types';
 
@@ -18,55 +21,60 @@ type State = ActionResult<{ id: string }> | null;
 
 export function RFQForm() {
   const t = useTranslations('forms.rfq');
+  const tFiles = useTranslations('forms.rfq.files');
   const [state, formAction, isPending] = useActionState<State, FormData>(createRFQ, null);
+  const [rfqFiles, setRfqFiles] = useState<File[]>([]);
+  const [fileCategory, setFileCategory] = useState('general');
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form
+      action={(formData) => {
+        // Append files with their category
+        rfqFiles.forEach((file) => {
+          formData.append('rfq_files', file);
+        });
+        if (rfqFiles.length > 0) {
+          formData.set('file_category', fileCategory);
+        }
+        formAction(formData);
+      }}
+      className="space-y-6"
+    >
       {/* Error banner */}
       {state?.error && !state.fieldErrors && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-          {state.error}
-        </div>
+        <AlertBanner variant="error">{state.error}</AlertBanner>
       )}
 
       {/* Success */}
       {state?.data && (
-        <div className="rounded-lg border border-success/30 bg-success/5 p-3 text-sm text-success">
-          {t('successMessage')}
-        </div>
+        <AlertBanner variant="success">{t('successMessage')}</AlertBanner>
       )}
 
       {/* Title */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField
-          label={t('titleAr')}
-          error={state?.error ? state.fieldErrors?.title_ar?.[0] : undefined}
-        >
-          <Input name="title_ar" placeholder={t('titleArPlaceholder')} required />
-        </FormField>
-        <FormField
-          label={t('titleEn')}
-          error={state?.error ? state.fieldErrors?.title_en?.[0] : undefined}
-        >
-          <Input name="title_en" dir="ltr" placeholder={t('titleEnPlaceholder')} required />
-        </FormField>
-      </div>
+      <BilingualFieldPair
+        baseName="title"
+        labelAr={t('titleAr')}
+        labelEn={t('titleEn')}
+        placeholderAr={t('titleArPlaceholder')}
+        placeholderEn={t('titleEnPlaceholder')}
+        errorAr={state?.error ? state.fieldErrors?.title_ar?.[0] : undefined}
+        errorEn={state?.error ? state.fieldErrors?.title_en?.[0] : undefined}
+        required
+      />
 
       {/* Description */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField
-          label={t('descAr')}
-          error={state?.error ? state.fieldErrors?.description_ar?.[0] : undefined}
-        >
-          <Textarea name="description_ar" rows={4} placeholder={t('descArPlaceholder')} required />
-        </FormField>
-        <FormField
-          label={t('descEn')}
-          error={state?.error ? state.fieldErrors?.description_en?.[0] : undefined}
-        >
-          <Textarea name="description_en" rows={4} dir="ltr" placeholder={t('descEnPlaceholder')} required />
-        </FormField>
-      </div>
+      <BilingualFieldPair
+        baseName="description"
+        type="textarea"
+        rows={4}
+        labelAr={t('descAr')}
+        labelEn={t('descEn')}
+        placeholderAr={t('descArPlaceholder')}
+        placeholderEn={t('descEnPlaceholder')}
+        errorAr={state?.error ? state.fieldErrors?.description_ar?.[0] : undefined}
+        errorEn={state?.error ? state.fieldErrors?.description_en?.[0] : undefined}
+        required
+      />
 
       {/* Quantity & Budget */}
       <div className="grid gap-4 sm:grid-cols-3">
@@ -94,6 +102,7 @@ export function RFQForm() {
         </FormField>
         <FormField label={t('city')}>
           <select
+            suppressHydrationWarning
             name="city"
             className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
           >
@@ -109,6 +118,43 @@ export function RFQForm() {
           </select>
         </FormField>
       </div>
+
+      {/* Product Selector */}
+      <ProductSelector name="product_id" />
+
+      {/* Attachments */}
+      <section>
+        <h3 className="mb-2 text-sm font-semibold text-foreground">{tFiles('title')}</h3>
+        <p className="mb-3 text-xs text-muted-foreground">{tFiles('hint')}</p>
+
+        <div className="mb-3">
+          <label htmlFor="rfq_file_category" className="mb-1.5 block text-sm font-medium text-foreground">
+            {tFiles('category')}
+          </label>
+          <select
+            suppressHydrationWarning
+            id="rfq_file_category"
+            value={fileCategory}
+            onChange={(e) => setFileCategory(e.target.value)}
+            className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:w-auto"
+          >
+            <option value="general">{tFiles('general')}</option>
+            <option value="boq">{tFiles('boq')}</option>
+            <option value="drawings">{tFiles('drawings')}</option>
+            <option value="specs">{tFiles('specs')}</option>
+          </select>
+        </div>
+
+        <FileUpload
+          name="rfq_files_input"
+          accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/jpeg,image/png,image/webp"
+          multiple
+          maxSize={10}
+          maxFiles={10}
+          hint={tFiles('fileLimit')}
+          onUpload={setRfqFiles}
+        />
+      </section>
 
       {/* Submit */}
       <div className="flex justify-end gap-3">

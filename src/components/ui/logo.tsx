@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 /* ==========================================================================
-   Logo — Muqawil HUB brand mark (inline SVG monogram + text)
+   Logo — Muhandes HUB brand mark (inline SVG monogram + text)
    ========================================================================== */
 
 const sizes = {
@@ -13,6 +13,7 @@ const sizes = {
 interface LogoProps {
   size?: keyof typeof sizes;
   showText?: boolean;
+  subtitle?: string;
   className?: string;
 }
 
@@ -55,7 +56,7 @@ function LogoMark({ size }: { size: number }) {
   );
 }
 
-export function Logo({ size = 'md', showText = true, className }: LogoProps) {
+export function Logo({ size = 'md', showText = true, subtitle, className }: LogoProps) {
   const s = sizes[size];
 
   return (
@@ -64,11 +65,13 @@ export function Logo({ size = 'md', showText = true, className }: LogoProps) {
       {showText && (
         <span className="flex flex-col">
           <span className={cn(s.text, 'font-bold text-foreground leading-tight')}>
-            Muhaned Hub
+            Muhandes HUB
           </span>
-          <span className={cn(s.sub, 'font-medium text-muted-foreground leading-none -mt-0.5')}>
-            Saudi Construction B2B
-          </span>
+          {subtitle && (
+            <span className={cn(s.sub, 'font-medium text-muted-foreground leading-none -mt-0.5')}>
+              {subtitle}
+            </span>
+          )}
         </span>
       )}
     </span>

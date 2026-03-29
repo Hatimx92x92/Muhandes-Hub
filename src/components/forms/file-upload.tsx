@@ -129,6 +129,7 @@ export function FileUpload({
             type="button"
             className="text-primary underline"
             onClick={() => inputRef.current?.click()}
+            suppressHydrationWarning
           >
             {t('browse')}
           </button>
@@ -152,9 +153,9 @@ export function FileUpload({
               className="flex items-center gap-2 rounded-lg border p-2 text-sm"
             >
               {isImage(file) ? (
-                <ImageIcon className="h-4 w-4 text-blue-500" />
+                <ImageIcon className="h-4 w-4 text-info" />
               ) : (
-                <FileText className="h-4 w-4 text-orange-500" />
+                <FileText className="h-4 w-4 text-accent-orange-foreground" />
               )}
               <span className="flex-1 truncate">{file.name}</span>
               <span className="text-xs text-muted-foreground">

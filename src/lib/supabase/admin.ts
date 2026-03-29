@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Supabase Admin Client (Service Role — server actions ONLY)
+// Muhandes HUB — Supabase Admin Client (Service Role — server actions ONLY)
 // =============================================================================
 // ⚠️ NEVER import this file from client components or outside src/actions/admin/
 // This bypasses RLS and has full database access.

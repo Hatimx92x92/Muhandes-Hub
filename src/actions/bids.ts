@@ -1,31 +1,36 @@
-// =============================================================================
-// Muqawil HUB — Bid Server Actions
+﻿// =============================================================================
+// Muhandes HUB â€” Bid Server Actions
 // =============================================================================
 
 'use server';
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
+import { localizeFieldErrors } from '@/lib/zod-i18n';
 import { BidSchema, UpdateBidSchema } from '@/schemas/bid';
 import { bidLimiter, checkRateLimit } from '@/lib/rate-limit';
 import { notifyBidReceived, notifyBidAwarded, notifyBidRejected, notifyBidShortlisted, notifyDealCreated } from '@/actions/notification-triggers';
+import { autoLinkClient } from '@/actions/crm';
 import type { ActionResult } from '@/types';
 import { TIER_LIMITS, VAT_RATE } from '@/types';
+import { slugify } from '@/lib/utils';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: Awaited<ReturnType<typeof createClient>>): any {
   return supabase;
 }
 
-function toFieldErrors(issues: { path: PropertyKey[]; message: string }[]): Record<string, string[]> {
+async function toFieldErrors(issues: { path: PropertyKey[]; message: string }[]): Promise<Record<string, string[]>> {
+  const locale = await getLocale();
   const fieldErrors: Record<string, string[]> = {};
   for (const issue of issues) {
     const key = String(issue.path[0] ?? 'form');
     fieldErrors[key] = fieldErrors[key] ?? [];
     fieldErrors[key].push(issue.message);
   }
-  return fieldErrors;
+  return localizeFieldErrors(fieldErrors, locale);
 }
 
 // Commission rates by tier
@@ -56,7 +61,7 @@ export async function submitBid(
     return { data: null, error: t('tooManyAttempts') };
   }
 
-  // 2. Role check — contractor only
+  // 2. Role check â€” contractor only
   const { data: profile } = await db(supabase)
     .from('profiles')
     .select('role')
@@ -106,7 +111,7 @@ export async function submitBid(
   // 5. Validate
   const parsed = BidSchema.safeParse(raw);
   if (!parsed.success) {
-    return { data: null, error: t('invalidData'), fieldErrors: toFieldErrors(parsed.error.issues) };
+    return { data: null, error: t('invalidData'), fieldErrors: await toFieldErrors(parsed.error.issues) };
   }
 
   // 6. Verify project is published
@@ -202,7 +207,7 @@ export async function updateBid(
 
   const parsed = UpdateBidSchema.safeParse(raw);
   if (!parsed.success) {
-    return { data: null, error: t('invalidData'), fieldErrors: toFieldErrors(parsed.error.issues) };
+    return { data: null, error: t('invalidData'), fieldErrors: await toFieldErrors(parsed.error.issues) };
   }
 
   // Verify ownership and pending status
@@ -294,7 +299,7 @@ export async function shortlistBid(bidId: string): Promise<ActionResult<{ status
 }
 
 // ---------------------------------------------------------------------------
-// AWARD BID → create DEAL-PROJECT
+// AWARD BID â†’ create DEAL-PROJECT
 // ---------------------------------------------------------------------------
 export async function awardBid(bidId: string): Promise<ActionResult<{ bidId: string; dealId: string }>> {
   const t = await getTranslations('actions.bids');
@@ -324,8 +329,9 @@ export async function awardBid(bidId: string): Promise<ActionResult<{ bidId: str
     return { data: null, error: t('unauthorized') };
   }
 
-  // Get contractor tier for commission calculation
-  const { data: contractorSub } = await db(supabase)
+  // Get contractor tier for commission calculation (use admin to bypass RLS)
+  const admin = createAdminClient();
+  const { data: contractorSub } = await db(admin)
     .from('subscriptions')
     .select('tier')
     .eq('user_id', bid.contractor_id)
@@ -363,7 +369,7 @@ export async function awardBid(bidId: string): Promise<ActionResult<{ bidId: str
   const { data: deal, error: dealError } = await db(supabase)
     .from('deals')
     .insert({
-      title_slug: `deal-${project.title_ar?.slice(0, 30) || bid.project_id}`,
+      title_slug: slugify(`deal-${project.title_ar?.slice(0, 30) || bid.project_id}`),
       deal_type: 'deal_project',
       trigger_source: 'bid_award',
       bid_id: bidId,
@@ -414,6 +420,9 @@ export async function awardBid(bidId: string): Promise<ActionResult<{ bidId: str
       }).catch(() => {});
     }
   }
+
+  // Auto-link counterparty as CRM client
+  autoLinkClient(deal.id).catch(() => {});
 
   revalidatePath(`/dashboard/projects/${bid.project_id}`);
   revalidatePath(`/dashboard/projects/${bid.project_id}/bids`);

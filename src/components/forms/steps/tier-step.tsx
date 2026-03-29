@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Check } from 'lucide-react';
+import { Check, CreditCard, Building } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,11 +61,23 @@ function calculatePrice(tier: SubscriptionTier, months: number): number {
 }
 
 export function TierStep({ data, updateData, onNext, onBack }: TierStepProps) {
+  const [error, setError] = useState('');
   const totalPrice = calculatePrice(data.tier, data.duration_months);
   const vatAmount = totalPrice * VAT_RATE / (1 + VAT_RATE); // Prices are VAT-inclusive
   const t = useTranslations('auth.tierStep');
   const tp = useTranslations('pricing');
   const tc = useTranslations('common');
+
+  const isPaidTier = data.tier !== 'starter';
+
+  const handleNext = () => {
+    if (isPaidTier && !data.payment_method) {
+      setError(t('selectPaymentMethod'));
+      return;
+    }
+    setError('');
+    onNext();
+  };
 
   return (
     <div className="space-y-4">
@@ -163,11 +176,51 @@ export function TierStep({ data, updateData, onNext, onBack }: TierStepProps) {
         </div>
       )}
 
+      {/* Payment method selector — only for paid tiers */}
+      {isPaidTier && (
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">{t('paymentMethodTitle')}</label>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => { updateData({ payment_method: 'card' }); setError(''); }}
+              className={cn(
+                'flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all hover:border-primary/50',
+                data.payment_method === 'card'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border bg-background',
+              )}
+            >
+              <CreditCard className={cn('h-6 w-6', data.payment_method === 'card' ? 'text-primary' : 'text-muted-foreground')} />
+              <span className="font-medium text-sm">{t('paymentCard')}</span>
+              <span className="text-xs text-muted-foreground">{t('paymentCardDesc')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { updateData({ payment_method: 'bank_transfer' }); setError(''); }}
+              className={cn(
+                'flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all hover:border-primary/50',
+                data.payment_method === 'bank_transfer'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border bg-background',
+              )}
+            >
+              <Building className={cn('h-6 w-6', data.payment_method === 'bank_transfer' ? 'text-primary' : 'text-muted-foreground')} />
+              <span className="font-medium text-sm">{t('paymentBank')}</span>
+              <span className="text-xs text-muted-foreground">{t('paymentBankDesc')}</span>
+            </button>
+          </div>
+          {error && (
+            <p className="text-xs text-destructive">{error}</p>
+          )}
+        </div>
+      )}
+
       <div className="flex gap-3">
         <Button variant="outline" onClick={onBack} className="flex-1">
           {tc('back')}
         </Button>
-        <Button onClick={onNext} className="flex-1">
+        <Button onClick={handleNext} className="flex-1">
           {tc('next')}
         </Button>
       </div>

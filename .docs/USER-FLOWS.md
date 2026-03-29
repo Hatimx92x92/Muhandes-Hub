@@ -1,4 +1,4 @@
-# Muqawil HUB — User Flows
+# Muhandes HUB — User Flows
 
 > **Version**: 1.0 | **Date**: March 4, 2026  
 > **Source**: `.docs/FEATURES.md`

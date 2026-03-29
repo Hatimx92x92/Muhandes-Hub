@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { FormField } from '@/components/forms/form-field';
 import { LineItemEditor } from '@/components/forms/line-item-editor';
 import { createQuotation } from '@/actions/quotations';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import type { ActionResult } from '@/types';
 
 type State = ActionResult<{ id: string; quotation_number: string }> | null;
@@ -43,16 +44,12 @@ export function QuotationForm({
 
       {/* Error banner */}
       {state?.error && !state.fieldErrors && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-          {state.error}
-        </div>
+        <AlertBanner variant="error">{state.error}</AlertBanner>
       )}
 
       {/* Success banner */}
       {state?.data && (
-        <div className="rounded-lg border border-success/30 bg-success/5 p-3 text-sm text-success">
-          {t('successMessage', { number: state.data.quotation_number })}
-        </div>
+        <AlertBanner variant="success">{t('successMessage', { number: state.data.quotation_number })}</AlertBanner>
       )}
 
       {/* Client Info */}

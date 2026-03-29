@@ -1,4 +1,4 @@
-# Muqawil HUB
+# Muhandes HUB
 
 Bilingual (Arabic/English) B2B marketplace for the Saudi construction industry. Multi-role platform with subscription tiers, deal workspaces, bidding/quotation systems, and admin moderation.
 
@@ -45,7 +45,7 @@ Required variables:
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY`       | Public      | Supabase anonymous key                       |
 | `SUPABASE_SERVICE_ROLE_KEY`           | Server-only | Supabase service role key (admin operations) |
 | `NEXT_PUBLIC_APP_URL`                 | Public      | App URL (`http://localhost:3000` in dev)     |
-| `NEXT_PUBLIC_APP_NAME`                | Public      | `Muqawil HUB`                                |
+| `NEXT_PUBLIC_APP_NAME`                | Public      | `Muhandes HUB`                               |
 | `RESEND_API_KEY`                      | Server-only | Resend API key for transactional email       |
 | `UPSTASH_REDIS_REST_URL`              | Server-only | Upstash Redis URL (rate limiting)            |
 | `UPSTASH_REDIS_REST_TOKEN`            | Server-only | Upstash Redis token                          |

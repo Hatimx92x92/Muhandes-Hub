@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Locale Toggle Button
+// Muhandes HUB — Locale Toggle Button
 // Switches between Arabic (RTL) and English (LTR)
 // =============================================================================
 

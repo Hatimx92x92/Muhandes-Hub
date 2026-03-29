@@ -1,29 +1,34 @@
-// =============================================================================
-// Muqawil HUB — Product Server Actions
+﻿// =============================================================================
+// Muhandes HUB â€” Product Server Actions
 // =============================================================================
 
 'use server';
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
+import { localizeFieldErrors } from '@/lib/zod-i18n';
 import { ProductSchema, UpdateProductSchema } from '@/schemas/product';
+import { apiLimiter, checkRateLimit } from '@/lib/rate-limit';
 import type { ActionResult } from '@/types';
 import { TIER_LIMITS } from '@/types';
+import { generateUniqueSlug } from '@/lib/utils';
+import { autoTranslateBilingualFields } from '@/lib/translate';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: Awaited<ReturnType<typeof createClient>>): any {
   return supabase;
 }
 
-function toFieldErrors(issues: { path: PropertyKey[]; message: string }[]): Record<string, string[]> {
+async function toFieldErrors(issues: { path: PropertyKey[]; message: string }[]): Promise<Record<string, string[]>> {
+  const locale = await getLocale();
   const fieldErrors: Record<string, string[]> = {};
   for (const issue of issues) {
     const key = String(issue.path[0] ?? 'form');
     fieldErrors[key] = fieldErrors[key] ?? [];
     fieldErrors[key].push(issue.message);
   }
-  return fieldErrors;
+  return localizeFieldErrors(fieldErrors, locale);
 }
 
 // ---------------------------------------------------------------------------
@@ -42,7 +47,12 @@ export async function createProduct(
     return { data: null, error: t('mustLogin') };
   }
 
-  // 2. Role check — supplier only
+  // 1b. Rate limit
+  const rl = apiLimiter();
+  const { success: rlOk } = await checkRateLimit(rl, user.id);
+  if (!rlOk) return { data: null, error: t('tooManyRequests') };
+
+  // 2. Role check â€” supplier only
   const { data: profile } = await db(supabase)
     .from('profiles')
     .select('role')
@@ -103,23 +113,34 @@ export async function createProduct(
 
   const parsed = ProductSchema.safeParse(raw);
   if (!parsed.success) {
-    return { data: null, error: t('invalidData'), fieldErrors: toFieldErrors(parsed.error.issues) };
+    return { data: null, error: t('invalidData'), fieldErrors: await toFieldErrors(parsed.error.issues) };
   }
 
-  // 6. Insert product
+  // 5b. Auto-translate missing bilingual fields
+  const translated = await autoTranslateBilingualFields(parsed.data as Record<string, unknown>, ['name', 'description']);
+
+  // 6. Generate slugs
+  const [slug_ar, slug_en] = await Promise.all([
+    generateUniqueSlug(translated.name_ar as string || parsed.data.name_ar || '', 'products', 'slug_ar', db(supabase)),
+    generateUniqueSlug(translated.name_en as string || parsed.data.name_en || '', 'products', 'slug_en', db(supabase)),
+  ]);
+
+  // 7. Insert product
   const { data: product, error: insertErr } = await db(supabase)
     .from('products')
     .insert({
       supplier_id: user.id,
-      name_ar: parsed.data.name_ar,
-      name_en: parsed.data.name_en,
-      description_ar: parsed.data.description_ar,
-      description_en: parsed.data.description_en,
+        name_ar: (translated.name_ar as string) || parsed.data.name_ar || '',
+        name_en: (translated.name_en as string) || parsed.data.name_en || '',
+        description_ar: (translated.description_ar as string) || parsed.data.description_ar || '',
+        description_en: (translated.description_en as string) || parsed.data.description_en || '',
       category_id: parsed.data.category_id || null,
       pricing_model: parsed.data.pricing_model,
       price: parsed.data.pricing_model === 'fixed' ? parsed.data.price : null,
       in_stock: parsed.data.in_stock,
       stock_quantity: parsed.data.stock_quantity ?? null,
+      slug_ar,
+      slug_en,
       status: 'draft',
     })
     .select('id, status')
@@ -144,7 +165,44 @@ export async function createProduct(
     await db(supabase).from('product_variants').insert(variantRows);
   }
 
-  // 8. Revalidate
+  // 8. Upload images from FormData
+  const imageFiles = formData.getAll('image_files') as File[];
+  if (imageFiles.length > 0) {
+    const { uploadFile: doUpload } = await import('@/actions/uploads');
+    for (let i = 0; i < imageFiles.length; i++) {
+      const file = imageFiles[i];
+      if (!file || file.size === 0) continue;
+      const uploadResult = await doUpload('product-images', file, `${product.id}/${Date.now()}-${i}`);
+      if (uploadResult.data) {
+        await db(supabase).from('product_images').insert({
+          product_id: product.id,
+          image_url: uploadResult.data.url,
+          display_order: i,
+          is_primary: i === 0,
+        });
+      }
+    }
+  }
+
+  // 9. Upload spec sheets from FormData
+  const specFiles = formData.getAll('spec_files') as File[];
+  if (specFiles.length > 0) {
+    const { uploadFile: doUpload } = await import('@/actions/uploads');
+    for (const file of specFiles) {
+      if (!file || file.size === 0) continue;
+      const uploadResult = await doUpload('product-specs', file, `${product.id}/spec-${Date.now()}`);
+      if (uploadResult.data) {
+        await db(supabase).from('product_spec_sheets').insert({
+          product_id: product.id,
+          file_url: uploadResult.data.url,
+          file_name: file.name,
+          file_size: file.size,
+        });
+      }
+    }
+  }
+
+  // 10. Revalidate
   revalidatePath('/dashboard/products');
 
   return { data: { id: product.id, status: product.status }, error: null };
@@ -192,8 +250,11 @@ export async function updateProduct(
 
   const parsed = UpdateProductSchema.safeParse(raw);
   if (!parsed.success) {
-    return { data: null, error: t('invalidData'), fieldErrors: toFieldErrors(parsed.error.issues) };
+    return { data: null, error: t('invalidData'), fieldErrors: await toFieldErrors(parsed.error.issues) };
   }
+
+  // Auto-translate missing bilingual fields
+  const translated = await autoTranslateBilingualFields(parsed.data as Record<string, unknown>, ['name', 'description']);
 
   // Ownership + status check
   const { data: existing } = await db(supabase)
@@ -208,24 +269,32 @@ export async function updateProduct(
   if (existing.supplier_id !== user.id) {
     return { data: null, error: t('noPermissionEdit') };
   }
-  if (!['draft', 'rejected'].includes(existing.status)) {
+  if (!['draft', 'rejected', 'published'].includes(existing.status)) {
     return { data: null, error: t('cannotEditStatus') };
   }
+
+  // Regenerate slugs
+  const [slug_ar, slug_en] = await Promise.all([
+      generateUniqueSlug((translated.name_ar as string) || parsed.data.name_ar || '', 'products', 'slug_ar', db(supabase), parsed.data.product_id),
+      generateUniqueSlug((translated.name_en as string) || parsed.data.name_en || '', 'products', 'slug_en', db(supabase), parsed.data.product_id),
+  ]);
 
   // Update product
   const { error: updateErr } = await db(supabase)
     .from('products')
     .update({
-      name_ar: parsed.data.name_ar,
-      name_en: parsed.data.name_en,
-      description_ar: parsed.data.description_ar,
-      description_en: parsed.data.description_en,
+      name_ar: (translated.name_ar as string) || parsed.data.name_ar || '',
+      name_en: (translated.name_en as string) || parsed.data.name_en || '',
+      description_ar: (translated.description_ar as string) || parsed.data.description_ar || '',
+      description_en: (translated.description_en as string) || parsed.data.description_en || '',
       category_id: parsed.data.category_id || null,
       pricing_model: parsed.data.pricing_model,
       price: parsed.data.pricing_model === 'fixed' ? parsed.data.price : null,
       in_stock: parsed.data.in_stock,
       stock_quantity: parsed.data.stock_quantity ?? null,
-      status: 'draft',
+      slug_ar,
+      slug_en,
+      status: existing.status === 'published' ? 'published' : 'draft',
     })
     .eq('id', parsed.data.product_id);
 
@@ -252,6 +321,48 @@ export async function updateProduct(
       }));
 
       await db(supabase).from('product_variants').insert(variantRows);
+    }
+  }
+
+  // Upload new images from FormData
+  const imageFiles = formData.getAll('image_files') as File[];
+  if (imageFiles.length > 0) {
+    const { uploadFile: doUpload } = await import('@/actions/uploads');
+    const { count: existingCount } = await db(supabase)
+      .from('product_images')
+      .select('id', { count: 'exact', head: true })
+      .eq('product_id', parsed.data.product_id);
+    const startOrder = existingCount ?? 0;
+    for (let i = 0; i < imageFiles.length; i++) {
+      const file = imageFiles[i];
+      if (!file || file.size === 0) continue;
+      const uploadResult = await doUpload('product-images', file, `${parsed.data.product_id}/${Date.now()}-${i}`);
+      if (uploadResult.data) {
+        await db(supabase).from('product_images').insert({
+          product_id: parsed.data.product_id,
+          image_url: uploadResult.data.url,
+          display_order: startOrder + i,
+          is_primary: startOrder === 0 && i === 0,
+        });
+      }
+    }
+  }
+
+  // Upload new spec sheets from FormData
+  const specFiles = formData.getAll('spec_files') as File[];
+  if (specFiles.length > 0) {
+    const { uploadFile: doUpload } = await import('@/actions/uploads');
+    for (const file of specFiles) {
+      if (!file || file.size === 0) continue;
+      const uploadResult = await doUpload('product-specs', file, `${parsed.data.product_id}/spec-${Date.now()}`);
+      if (uploadResult.data) {
+        await db(supabase).from('product_spec_sheets').insert({
+          product_id: parsed.data.product_id,
+          file_url: uploadResult.data.url,
+          file_name: file.name,
+          file_size: file.size,
+        });
+      }
     }
   }
 
@@ -348,7 +459,260 @@ export async function deleteProduct(
 }
 
 // ---------------------------------------------------------------------------
-// BULK CSV IMPORT — Business+ tier only
+// ADD PRODUCT IMAGE
+// ---------------------------------------------------------------------------
+export async function addProductImage(
+  productId: string,
+  formData: FormData,
+): Promise<ActionResult<{ id: string; image_url: string; display_order: number; is_primary: boolean }>> {
+  const t = await getTranslations('actions.products');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  const rl = apiLimiter();
+  const { success: rlOk } = await checkRateLimit(rl, user.id);
+  if (!rlOk) return { data: null, error: t('tooManyRequests') };
+
+  // Ownership check
+  const { data: product } = await db(supabase)
+    .from('products')
+    .select('supplier_id')
+    .eq('id', productId)
+    .single();
+  if (!product) return { data: null, error: t('productNotFound') };
+  if (product.supplier_id !== user.id) return { data: null, error: t('noPermission') };
+
+  // Check image count limit (max 10)
+  const { count } = await db(supabase)
+    .from('product_images')
+    .select('id', { count: 'exact', head: true })
+    .eq('product_id', productId);
+  if (count != null && count >= 10) return { data: null, error: t('imageLimitReached') };
+
+  // Upload file
+  const file = formData.get('image') as File | null;
+  if (!file || file.size === 0) return { data: null, error: t('noImageSelected') };
+
+  const { uploadFile } = await import('@/actions/uploads');
+  const uploadResult = await uploadFile('product-images', file, `${productId}/${Date.now()}`);
+  if (uploadResult.error) return { data: null, error: uploadResult.error };
+
+  // Determine display order and if this is the first image (make it primary)
+  const isPrimary = count === 0 || count == null;
+  const displayOrder = count ?? 0;
+
+  const { data: image, error: insertErr } = await db(supabase)
+    .from('product_images')
+    .insert({
+      product_id: productId,
+      image_url: uploadResult.data!.url,
+      display_order: displayOrder,
+      is_primary: isPrimary,
+    })
+    .select('id, image_url, display_order, is_primary')
+    .single();
+
+  if (insertErr || !image) return { data: null, error: t('imageUploadError') };
+
+  revalidatePath(`/dashboard/products/${productId}`);
+  revalidatePath(`/products`);
+  return { data: image, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// REMOVE PRODUCT IMAGE
+// ---------------------------------------------------------------------------
+export async function removeProductImage(
+  productId: string,
+  imageId: string,
+): Promise<ActionResult<{ deleted: boolean }>> {
+  const t = await getTranslations('actions.products');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  // Ownership check
+  const { data: product } = await db(supabase)
+    .from('products')
+    .select('supplier_id')
+    .eq('id', productId)
+    .single();
+  if (!product) return { data: null, error: t('productNotFound') };
+  if (product.supplier_id !== user.id) return { data: null, error: t('noPermission') };
+
+  // Get image to check if it was primary
+  const { data: image } = await db(supabase)
+    .from('product_images')
+    .select('id, is_primary')
+    .eq('id', imageId)
+    .eq('product_id', productId)
+    .single();
+  if (!image) return { data: null, error: t('imageNotFound') };
+
+  // Delete the image
+  const { error: deleteErr } = await db(supabase)
+    .from('product_images')
+    .delete()
+    .eq('id', imageId);
+  if (deleteErr) return { data: null, error: t('deleteError') };
+
+  // If deleted image was primary, promote the next one
+  if (image.is_primary) {
+    const { data: nextImage } = await db(supabase)
+      .from('product_images')
+      .select('id')
+      .eq('product_id', productId)
+      .order('display_order', { ascending: true })
+      .limit(1)
+      .single();
+    if (nextImage) {
+      await db(supabase)
+        .from('product_images')
+        .update({ is_primary: true })
+        .eq('id', nextImage.id);
+    }
+  }
+
+  revalidatePath(`/dashboard/products/${productId}`);
+  revalidatePath(`/products`);
+  return { data: { deleted: true }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// SET PRIMARY IMAGE
+// ---------------------------------------------------------------------------
+export async function setPrimaryImage(
+  productId: string,
+  imageId: string,
+): Promise<ActionResult<{ updated: boolean }>> {
+  const t = await getTranslations('actions.products');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  // Ownership check
+  const { data: product } = await db(supabase)
+    .from('products')
+    .select('supplier_id')
+    .eq('id', productId)
+    .single();
+  if (!product) return { data: null, error: t('productNotFound') };
+  if (product.supplier_id !== user.id) return { data: null, error: t('noPermission') };
+
+  // Unset all primary flags for this product
+  await db(supabase)
+    .from('product_images')
+    .update({ is_primary: false })
+    .eq('product_id', productId);
+
+  // Set the chosen image as primary
+  const { error: updateErr } = await db(supabase)
+    .from('product_images')
+    .update({ is_primary: true })
+    .eq('id', imageId)
+    .eq('product_id', productId);
+
+  if (updateErr) return { data: null, error: t('updateError') };
+
+  revalidatePath(`/dashboard/products/${productId}`);
+  revalidatePath(`/products`);
+  return { data: { updated: true }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// ADD PRODUCT SPEC SHEET
+// ---------------------------------------------------------------------------
+export async function addProductSpecSheet(
+  productId: string,
+  formData: FormData,
+): Promise<ActionResult<{ id: string; file_url: string; file_name: string; file_size: number }>> {
+  const t = await getTranslations('actions.products');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  const rl = apiLimiter();
+  const { success: rlOk } = await checkRateLimit(rl, user.id);
+  if (!rlOk) return { data: null, error: t('tooManyRequests') };
+
+  // Ownership check
+  const { data: product } = await db(supabase)
+    .from('products')
+    .select('supplier_id')
+    .eq('id', productId)
+    .single();
+  if (!product) return { data: null, error: t('productNotFound') };
+  if (product.supplier_id !== user.id) return { data: null, error: t('noPermission') };
+
+  // Check spec count limit (max 5)
+  const { count } = await db(supabase)
+    .from('product_spec_sheets')
+    .select('id', { count: 'exact', head: true })
+    .eq('product_id', productId);
+  if (count != null && count >= 5) return { data: null, error: t('specLimitReached') };
+
+  const file = formData.get('spec') as File | null;
+  if (!file || file.size === 0) return { data: null, error: t('noFileSelected') };
+
+  const { uploadFile } = await import('@/actions/uploads');
+  const uploadResult = await uploadFile('product-specs', file, `${productId}/spec-${Date.now()}`);
+  if (uploadResult.error) return { data: null, error: uploadResult.error };
+
+  const { data: spec, error: insertErr } = await db(supabase)
+    .from('product_spec_sheets')
+    .insert({
+      product_id: productId,
+      file_url: uploadResult.data!.url,
+      file_name: file.name,
+      file_size: file.size,
+    })
+    .select('id, file_url, file_name, file_size')
+    .single();
+
+  if (insertErr || !spec) return { data: null, error: t('specUploadError') };
+
+  revalidatePath(`/dashboard/products/${productId}`);
+  revalidatePath(`/products`);
+  return { data: spec, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// REMOVE PRODUCT SPEC SHEET
+// ---------------------------------------------------------------------------
+export async function removeProductSpecSheet(
+  productId: string,
+  specId: string,
+): Promise<ActionResult<{ deleted: boolean }>> {
+  const t = await getTranslations('actions.products');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  // Ownership check
+  const { data: product } = await db(supabase)
+    .from('products')
+    .select('supplier_id')
+    .eq('id', productId)
+    .single();
+  if (!product) return { data: null, error: t('productNotFound') };
+  if (product.supplier_id !== user.id) return { data: null, error: t('noPermission') };
+
+  const { error: deleteErr } = await db(supabase)
+    .from('product_spec_sheets')
+    .delete()
+    .eq('id', specId)
+    .eq('product_id', productId);
+
+  if (deleteErr) return { data: null, error: t('deleteError') };
+
+  revalidatePath(`/dashboard/products/${productId}`);
+  revalidatePath(`/products`);
+  return { data: { deleted: true }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// BULK CSV IMPORT â€” Business+ tier only
 // Expected CSV columns: title_ar, title_en, description_ar, description_en,
 //   category_id, price, unit, moq, sku
 // ---------------------------------------------------------------------------
@@ -487,7 +851,7 @@ export async function bulkImportProducts(
       .insert(batch);
 
     if (insertErr) {
-      errors.push(`خطأ في الإدراج: ${insertErr.message}`);
+      errors.push(`Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø¥Ø¯Ø±Ø§Ø¬: ${insertErr.message}`);
     } else {
       imported += batch.length;
     }
@@ -528,4 +892,74 @@ function parseCSVRow(line: string): string[] {
   }
   result.push(current.trim());
   return result;
+}
+
+// ---------------------------------------------------------------------------
+// SEARCH PUBLISHED PRODUCTS (for RFQ product selector)
+// ---------------------------------------------------------------------------
+export interface SearchedProduct {
+  id: string;
+  name_ar: string;
+  name_en: string;
+  description_ar: string | null;
+  description_en: string | null;
+  price: number | null;
+  min_order_qty: number | null;
+  lead_time_days: number | null;
+  in_stock: boolean;
+  primary_image_url: string | null;
+}
+
+export async function searchPublishedProducts(
+  search: string = '',
+): Promise<ActionResult<SearchedProduct[]>> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: 'Not authenticated' };
+
+  let query = db(supabase)
+    .from('products')
+    .select('id, name_ar, name_en, description_ar, description_en, price, min_order_qty, lead_time_days, in_stock')
+    .eq('status', 'published')
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (search.trim()) {
+    query = query.or(`name_ar.ilike.%${search}%,name_en.ilike.%${search}%`);
+  }
+
+  const { data, error } = await query;
+  if (error) return { data: null, error: error.message };
+  if (!data || data.length === 0) return { data: [], error: null };
+
+  // Fetch primary images for returned products
+  const products = data as { id: string; name_ar: string; name_en: string; description_ar: string | null; description_en: string | null; price: number | null; min_order_qty: number | null; lead_time_days: number | null; in_stock: boolean }[];
+  const productIds = products.map((p) => p.id);
+  const { data: images } = await db(supabase)
+    .from('product_images')
+    .select('product_id, image_url')
+    .in('product_id', productIds)
+    .eq('is_primary', true);
+
+  const imageMap = new Map<string, string>();
+  if (images) {
+    for (const img of images) {
+      imageMap.set(img.product_id, img.image_url);
+    }
+  }
+
+  const merged: SearchedProduct[] = products.map((p) => ({
+    id: p.id,
+    name_ar: p.name_ar,
+    name_en: p.name_en,
+    description_ar: p.description_ar,
+    description_en: p.description_en,
+    price: p.price,
+    min_order_qty: p.min_order_qty,
+    lead_time_days: p.lead_time_days,
+    in_stock: p.in_stock,
+    primary_image_url: imageMap.get(p.id) ?? null,
+  }));
+
+  return { data: merged, error: null };
 }

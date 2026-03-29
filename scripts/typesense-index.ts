@@ -277,7 +277,7 @@ async function indexPartners() {
 async function main() {
   const forceRecreate = process.argv.includes('--force');
 
-  console.log('=== Muhaned Hub — Typesense Indexing ===');
+  console.log('=== Muhandes HUB — Typesense Indexing ===');
   console.log(`Typesense: ${TYPESENSE_PROTOCOL}://${TYPESENSE_HOST}:${TYPESENSE_PORT}`);
   console.log(`Supabase: ${SUPABASE_URL}`);
   console.log(`Force recreate: ${forceRecreate}\n`);

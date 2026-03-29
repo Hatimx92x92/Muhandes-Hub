@@ -1,4 +1,4 @@
-# Muqawil HUB — Development Checklist
+# Muhandes HUB — Development Checklist
 
 > Track progress across all features. Check items as they are built.
 > Source: `docs/PRD.md` + `docs/ROADMAP.md`
@@ -96,8 +96,8 @@
 - [x] Step 2: Account details (email, password, phone, PDPL consent)
 - [x] Step 3: Company / Personal profile (conditional fields per role)
 - [x] Step 4: Subscription tier selection (Starter free, Pro/Business/Enterprise paid)
-- [ ] Step 5: Payment via Moyasar (skip for Starter)
-- [ ] Step 6: Document upload (skip for PO/Buyer/Starter)
+- [x] Step 5: Payment via card + bank transfer (skip for Starter)
+- [x] Step 6: Document upload (skip for PO/Buyer/Starter)
 - [x] Progress indicator showing current step
 
 ### 1.4 Login & Recovery Pages
@@ -114,7 +114,7 @@
 
 ### 1.6 Email Verification
 
-- [ ] Configure Supabase email templates (bilingual AR/EN)
+- [x] Configure Supabase email templates (bilingual AR/EN)
 - [x] Handle verification redirect back to app
 
 ### 1.7 Verification Gates (4-gate flow)
@@ -144,7 +144,7 @@
 - [x] Current tier display with usage stats (bids used, products posted, etc.)
 - [x] Upgrade / downgrade / renew UI
 - [x] Coupon input and validation
-- [ ] Moyasar payment integration for subscription payments
+- [x] Moyasar payment integration for subscription payments
 
 ### 2.3 Hooks
 
@@ -247,8 +247,8 @@
 - [x] Build line-item editor component — dynamic line items
 - [x] Auto-numbering: `QTN-YYYY-NNNN` per company
 - [x] VAT calculation (15% auto-added)
-- [ ] Clause library selection
-- [ ] PDF generation (bilingual)
+- [x] Clause library selection
+- [x] PDF generation (bilingual)
 - [x] Send quotation via Resend email
 - [x] Accept quotation → create `DEAL-PRODUCT` deal
 - [x] Monthly quotation limit per tier
@@ -313,7 +313,7 @@
 - [x] Deal completion: both progress at 100% → status `completed`
 - [x] Cancellation request + counterparty approval flow
 - [x] Skip milestone request (mutual agreement)
-- [ ] Document vault tab within deal workspace
+- [x] Document vault tab within deal workspace
 - [x] Realtime updates on deal workspace (Supabase Realtime channels)
 
 ### 6.5 Realtime Hook
@@ -332,11 +332,11 @@
 - [x] Build `src/app/(dashboard)/dashboard/contracts/page.tsx` — contract list
 - [x] Build `src/app/(dashboard)/dashboard/contracts/new/page.tsx` — create from template or deal
 - [x] Template selection: Construction Agreement, Supply Agreement, Custom/Blank
-- [~] Clause library — display only, no add/remove/reorder UI yet
+- [x] Clause library — interactive selection with toggle + category badges
 - [x] Auto-fill from user profile (company name, CR, VAT, address)
 - [x] Dual signature flow (Party A → Party B typed signature)
-- [~] QR code — qr_uuid + verify page done, no QR image generation
-- [ ] PDF generation (bilingual with signatures + company letterhead) — blocked, needs PDF lib
+- [x] QR code — qr_uuid + verify page + QR image generation
+- [x] PDF generation (bilingual with signatures + company letterhead)
 - [x] Build `src/app/verify/contract/[uuid]/page.tsx` — public verification page
 - [x] Tier limits on contracts per month (Starter 2 basic, Pro 10 all, Business+ unlimited)
 - [x] Contract status flow: Draft → Sent → Signed → Archived
@@ -347,16 +347,16 @@
 - [x] Create `src/actions/crm.ts` — full CRM CRUD (scoring not implemented)
 - [x] Build `src/app/(dashboard)/dashboard/crm/page.tsx` — pipeline view + client list
 - [x] Build `src/app/(dashboard)/dashboard/crm/[id]/page.tsx` — client detail (route simplified)
-- [~] Pipeline board — clickable stage cards, no drag-and-drop
+- [x] Pipeline board — @dnd-kit drag-and-drop with board/list toggle
 - [x] Tags and custom categories (Pro+)
 - [x] Timestamped notes log per client (append-only, pinnable)
-- [~] Follow-up reminders — in-app only, no email
+- [x] Follow-up reminders — in-app + email (cron job)
 - [x] Auto-add clients from completed deals
 - [x] Client scoring: A (≥80), B (≥50), C (<50)
 - [x] Client source tracking (auto-tag origin: Bid Award, RFQ Response, etc.)
-- [~] Last contact indicator — date shown, no color coding
+- [x] Last contact indicator — color-coded (green/amber/red)
 - [x] Favorites / pinned clients
-- [ ] Duplicate detection and merge (Pro+)
+- [x] Duplicate detection and merge (Pro+)
 - [x] Bulk actions: tag, export CSV, archive (Business+ only)
 - [x] Soft archive with restore
 - [x] Revenue analytics per client
@@ -365,12 +365,12 @@
 ### 7.3 Kanban Board
 
 - [x] Build `src/app/(dashboard)/dashboard/deals/[id]/kanban/page.tsx`
-- [~] Kanban board component — button-based move, no DnD library yet
+- [x] Kanban board component — @dnd-kit DnD with SortableContext + DragOverlay
 - [x] Default columns: To Do → In Progress → Review → Done
-- [~] Task cards: title, description, assignee, due date, priority (no attachments — blocked on Storage)
-- [~] Pro tier: tier check exists, simple checklist mode not differentiated
+- [x] Task cards: title, description, assignee, due date, priority, attachments
+- [x] Pro tier: simple checklist mode (no DnD)
 - [x] Business+: full Kanban board
-- [~] PO: read-only — contractor-only gate exists, PO read-only not fully wired
+- [x] PO: read-only view; Contractor: manage access
 - [x] Cards moved to "Done" → prompt work proof submission
 - [x] Progress sync: % Done cards feeds seller progress bar
 - [ ] Realtime updates
@@ -378,7 +378,7 @@
 ### 7.4 Daily Site Log
 
 - [x] Build `src/app/(dashboard)/dashboard/deals/[id]/daily-log/page.tsx`
-- [~] Daily entry: date, weather, worker count, description, issues, safety (no photos — blocked on Storage)
+- [x] Daily entry: date, weather, worker count, description, issues, safety, photos
 - [x] One entry per day per deal constraint
 - [x] Chronological timeline display
 
@@ -394,7 +394,7 @@
 - [x] Build conversation list component (inline in messages page)
 - [x] Build chat thread component — real-time messages (chat-thread.tsx)
 - [x] Build message bubble component (message-bubble.tsx)
-- [~] File attachments — display support, upload blocked on Storage
+- [x] File attachments — upload via message-attachments bucket + chat UI
 - [x] Quick reply templates (saved responses)
 - [x] Context linking (conversations linked to project, product, or deal)
 - [x] Supabase Realtime for instant delivery
@@ -426,10 +426,10 @@
 - [x] Create `src/actions/reviews.ts` — `submitReview`, `editReview`
 - [x] Build `src/app/(dashboard)/dashboard/reviews/page.tsx` — reviews given & received
 - [x] Build review form — star ratings (overall + sub: Quality, Timeliness, Communication) + bilingual comment + "would recommend" flag
-- [~] Review button on completed deals (30-day window) — action validates; button not wired on deal detail page
+- [x] Review button on completed deals (30-day window)
 - [x] 48-hour edit window after submission
 - [x] One review per direction per deal (enforced)
-- [ ] DB trigger updates `average_rating` + `total_reviews` on profile — needs Supabase migration
+- [x] DB trigger updates `average_rating` + `total_reviews` on profile
 - [x] Display reviews on partner profile page
 
 ### 9.2 Commissions
@@ -438,10 +438,10 @@
 - [x] Build `src/app/(dashboard)/dashboard/commissions/page.tsx` — commission history
 - [x] Commission auto-calculated at deal creation (Starter 2%, Pro 1%, Business/Enterprise 0%) — DB trigger needs migration
 - [x] 14-day payment deadline with escalation (Day 14, 21, 28 reminders → Day 30 restriction) — needs cron
-- [~] Card payment via Moyasar — action + webhook ready; needs Moyasar SDK
-- [~] Bank transfer + receipt upload + admin verification — action ready; receipt needs Storage
+- [x] Card payment via Moyasar — Moyasar Invoice API integrated
+- [x] Bank transfer + receipt upload to bank-payments bucket + admin verification
 - [x] Dispute within 7 days (freezes deadline)
-- [ ] ZATCA-compliant invoice generation (bilingual PDF) — needs PDF library
+- [x] ZATCA-compliant invoice generation (bilingual PDF) — subscription + commission PDF templates + invoice history UI
 
 ### 9.3 Payment Webhooks
 
@@ -492,9 +492,9 @@
 - [x] Build `src/app/(dashboard)/dashboard/analytics/page.tsx`
 - [x] Pro tier: summary widget only
 - [x] Business+: full dashboard
-- [~] Metrics: revenue, deals, bids, win rate, response time, ratings _(deals + ratings done; bids/win-rate/response-time deferred)_
-- [x] Charts: deals over time, revenue trend, category breakdown _(deferred — needs chart library)_
-- [x] Export data (CSV) _(deferred)_
+- [x] Metrics: revenue, deals, bids, win rate, response time, ratings
+- [x] Charts: deals over time, revenue trend, category breakdown _(Recharts implemented)_
+- [x] Export data (CSV) _(tier-gated: Business+ only)_
 
 ### 10.4 Homepage & SEO
 
@@ -510,24 +510,24 @@
 
 - [ ] Cross-browser testing (Chrome, Safari, Firefox, Edge)
 - [ ] Mobile responsive testing (all pages)
-- [ ] RTL layout verification for all components
+- [x] RTL layout verification for all components
 - [ ] Accessibility audit (WCAG 2.1 AA)
-- [ ] Form validation coverage (all Zod schemas client + server)
+- [x] Form validation coverage (all Zod schemas client + server)
 
 ### 11.2 Performance
 
-- [ ] Core Web Vitals optimization (LCP, FID, CLS)
-- [ ] Image optimization (`next/image`, proper sizing)
-- [ ] Code splitting verification
-- [ ] Database query optimization (slow query review)
+- [x] Core Web Vitals optimization (LCP, FID, CLS)
+- [x] Image optimization (`next/image`, proper sizing)
+- [x] Code splitting verification
+- [x] Database query optimization (slow query review)
 - [x] Add `loading.tsx` and `error.tsx` to all route groups
 
 ### 11.3 Security Hardening
 
-- [ ] Verify all Server Actions have auth + role + tier checks
-- [ ] Verify RLS policies cover all access patterns
+- [x] Verify all Server Actions have auth + role + tier checks
+- [x] Verify RLS policies cover all access patterns
 - [x] CSP headers in `next.config.ts`
-- [ ] Rate limiting on all public-facing actions (14 endpoint rules via Upstash)
+- [x] Rate limiting on all public-facing actions (14 endpoint rules via Upstash)
 - [x] No sensitive env vars exposed to client
 - [x] File upload MIME validation server-side
 
@@ -568,10 +568,10 @@
 
 ### Bilingual (AR/EN)
 
-- [ ] All UI text supports Arabic (RTL) + English (LTR)
+- [~] All UI text supports Arabic (RTL) + English (LTR) — audited, key gaps fixed
 - [x] Tailwind logical properties only (`ps-`, `pe-`, `ms-`, `me-`, `start`, `end`) — no `pl`/`pr`/`left`/`right`
 - [x] `dir` attribute toggled on `<html>` per locale
-- [ ] Paired DB fields: `*_ar` / `*_en`
+- [~] Paired DB fields: `*_ar` / `*_en` — audited, key gaps fixed
 
 ### Saudi Compliance
 
@@ -582,7 +582,7 @@
 
 ### Subscription Enforcement
 
-- [ ] Client-side: hide/disable gated UI per tier
+- [x] Client-side: hide/disable gated UI per tier
 - [x] Server-side: reject in server action if tier limit exceeded
 - [x] Double-check for every gated feature (bids, products, CRM clients, quotations, contracts, Kanban, analytics)
 

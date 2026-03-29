@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Post Status Badge (full workflow display)
+// Muhandes HUB — Post Status Badge (full workflow display)
 // =============================================================================
 
 import { cn } from '@/lib/utils';
@@ -19,42 +19,42 @@ const STATUS_CONFIG = {
   draft: {
     key: 'draft',
     icon: FileEdit,
-    className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+    className: 'bg-status-draft text-status-draft-foreground',
   },
   pending: {
     key: 'pending',
     icon: Clock,
-    className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    className: 'bg-status-pending text-status-pending-foreground',
   },
   published: {
     key: 'published',
     icon: Globe,
-    className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    className: 'bg-status-published text-status-published-foreground',
   },
   rejected: {
     key: 'rejected',
     icon: XCircle,
-    className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    className: 'bg-status-rejected text-status-rejected-foreground',
   },
   awarded: {
     key: 'awarded',
     icon: Award,
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    className: 'bg-status-awarded text-status-awarded-foreground',
   },
   completed: {
     key: 'completed',
     icon: CheckCircle2,
-    className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
+    className: 'bg-status-completed text-status-completed-foreground',
   },
   expired: {
     key: 'expired',
     icon: Timer,
-    className: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+    className: 'bg-accent-orange text-accent-orange-foreground',
   },
   closed: {
     key: 'closed',
     icon: Ban,
-    className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+    className: 'bg-status-draft text-status-draft-foreground',
   },
 } as const;
 

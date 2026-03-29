@@ -7,6 +7,7 @@ import { Link } from '@/i18n/navigation';
 import { Check, X, Minus } from 'lucide-react';
 import { SUBSCRIPTION_PRICING, DURATION_DISCOUNTS, VAT_RATE } from '@/types';
 import { getTranslations, getLocale } from 'next-intl/server';
+import { PricingBorderBeam } from '@/components/features/pricing-border-beam';
 
 // ---------------------------------------------------------------------------
 // Feature value cell
@@ -104,7 +105,7 @@ export default async function PricingPage() {
   }));
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+    <div className="py-20">
       {/* Header */}
       <div className="text-center mb-14">
         <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl lg:text-5xl">
@@ -150,6 +151,7 @@ export default async function PricingPage() {
                   {t('mostPopular')}
                 </div>
               )}
+              {tier.highlighted && <PricingBorderBeam />}
               <h3 className="text-lg font-bold text-foreground">{tier.name}</h3>
               <p className="text-sm text-muted-foreground">{tier.nameEn}</p>
               <p className="mt-1 text-xs text-muted-foreground">{tier.description}</p>

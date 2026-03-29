@@ -1,5 +1,5 @@
 // =============================================================================
-// Deals List Page — Dashboard
+// Deals List Page — Dashboard (with role + type filters, DataTable)
 // =============================================================================
 
 import { Link } from '@/i18n/navigation';
@@ -8,22 +8,15 @@ import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { EmptyState } from '@/components/features/empty-state';
-import { Handshake, User, Calendar, Banknote, TrendingUp } from 'lucide-react';
-import { formatSAR, formatDate } from '@/lib/utils';
+import { Handshake, TrendingUp, Calendar, Banknote } from 'lucide-react';
+import { formatSAR } from '@/lib/utils';
 import { getTranslations } from 'next-intl/server';
+import { DealsTableClient } from './deals-table-client';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
   return supabase;
 }
-
-const statusBadge: Record<string, BadgeProps['variant']> = {
-  active: 'info',
-  in_progress: 'pending',
-  completed: 'success',
-  cancelled: 'rejected',
-  disputed: 'destructive',
-};
 
 const STATUS_KEYS: Record<string, string> = {
   active: 'statusActive',
@@ -45,7 +38,7 @@ const TRIGGER_KEYS: Record<string, string> = {
   direct_hire: 'triggerDirectHire',
 };
 
-interface DealItem {
+export interface DealItem {
   id: string;
   title_slug: string;
   deal_type: string;
@@ -66,7 +59,7 @@ interface DealItem {
 export default async function DealsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; role?: string }>;
+  searchParams: Promise<{ status?: string; role?: string; type?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -86,18 +79,86 @@ export default async function DealsPage({
   if (params.status) {
     query = query.eq('status', params.status);
   }
+  if (params.type) {
+    query = query.eq('deal_type', params.type);
+  }
 
   const { data: deals } = await query.limit(100);
-  const items = (deals ?? []) as DealItem[];
+  let items = (deals ?? []) as DealItem[];
 
-  // Split by role in deal
-  const asBuyer = params.role === 'seller' ? [] : items.filter(d => d.buyer_id === user.id);
-  const asSeller = params.role === 'buyer' ? [] : items.filter(d => d.seller_id === user.id);
+  // Client-side role filter (buyer/seller in the deal, not the user's global role)
+  if (params.role === 'buyer') {
+    items = items.filter(d => d.buyer_id === user.id);
+  } else if (params.role === 'seller') {
+    items = items.filter(d => d.seller_id === user.id);
+  }
 
-  // Stats
-  const activeCount = items.filter(d => d.status === 'active' || d.status === 'in_progress').length;
-  const completedCount = items.filter(d => d.status === 'completed').length;
-  const totalValue = items.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+  // Stats (from all fetched items before role filter for accurate counts)
+  const allItems = (deals ?? []) as DealItem[];
+  const activeCount = allItems.filter(d => d.status === 'active' || d.status === 'in_progress').length;
+  const completedCount = allItems.filter(d => d.status === 'completed').length;
+  const totalValue = allItems.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+
+  // Count by status (for filter badges)
+  const statusCounts: Record<string, number> = {};
+  for (const key of Object.keys(STATUS_KEYS)) {
+    statusCounts[key] = allItems.filter(d => d.status === key).length;
+  }
+
+  // Count by role
+  const buyerCount = allItems.filter(d => d.buyer_id === user.id).length;
+  const sellerCount = allItems.filter(d => d.seller_id === user.id).length;
+
+  // Count by type
+  const projectDealCount = allItems.filter(d => d.deal_type === 'deal_project').length;
+  const productDealCount = allItems.filter(d => d.deal_type === 'deal_product').length;
+
+  // Build filter query string helper
+  const buildFilterHref = (overrides: Record<string, string | undefined>) => {
+    const base: Record<string, string> = {};
+    if (params.status) base.status = params.status;
+    if (params.role) base.role = params.role;
+    if (params.type) base.type = params.type;
+    const merged = { ...base, ...overrides };
+    // Remove undefined/empty values
+    const cleaned = Object.fromEntries(
+      Object.entries(merged).filter(([, v]) => v !== undefined && v !== ''),
+    );
+    const qs = new URLSearchParams(cleaned as Record<string, string>).toString();
+    return `/dashboard/deals${qs ? `?${qs}` : ''}`;
+  };
+
+  // Serializable translations for client component
+  const translations: Record<string, string> = {
+    deal: t('dealPrefix'),
+    status: tCommon('status'),
+    type: t('dealTypeProject' as never) ? 'type' : 'type',
+    value: t('totalValue'),
+    role: t('asBuyer').replace(/\s*\(.*\)/, ''),
+    progress: t('sellerProgress'),
+    created: tCommon('createdAt'),
+    asBuyer: t('asBuyer'),
+    asSeller: t('asSeller'),
+    youAreBuyer: t('youAreBuyer'),
+    youAreSeller: t('youAreSeller'),
+    commission: t('commission'),
+    buyerProgress: t('buyerProgress'),
+    sellerProgress: t('sellerProgress'),
+    noDeals: t('noDeals'),
+    noDealsDesc: t('noDealsDesc'),
+    // Status labels
+    ...Object.fromEntries(Object.entries(STATUS_KEYS).map(([k, tKey]) => [
+      `status_${k}`, t(tKey as never),
+    ])),
+    // Type labels
+    ...Object.fromEntries(Object.entries(DEAL_TYPE_KEYS).map(([k, tKey]) => [
+      `type_${k}`, t(tKey as never),
+    ])),
+    // Trigger labels
+    ...Object.fromEntries(Object.entries(TRIGGER_KEYS).map(([k, tKey]) => [
+      `trigger_${k}`, t(tKey as never),
+    ])),
+  };
 
   return (
     <div className="space-y-6">
@@ -147,147 +208,77 @@ export default async function DealsPage({
       </div>
 
       {/* Status Filters */}
-      <div className="flex flex-wrap gap-2">
-        <Link href="/dashboard/deals">
-          <Badge variant={!params.status ? 'default' : 'secondary'}>{tCommon('all')} ({items.length})</Badge>
-        </Link>
-        {Object.entries(STATUS_KEYS).map(([key, tKey]) => {
-          const count = items.filter(d => d.status === key).length;
-          if (count === 0) return null;
-          return (
-            <Link key={key} href={`/dashboard/deals?status=${key}`}>
-              <Badge variant={params.status === key ? 'default' : 'secondary'}>
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                {t(tKey as any)} ({count})
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-2">
+          <Link href={buildFilterHref({ status: undefined })}>
+            <Badge variant={!params.status ? 'default' : 'secondary'}>{tCommon('all')} ({allItems.length})</Badge>
+          </Link>
+          {Object.entries(STATUS_KEYS).map(([key, tKey]) => {
+            const count = statusCounts[key] || 0;
+            if (count === 0) return null;
+            return (
+              <Link key={key} href={buildFilterHref({ status: key })}>
+                <Badge variant={params.status === key ? 'default' : 'secondary'}>
+                  {t(tKey as never)} ({count})
+                </Badge>
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Role Filters */}
+        <div className="flex flex-wrap gap-2">
+          <Link href={buildFilterHref({ role: undefined })}>
+            <Badge variant={!params.role ? 'info' : 'outline'}>
+              {tCommon('all')} ({allItems.length})
+            </Badge>
+          </Link>
+          {buyerCount > 0 && (
+            <Link href={buildFilterHref({ role: 'buyer' })}>
+              <Badge variant={params.role === 'buyer' ? 'info' : 'outline'}>
+                {t('asBuyer')} ({buyerCount})
               </Badge>
             </Link>
-          );
-        })}
+          )}
+          {sellerCount > 0 && (
+            <Link href={buildFilterHref({ role: 'seller' })}>
+              <Badge variant={params.role === 'seller' ? 'info' : 'outline'}>
+                {t('asSeller')} ({sellerCount})
+              </Badge>
+            </Link>
+          )}
+        </div>
+
+        {/* Deal Type Filters */}
+        <div className="flex flex-wrap gap-2">
+          <Link href={buildFilterHref({ type: undefined })}>
+            <Badge variant={!params.type ? 'pending' : 'outline'}>
+              {tCommon('all')} ({allItems.length})
+            </Badge>
+          </Link>
+          {projectDealCount > 0 && (
+            <Link href={buildFilterHref({ type: 'deal_project' })}>
+              <Badge variant={params.type === 'deal_project' ? 'pending' : 'outline'}>
+                {t('dealTypeProject' as never)} ({projectDealCount})
+              </Badge>
+            </Link>
+          )}
+          {productDealCount > 0 && (
+            <Link href={buildFilterHref({ type: 'deal_product' })}>
+              <Badge variant={params.type === 'deal_product' ? 'pending' : 'outline'}>
+                {t('dealTypeProduct' as never)} ({productDealCount})
+              </Badge>
+            </Link>
+          )}
+        </div>
       </div>
 
-      {/* Deals as buyer */}
-      {(params.role !== 'seller') && (
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">{t('asBuyer')} ({asBuyer.length})</h2>
-          {asBuyer.length === 0 ? (
-            <EmptyState
-              icon={<Handshake className="h-12 w-12" />}
-              title={t('noDealsAsBuyer')}
-              description={t('noDealsAsBuyerDesc')}
-            />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {asBuyer.map(deal => (
-                <DealCard key={deal.id} deal={deal} userRole="buyer" />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Deals as seller */}
-      {(params.role !== 'buyer') && (
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">{t('asSeller')} ({asSeller.length})</h2>
-          {asSeller.length === 0 ? (
-            <EmptyState
-              icon={<Handshake className="h-12 w-12" />}
-              title={t('noDealsAsSeller')}
-              description={t('noDealsAsSellerDesc')}
-            />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {asSeller.map(deal => (
-                <DealCard key={deal.id} deal={deal} userRole="seller" />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
+      {/* Deals Table */}
+      <DealsTableClient
+        items={items}
+        userId={user.id}
+        translations={translations}
+      />
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Deal Card Component
-// ---------------------------------------------------------------------------
-async function DealCard({ deal, userRole }: { deal: DealItem; userRole: 'buyer' | 'seller' }) {
-  const t = await getTranslations('dashboard.deals');
-
-  return (
-    <Link href={`/dashboard/deals/${deal.id}`}>
-      <Card className="p-4 transition-shadow hover:shadow-md">
-        <div className="mb-3 flex items-center justify-between">
-          <Badge variant={statusBadge[deal.status] ?? 'secondary'}>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {t((STATUS_KEYS[deal.status] ?? deal.status) as any)}
-          </Badge>
-          <Badge variant="outline">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {t((DEAL_TYPE_KEYS[deal.deal_type] ?? deal.deal_type) as any)}
-          </Badge>
-        </div>
-
-        <h3 className="mb-1 text-sm font-semibold text-foreground line-clamp-1">
-          {deal.title_slug || `${t('dealPrefix')} #${deal.id.slice(0, 8)}`}
-        </h3>
-
-        <p className="mb-3 text-xs text-muted-foreground">
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {t((TRIGGER_KEYS[deal.trigger_source] ?? deal.trigger_source) as any)}
-        </p>
-
-        {/* Progress Bars */}
-        <div className="mb-3 space-y-2">
-          <div>
-            <div className="mb-1 flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">{t('sellerProgress')}</span>
-              <span className="font-medium">{deal.seller_progress}%</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full bg-primary transition-all"
-                style={{ width: `${deal.seller_progress}%` }}
-              />
-            </div>
-          </div>
-          <div>
-            <div className="mb-1 flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">{t('buyerProgress')}</span>
-              <span className="font-medium">{deal.buyer_progress}%</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full bg-success transition-all"
-                style={{ width: `${deal.buyer_progress}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Meta */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Banknote className="h-3.5 w-3.5" />
-            {formatSAR(Number(deal.value) || 0)}
-          </span>
-          <span className="flex items-center gap-1">
-            <Calendar className="h-3.5 w-3.5" />
-            {formatDate(deal.created_at)}
-          </span>
-        </div>
-
-        {/* Role indicator */}
-        <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-          <User className="h-3.5 w-3.5" />
-          <span>{userRole === 'buyer' ? t('youAreBuyer') : t('youAreSeller')}</span>
-          {deal.commission_rate > 0 && (
-            <span className="ms-auto text-warning">
-              {t('commission')} {(deal.commission_rate * 100).toFixed(0)}%
-            </span>
-          )}
-        </div>
-      </Card>
-    </Link>
   );
 }

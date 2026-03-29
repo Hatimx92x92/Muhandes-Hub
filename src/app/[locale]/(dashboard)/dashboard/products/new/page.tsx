@@ -7,10 +7,8 @@ import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { ProductForm } from '@/components/forms/product-form';
 import { TIER_LIMITS } from '@/types';
-import { AlertTriangle } from 'lucide-react';
-import { Link } from '@/i18n/navigation';
-import { Button } from '@/components/ui/button';
 import { getTranslations } from 'next-intl/server';
+import { TierGate } from '@/components/features/tier-gate';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -52,23 +50,20 @@ export default async function NewProductPage() {
 
   if (maxProducts !== Infinity && (count ?? 0) >= maxProducts) {
     const t = await getTranslations('dashboard.products');
+    const tGate = await getTranslations('tierGate');
     return (
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{t('newPage.title')}</h1>
         </div>
-        <div className="flex flex-col items-center gap-4 rounded-xl border border-status-pending/30 bg-status-pending/10 p-8 text-center">
-          <AlertTriangle className="h-12 w-12 text-status-pending" />
-          <h2 className="text-lg font-semibold text-status-pending">
-            {t('tierLimitReached')}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {t('tierLimitDesc', { tier, max: maxProducts })}
-          </p>
-          <Link href="/dashboard/subscription">
-            <Button>{t('upgradeSubscription')}</Button>
-          </Link>
-        </div>
+        <TierGate
+          isLocked
+          title={tGate('productPosts.title')}
+          description={tGate('productPosts.description', { tier })}
+          upgradeLabel={tGate('upgrade')}
+          variant="limit"
+          mode="inline"
+        />
       </div>
     );
   }

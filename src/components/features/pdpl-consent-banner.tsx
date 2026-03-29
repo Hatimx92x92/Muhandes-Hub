@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — PDPL Privacy Consent Banner
+// Muhandes HUB — PDPL Privacy Consent Banner
 // Saudi PDPL compliance — shown to new visitors, stored in cookie
 // =============================================================================
 

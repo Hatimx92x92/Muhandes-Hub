@@ -65,7 +65,7 @@ export function SearchResultCard({
               {/* Rating */}
               {Boolean(result.average_rating || result.rating) && (
                 <span className="flex items-center gap-1">
-                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                  <Star className="h-3 w-3 fill-warning text-warning" />
                   {Number(result.average_rating || result.rating).toFixed(1)}
                 </span>
               )}

@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — CRM Server Actions
+// Muhandes HUB — CRM Server Actions
 // =============================================================================
 
 'use server';
@@ -13,9 +13,12 @@ import {
   ClientNoteSchema,
   CRMTagSchema,
   ReminderSchema,
+  DetectDuplicatesSchema,
+  MergeClientsSchema,
 } from '@/schemas/crm';
 import type { ActionResult } from '@/types';
 import { TIER_LIMITS } from '@/types';
+import { generateUniqueSlug } from '@/lib/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: Awaited<ReturnType<typeof createClient>>): any {
@@ -46,6 +49,13 @@ export async function addClient(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: null, error: t('mustLogin') };
 
+  let parsedTags: string[] = [];
+  try {
+    parsedTags = JSON.parse(formData.get('tags') as string || '[]');
+  } catch {
+    return { data: null, error: t('invalidData') };
+  }
+
   const rawData = {
     name: formData.get('name') as string,
     phone: formData.get('phone') as string || undefined,
@@ -54,7 +64,7 @@ export async function addClient(
     city_id: formData.get('city_id') as string || undefined,
     source: formData.get('source') as string || 'manual_entry',
     pipeline_stage: formData.get('pipeline_stage') as string || 'lead',
-    tags: JSON.parse(formData.get('tags') as string || '[]'),
+    tags: parsedTags,
   };
 
   const parsed = CRMClientSchema.safeParse(rawData);
@@ -96,11 +106,14 @@ export async function addClient(
 
   const { tags, ...clientData } = parsed.data;
 
+  const slug = await generateUniqueSlug(clientData.name, 'crm_clients', 'slug', db(supabase));
+
   const { data: client, error } = await db(supabase)
     .from('crm_clients')
     .insert({
       owner_id: user.id,
       ...clientData,
+      slug,
     })
     .select('id')
     .single();
@@ -149,9 +162,15 @@ export async function updateClient(
 
   const { client_id, ...updates } = parsed.data;
 
+  // Regenerate slug if name changed
+  let slug: string | undefined;
+  if (updates.name) {
+    slug = await generateUniqueSlug(updates.name, 'crm_clients', 'slug', db(supabase), client_id);
+  }
+
   const { error } = await db(supabase)
     .from('crm_clients')
-    .update(updates)
+    .update({ ...updates, ...(slug ? { slug } : {}) })
     .eq('id', client_id)
     .eq('owner_id', user.id);
 
@@ -621,17 +640,23 @@ export async function bulkTagClients(
   if (!user) return { data: null, error: t('mustLogin') };
 
   // Tier check — Business+ only
-  const { data: profile } = await db(supabase)
-    .from('profiles')
+  const { data: sub } = await db(supabase)
+    .from('subscriptions')
     .select('tier')
-    .eq('id', user.id)
+    .eq('user_id', user.id)
+    .eq('is_active', true)
     .single();
-  const tier = profile?.tier || 'starter';
+  const tier = (sub?.tier as string) || 'starter';
   if (tier === 'starter' || tier === 'pro') {
     return { data: null, error: t('businessPlusOnly') };
   }
 
-  const clientIds = JSON.parse(formData.get('client_ids') as string || '[]') as string[];
+  let clientIds: string[];
+  try {
+    clientIds = JSON.parse(formData.get('client_ids') as string || '[]') as string[];
+  } catch {
+    return { data: null, error: t('invalidData') };
+  }
   const tagId = formData.get('tag_id') as string;
 
   if (!clientIds.length || !tagId) {
@@ -678,17 +703,23 @@ export async function bulkArchiveClients(
   if (!user) return { data: null, error: t('mustLogin') };
 
   // Tier check
-  const { data: profile } = await db(supabase)
-    .from('profiles')
+  const { data: sub } = await db(supabase)
+    .from('subscriptions')
     .select('tier')
-    .eq('id', user.id)
+    .eq('user_id', user.id)
+    .eq('is_active', true)
     .single();
-  const tier = profile?.tier || 'starter';
+  const tier = (sub?.tier as string) || 'starter';
   if (tier === 'starter' || tier === 'pro') {
     return { data: null, error: t('businessPlusOnly') };
   }
 
-  const clientIds = JSON.parse(formData.get('client_ids') as string || '[]') as string[];
+  let clientIds: string[];
+  try {
+    clientIds = JSON.parse(formData.get('client_ids') as string || '[]') as string[];
+  } catch {
+    return { data: null, error: t('invalidData') };
+  }
   if (!clientIds.length) return { data: { count: 0 }, error: null };
 
   const { error, count } = await db(supabase)
@@ -713,12 +744,13 @@ export async function exportClientsCSV(): Promise<ActionResult<{ csv: string }>>
   if (!user) return { data: null, error: t('mustLogin') };
 
   // Tier check
-  const { data: profile } = await db(supabase)
-    .from('profiles')
+  const { data: sub } = await db(supabase)
+    .from('subscriptions')
     .select('tier')
-    .eq('id', user.id)
+    .eq('user_id', user.id)
+    .eq('is_active', true)
     .single();
-  const tier = profile?.tier || 'starter';
+  const tier = (sub?.tier as string) || 'starter';
   if (tier === 'starter' || tier === 'pro') {
     return { data: null, error: t('businessPlusOnly') };
   }
@@ -828,4 +860,206 @@ export async function getClientRevenue(
     data: { totalRevenue, dealCount, averageDealValue, monthlyRevenue },
     error: null,
   };
+}
+
+// ---------------------------------------------------------------------------
+// detectDuplicates — Find potential duplicate clients (Pro+ only)
+// ---------------------------------------------------------------------------
+export async function detectDuplicates(
+  fields: { name?: string; email?: string; phone?: string; company?: string },
+): Promise<ActionResult<{
+  duplicates: Array<{
+    id: string;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    company: string | null;
+    pipeline_stage: string;
+    matchReasons: string[];
+  }>;
+}>> {
+  const t = await getTranslations('actions.crm');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  // Validate input
+  const parsed = DetectDuplicatesSchema.safeParse(fields);
+  if (!parsed.success) return { data: null, error: t('invalidData') };
+
+  // Tier check — Pro+ only
+  const { data: sub } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .single();
+  const tier = (sub?.tier as string) || 'starter';
+  if (tier === 'starter') {
+    return { data: null, error: t('proPlusOnly') };
+  }
+
+  const { name, email, phone, company } = parsed.data;
+
+  // Build OR conditions for fuzzy matching
+  const conditions: string[] = [];
+  if (phone && phone.length >= 4) conditions.push(`phone.ilike.%${phone}%`);
+  if (email && email.length >= 3) conditions.push(`email.ilike.%${email}%`);
+  if (company && company.length >= 2) conditions.push(`company.ilike.%${company}%`);
+  if (name && name.length >= 2) conditions.push(`name.ilike.%${name}%`);
+
+  if (conditions.length === 0) {
+    return { data: { duplicates: [] }, error: null };
+  }
+
+  const { data: matches } = await db(supabase)
+    .from('crm_clients')
+    .select('id, name, email, phone, company, pipeline_stage')
+    .eq('owner_id', user.id)
+    .eq('is_archived', false)
+    .or(conditions.join(','))
+    .limit(10);
+
+  type ClientRow = { id: string; name: string; email: string | null; phone: string | null; company: string | null; pipeline_stage: string };
+  const duplicates = ((matches ?? []) as ClientRow[]).map((c) => {
+    const matchReasons: string[] = [];
+    if (phone && c.phone && c.phone.includes(phone)) matchReasons.push('phone');
+    if (email && c.email && c.email.toLowerCase() === email.toLowerCase()) matchReasons.push('email');
+    if (company && c.company && c.company.toLowerCase().includes(company.toLowerCase())) matchReasons.push('company');
+    if (name && c.name && c.name.toLowerCase().includes(name.toLowerCase())) matchReasons.push('name');
+    return { ...c, matchReasons };
+  }).filter((c) => c.matchReasons.length > 0);
+
+  return { data: { duplicates }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// mergeClients — Merge secondary client into primary (Pro+ only)
+// ---------------------------------------------------------------------------
+export async function mergeClients(
+  primaryId: string,
+  secondaryId: string,
+): Promise<ActionResult<{ primaryId: string }>> {
+  const t = await getTranslations('actions.crm');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  // Validate input
+  const parsed = MergeClientsSchema.safeParse({ primary_id: primaryId, secondary_id: secondaryId });
+  if (!parsed.success) return { data: null, error: t('invalidData') };
+
+  if (primaryId === secondaryId) {
+    return { data: null, error: t('cannotMergeSame') };
+  }
+
+  // Tier check — Pro+ only
+  const { data: sub } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .single();
+  const tier = (sub?.tier as string) || 'starter';
+  if (tier === 'starter') {
+    return { data: null, error: t('proPlusOnly') };
+  }
+
+  // Verify ownership of both clients
+  const { data: clients } = await db(supabase)
+    .from('crm_clients')
+    .select('id, name, email, phone, company, total_deal_value, total_deals, score, updated_at')
+    .eq('owner_id', user.id)
+    .in('id', [primaryId, secondaryId]);
+
+  type MergeClientRow = {
+    id: string; name: string; email: string | null; phone: string | null;
+    company: string | null; total_deal_value: number; total_deals: number;
+    score: number; updated_at: string;
+  };
+  const rows = (clients ?? []) as MergeClientRow[];
+  if (rows.length !== 2) {
+    return { data: null, error: t('clientNotFound') };
+  }
+
+  const primary = rows.find((c) => c.id === primaryId)!;
+  const secondary = rows.find((c) => c.id === secondaryId)!;
+
+  // Determine which fields are more recent
+  const secondaryIsNewer = new Date(secondary.updated_at) > new Date(primary.updated_at);
+
+  // Update primary with merged data
+  const mergedValues = {
+    email: primary.email || secondary.email || null,
+    phone: primary.phone || secondary.phone || null,
+    company: primary.company || secondary.company || null,
+    total_deal_value: (Number(primary.total_deal_value) || 0) + (Number(secondary.total_deal_value) || 0),
+    total_deals: (primary.total_deals || 0) + (secondary.total_deals || 0),
+    score: Math.max(primary.score || 0, secondary.score || 0),
+  };
+
+  // If secondary is newer and has data the primary doesn't, prefer it
+  if (secondaryIsNewer) {
+    if (secondary.email && !primary.email) mergedValues.email = secondary.email;
+    if (secondary.phone && !primary.phone) mergedValues.phone = secondary.phone;
+    if (secondary.company && !primary.company) mergedValues.company = secondary.company;
+  }
+
+  await db(supabase)
+    .from('crm_clients')
+    .update(mergedValues)
+    .eq('id', primaryId);
+
+  // Transfer notes from secondary to primary
+  await db(supabase)
+    .from('crm_client_notes')
+    .update({ client_id: primaryId })
+    .eq('client_id', secondaryId);
+
+  // Transfer reminders from secondary to primary
+  await db(supabase)
+    .from('crm_follow_up_reminders')
+    .update({ client_id: primaryId })
+    .eq('client_id', secondaryId);
+
+  // Transfer tags (merge — add missing tags from secondary)
+  const { data: secondaryTags } = await db(supabase)
+    .from('crm_client_tags')
+    .select('tag_id')
+    .eq('client_id', secondaryId);
+
+  if (secondaryTags && secondaryTags.length > 0) {
+    const tagRows = (secondaryTags as { tag_id: string }[]).map((t) => ({
+      client_id: primaryId,
+      tag_id: t.tag_id,
+    }));
+    await db(supabase)
+      .from('crm_client_tags')
+      .upsert(tagRows, { onConflict: 'client_id,tag_id' });
+  }
+
+  // Delete secondary's tags (now transferred)
+  await db(supabase)
+    .from('crm_client_tags')
+    .delete()
+    .eq('client_id', secondaryId);
+
+  // Add merge audit note to primary
+  await db(supabase)
+    .from('crm_client_notes')
+    .insert({
+      client_id: primaryId,
+      author_id: user.id,
+      content_ar: `تم دمج العميل "${secondary.name}" في هذا السجل`,
+      content_en: `Client "${secondary.name}" merged into this record`,
+    });
+
+  // Archive secondary client
+  await db(supabase)
+    .from('crm_clients')
+    .update({ is_archived: true })
+    .eq('id', secondaryId);
+
+  revalidatePath(CRM_PATH);
+  return { data: { primaryId }, error: null };
 }

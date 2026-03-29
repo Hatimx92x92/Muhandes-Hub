@@ -4,18 +4,21 @@
 
 import { redirect } from 'next/navigation';
 import { notFound } from 'next/navigation';
-import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
-import { formatSAR, formatDate } from '@/lib/utils';
-import { Receipt, User, Calendar, FileText, ArrowRight } from 'lucide-react';
+import { formatSAR, formatDate, getLocaleField, getEntitySlug } from '@/lib/utils';
+import { Receipt, User, Calendar, FileText, Download, ShoppingCart, Package } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   SendQuotationButton,
   AcceptQuotationButton,
   RejectQuotationButton,
+  DuplicateQuotationButton,
 } from '@/components/features/quotation-actions';
 import { getTranslations, getLocale } from 'next-intl/server';
+import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
+import { Link } from '@/i18n/navigation';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -69,12 +72,61 @@ export default async function QuotationDetailPage({
     redirect('/dashboard/quotations');
   }
 
+  // Auto-mark as viewed when recipient opens a sent quotation
+  if (isRecipient && quotation.status === 'sent') {
+    await db(supabase)
+      .from('quotations')
+      .update({ status: 'viewed' })
+      .eq('id', id);
+    quotation.status = 'viewed';
+  }
+
+  // Resolve source entity (RFQ or Inquiry)
+  let sourceInfo: { type: 'rfq' | 'inquiry'; label: string; href: string } | null = null;
+  if (quotation.rfq_response_id) {
+    const { data: rfqResp } = await db(supabase)
+      .from('rfq_responses')
+      .select('rfq_id')
+      .eq('id', quotation.rfq_response_id)
+      .single();
+    if (rfqResp?.rfq_id) {
+      const { data: rfq } = await db(supabase)
+        .from('rfqs')
+        .select('title_ar, title_en, slug_ar, slug_en')
+        .eq('id', rfqResp.rfq_id)
+        .single();
+      if (rfq) {
+        const rfqSlug = getEntitySlug(rfq, locale);
+        sourceInfo = {
+          type: 'rfq',
+          label: getLocaleField(rfq, 'title', locale),
+          href: `/dashboard/rfqs/${rfqSlug}`,
+        };
+      }
+    }
+  } else if (quotation.inquiry_id) {
+    const { data: inquiry } = await db(supabase)
+      .from('inquiries')
+      .select('product_id, products(name_ar, name_en)')
+      .eq('id', quotation.inquiry_id)
+      .single();
+    if (inquiry?.products) {
+      const prodData = inquiry.products as { name_ar: string; name_en: string };
+      sourceInfo = {
+        type: 'inquiry',
+        label: getLocaleField(prodData, 'name', locale),
+        href: '/dashboard/inquiries',
+      };
+    }
+  }
+
   const lineItems: LineItem[] = Array.isArray(quotation.line_items)
     ? quotation.line_items
     : [];
 
   return (
     <div className="space-y-6">
+      <BreadcrumbOverride segment={id} label={`#${id.slice(0, 8)}`} />
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -94,10 +146,19 @@ export default async function QuotationDetailPage({
 
         {/* Actions */}
         <div className="flex gap-2">
+          <a href={`/api/pdf/quotation/${quotation.id}`} target="_blank" rel="noopener noreferrer">
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4" />
+              {t('downloadPdf')}
+            </Button>
+          </a>
           {isSender && quotation.status === 'draft' && (
             <SendQuotationButton quotationId={quotation.id} />
           )}
-          {isRecipient && quotation.status === 'sent' && (
+          {isSender && (
+            <DuplicateQuotationButton quotationId={quotation.id} />
+          )}
+          {isRecipient && (quotation.status === 'sent' || quotation.status === 'viewed') && (
             <>
               <AcceptQuotationButton quotationId={quotation.id} />
               <RejectQuotationButton quotationId={quotation.id} />
@@ -105,6 +166,23 @@ export default async function QuotationDetailPage({
           )}
         </div>
       </div>
+
+      {/* Source Info (RFQ or Inquiry) */}
+      {sourceInfo && (
+        <Card className="flex items-center gap-3 p-4 border-primary/20 bg-primary/5">
+          {sourceInfo.type === 'rfq' ? (
+            <ShoppingCart className="h-4 w-4 text-primary shrink-0" />
+          ) : (
+            <Package className="h-4 w-4 text-primary shrink-0" />
+          )}
+          <span className="text-sm text-muted-foreground">
+            {sourceInfo.type === 'rfq' ? t('sourceRfq') : t('sourceInquiry')}:
+          </span>
+          <Link href={sourceInfo.href} className="text-sm font-medium text-primary hover:underline truncate">
+            {sourceInfo.label}
+          </Link>
+        </Card>
+      )}
 
       {/* Info Cards */}
       <div className="grid gap-4 sm:grid-cols-3">
@@ -226,14 +304,6 @@ export default async function QuotationDetailPage({
         )}
       </div>
 
-      {/* Back link */}
-      <Link
-        href="/dashboard/quotations"
-        className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-      >
-        <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-        {t('backToQuotations')}
-      </Link>
     </div>
   );
 }

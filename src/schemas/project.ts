@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Project Zod Schemas
+// Muhandes HUB — Project Zod Schemas
 // =============================================================================
 
 import { z } from 'zod/v4';
@@ -8,10 +8,10 @@ import { z } from 'zod/v4';
 // Create Project Schema
 // ---------------------------------------------------------------------------
 export const ProjectSchema = z.object({
-  title_ar: z.string().min(5, 'Arabic title required (min 5 characters)').max(200),
-  title_en: z.string().min(5, 'English title required (min 5 chars)').max(200),
-  description_ar: z.string().min(20, 'Arabic description required (min 20 characters)').max(5000),
-  description_en: z.string().min(20, 'English description required (min 20 chars)').max(5000),
+  title_ar: z.string().max(200).optional(),
+  title_en: z.string().max(200).optional(),
+  description_ar: z.string().max(5000).optional(),
+  description_en: z.string().max(5000).optional(),
   category_id: z.string().uuid('Please select a valid category').optional(),
   city: z.string().min(1, 'Please select a city'),
   budget_min: z.coerce.number().min(0, 'Minimum budget must be 0 or more').optional(),
@@ -21,6 +21,20 @@ export const ProjectSchema = z.object({
   classification: z.enum(['a', 'b', 'c']).optional(),
   source: z.enum(['owner', 'subcontract']).default('owner'),
 }).refine(
+  (data) => {
+    const ar = data.title_ar?.trim();
+    const en = data.title_en?.trim();
+    return (!!ar && ar.length >= 5) || (!!en && en.length >= 5);
+  },
+  { message: 'At least one language is required for title (min 5 characters)', path: ['title_ar'] },
+).refine(
+  (data) => {
+    const ar = data.description_ar?.trim();
+    const en = data.description_en?.trim();
+    return (!!ar && ar.length >= 20) || (!!en && en.length >= 20);
+  },
+  { message: 'At least one language is required for description (min 20 characters)', path: ['description_ar'] },
+).refine(
   (data) => {
     if (data.budget_min != null && data.budget_max != null) {
       return data.budget_max >= data.budget_min;

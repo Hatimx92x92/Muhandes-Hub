@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Admin Contact & Email Actions
+// Muhandes HUB — Admin Contact & Email Actions
 // =============================================================================
 // ⚠️ All actions require is_admin = true. Uses Admin client for bypassing RLS.
 // =============================================================================

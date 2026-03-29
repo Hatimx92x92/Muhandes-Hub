@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Type Re-exports & Derived Application Types
+// Muhandes HUB — Type Re-exports & Derived Application Types
 // =============================================================================
 
 export type { Database, Json } from './database';
@@ -36,7 +36,7 @@ export interface TierLimits {
   contractsPerMonth: number;  // Infinity (2 basic) | 10 | Infinity
   commissionRate: number;     // 0.02 | 0.01 | 0 | 0
   hasKanban: boolean | 'checklist' | 'full';
-  hasAnalytics: boolean | 'summary' | 'full';
+  hasAnalytics: boolean | 'basic' | 'summary' | 'full';
   hasBulkUpload: boolean;
   hasClauseLibrary: boolean;
   hasCustomContracts: boolean;

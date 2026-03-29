@@ -1,7 +1,9 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
 import { ContactFormSchema } from '@/schemas/contact';
+import { contactLimiter, checkRateLimit } from '@/lib/rate-limit';
 import type { ActionResult } from '@/types';
 
 // =============================================================================
@@ -13,11 +15,21 @@ export async function submitContactForm(
   formData: FormData,
 ): Promise<ActionResult<{ sent: boolean }>> {
   const t = await getTranslations('actions.contact');
+
+  // 0. Rate limit by IP
+  const headerStore = await headers();
+  const ip = headerStore.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  const rl = contactLimiter();
+  const { success: rlOk } = await checkRateLimit(rl, ip);
+  if (!rlOk) return { data: null, error: t('tooManyRequests') };
+
   // 1. Validate
   const raw = {
     name: formData.get('name') as string,
     email: formData.get('email') as string,
     subject: formData.get('subject') as string,
+    company: formData.get('company') as string || undefined,
+    role_interest: formData.get('role_interest') as string || undefined,
     message: formData.get('message') as string,
   };
 

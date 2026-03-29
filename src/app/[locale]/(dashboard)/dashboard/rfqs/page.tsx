@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { EmptyState } from '@/components/features/empty-state';
 import { ShoppingCart, Plus, Calendar, Banknote, MapPin, MessageSquare } from 'lucide-react';
-import { formatSAR, formatDate, getLocaleField } from '@/lib/utils';
+import { formatSAR, formatDate, getLocaleField, getEntitySlug } from '@/lib/utils';
 import { getTranslations, getLocale } from 'next-intl/server';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,7 +55,7 @@ export default async function RFQsPage({
   if (tab === 'my') {
     let query = db(supabase)
       .from('rfqs')
-      .select('id, title_ar, title_en, description_ar, description_en, quantity, budget_min, budget_max, deadline, status, response_count, created_at')
+      .select('id, title_ar, title_en, description_ar, description_en, quantity, budget_min, budget_max, deadline, status, response_count, created_at, slug_ar, slug_en')
       .eq('poster_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -71,7 +71,7 @@ export default async function RFQsPage({
   if (tab === 'browse') {
     const { data } = await db(supabase)
       .from('rfqs')
-      .select('id, title_ar, title_en, description_ar, description_en, quantity, budget_min, budget_max, deadline, status, response_count, created_at')
+      .select('id, title_ar, title_en, description_ar, description_en, quantity, budget_min, budget_max, deadline, status, response_count, created_at, slug_ar, slug_en')
       .eq('status', 'published')
       .order('created_at', { ascending: false })
       .limit(50);
@@ -206,6 +206,8 @@ interface RFQItem {
   status: string;
   response_count: number;
   created_at: string;
+  slug_ar?: string | null;
+  slug_en?: string | null;
 }
 
 interface ResponseItem {
@@ -251,7 +253,7 @@ async function RFQCard({ rfq }: { rfq: RFQItem }) {
   const desc = rfq.description_ar?.slice(0, 100) + (rfq.description_ar?.length > 100 ? '…' : '');
 
   return (
-    <Link href={`/dashboard/rfqs/${rfq.id}`}>
+    <Link href={`/dashboard/rfqs/${getEntitySlug(rfq, locale)}`}>
       <Card className="h-full p-4 transition-colors hover:bg-card/80">
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-2">

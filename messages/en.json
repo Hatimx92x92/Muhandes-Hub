@@ -1,7 +1,8 @@
 {
   "common": {
-    "appName": "Muhaned Hub",
-    "appNameEn": "Muhaned Hub",
+    "appName": "Muhandes HUB",
+    "appNameEn": "Muhandes HUB",
+    "appTagline": "Saudi Construction B2B",
     "loading": "Loading...",
     "error": "An error occurred",
     "retry": "Try again",
@@ -34,10 +35,31 @@
     "viewAll": "View all",
     "learnMore": "Learn more",
     "getStarted": "Get started",
-    "copyright": "© {year} Muhaned Hub. All rights reserved.",
+    "copyright": "© {year} Muhandes HUB. All rights reserved.",
     "saudiArabia": "Saudi Arabia",
     "vat15": "15% VAT",
-    "saudiVat": "Saudi Arabia | 15% VAT"
+    "saudiVat": "Saudi Arabia | 15% VAT",
+    "translating": "Translating...",
+    "autoTranslated": "Auto-translated",
+    "selectedCount": "{count} selected",
+    "clearSelection": "Clear selection"
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "admin": "Admin",
+    "new": "New",
+    "edit": "Edit",
+    "bid": "Submit Bid",
+    "bids": "Bids",
+    "kanban": "Kanban",
+    "dailyLog": "Daily Log",
+    "milestones": "Milestones",
+    "proofs": "Proofs",
+    "users": "Users",
+    "posts": "Posts",
+    "subscriptions": "Subscriptions",
+    "auditLog": "Audit Log",
+    "contacts": "Contacts"
   },
   "nav": {
     "projects": "Projects",
@@ -59,16 +81,28 @@
     "reviews": "Reviews",
     "analytics": "Analytics",
     "commissions": "Commissions",
+    "inquiries": "Inquiries",
     "settings": "Settings",
     "profile": "Profile",
     "subscription": "Subscription",
+    "payments": "Payments",
     "platform": "Platform",
     "support": "Support",
     "contact": "Contact Us",
     "terms": "Terms & Conditions",
     "privacy": "Privacy Policy",
     "cookies": "Cookie Policy",
-    "adminPanel": "Admin Panel"
+    "adminPanel": "Admin Panel",
+    "groupOverview": "Overview",
+    "groupProjectManagement": "Project Management",
+    "groupProjectsBidding": "Projects & Bidding",
+    "groupProductsSales": "Products & Sales",
+    "groupProcurement": "Procurement",
+    "groupCommunication": "Communication",
+    "groupBusiness": "Business",
+    "groupAccount": "Account",
+    "viewPublicProfile": "View Public Profile",
+    "myBids": "My Bids"
   },
   "locale": {
     "switchToEn": "Switch to English",
@@ -84,7 +118,7 @@
   },
   "home": {
     "trustBadge": "100% Saudi Platform — ZATCA & PDPL Compliant",
-    "heading1": "Muhaned Hub",
+    "heading1": "Muhandes HUB",
     "heading2": "Saudi Construction Industry Platform",
     "subheading": "A comprehensive digital ecosystem connecting project owners, contractors, suppliers, and buyers — ensuring efficient and reliable project execution.",
     "ctaPrimary": "Get Started for Free",
@@ -189,9 +223,10 @@
     },
     "register": {
       "title": "Create New Account",
-      "description": "Join Muhaned Hub and start your journey in the construction industry",
+      "description": "Join Muhandes HUB and start your journey in the construction industry",
       "hasAccount": "Already have an account?",
-      "login": "Login"
+      "login": "Login",
+      "orContinueWith": "or continue with"
     },
     "forgotPassword": {
       "title": "Reset Password",
@@ -213,7 +248,20 @@
       "account": "Account",
       "profileStep": "Profile",
       "plan": "Plan",
+      "payment": "Payment",
+      "documents": "Documents",
       "confirmStep": "Confirm"
+    },
+    "documentStep": {
+      "title": "Verification Documents",
+      "subtitle": "Upload your business documents for verification",
+      "crCertificate": "Commercial Registration (CR)",
+      "crHint": "PDF or image, max 10 MB",
+      "vatCertificate": "VAT Certificate",
+      "vatHint": "PDF or image, max 10 MB",
+      "classCertificate": "Classification Certificate",
+      "classHint": "PDF or image, max 10 MB",
+      "optional": "Documents are optional — you can upload them later from your profile"
     },
     "roleStep": {
       "title": "Choose Your Account Type",
@@ -268,6 +316,12 @@
       "quarterly": "3 Months (-5%)",
       "semiAnnual": "6 Months (-10%)",
       "annual": "Annual (-15%)",
+      "paymentMethodTitle": "Payment Method",
+      "paymentCard": "Online Payment",
+      "paymentCardDesc": "Pay with Visa/MasterCard via secure 3D Secure",
+      "paymentBank": "Bank Transfer",
+      "paymentBankDesc": "Transfer to our bank account and upload receipt",
+      "selectPaymentMethod": "Please select a payment method",
       "features": {
         "bids10": "10 bids/month",
         "bids50": "50 bids/month",
@@ -297,12 +351,45 @@
       "email": "Email",
       "phone": "Phone",
       "profileType": "Account Type",
+      "companyType": "Company",
+      "personalType": "Personal",
       "company": "Company",
       "city": "City",
       "tier": "Plan",
       "duration": "Duration",
       "months": "months",
+      "paymentMethod": "Payment Method",
+      "paymentCard": "Online Payment (Card)",
+      "paymentBank": "Bank Transfer",
       "submit": "Create Account"
+    },
+    "paymentStep": {
+      "title": "Complete Payment",
+      "cardTitle": "Online Payment",
+      "cardDescription": "You will be redirected to the secure Moyasar payment page to complete your payment.",
+      "proceedToPayment": "Proceed to Payment",
+      "bankTitle": "Bank Transfer",
+      "bankDescription": "Transfer the subscription amount to the following bank account and upload the transfer receipt.",
+      "bankName": "Bank Name",
+      "accountName": "Account Name",
+      "iban": "IBAN",
+      "referenceCode": "Reference Code",
+      "referenceHint": "Please include this reference in your transfer description",
+      "uploadReceipt": "Upload Transfer Receipt",
+      "uploadReceiptHint": "PDF, JPEG, or PNG — Max 5MB",
+      "receiptRequired": "Please upload the transfer receipt",
+      "submitting": "Submitting...",
+      "submitRegistration": "Submit Registration",
+      "summary": "Payment Summary",
+      "plan": "Plan",
+      "duration": "Duration",
+      "months": "months",
+      "total": "Total (VAT inclusive)"
+    },
+    "googleSignup": {
+      "button": "Sign up with Google",
+      "welcome": "Welcome! Complete your profile to get started",
+      "completeProfile": "Complete Registration"
     }
   },
   "verify": {
@@ -318,7 +405,15 @@
       "description": "Complete your subscription payment to proceed. You can pay via credit card or bank transfer.",
       "placeholder": "The Moyasar payment gateway will be activated soon.",
       "contactLink": "Contact page",
-      "logout": "Logout"
+      "logout": "Logout",
+      "cardProcessing": "Your payment is being processed...",
+      "cardSuccess": "Payment completed successfully! Redirecting...",
+      "cardFailed": "Payment failed. Please try again or choose bank transfer.",
+      "bankPending": "Your bank transfer receipt has been submitted",
+      "bankPendingDesc": "Our team will verify your transfer. This usually takes 1-2 business days.",
+      "bankReceiptUploaded": "Receipt uploaded successfully",
+      "retryPayment": "Retry Payment",
+      "switchToBank": "Pay via Bank Transfer"
     },
     "documents": {
       "title": "Upload Documents",
@@ -343,7 +438,7 @@
       "partyASignature": "Party A Signature",
       "partyBSignature": "Party B Signature",
       "notSignedYet": "Not signed yet",
-      "verifiedVia": "This verification was performed via Muhaned Hub"
+      "verifiedVia": "This verification was performed via Muhandes HUB"
     }
   },
   "dashboard": {
@@ -430,7 +525,10 @@
       "product": "product",
       "free": "Free",
       "unlimited": "Unlimited",
-      "shortlisted": "Shortlisted"
+      "shortlisted": "Shortlisted",
+      "selectAll": "Select all",
+      "selected": "selected",
+      "clear": "Clear"
     },
     "error": {
       "title": "Error Occurred",
@@ -455,7 +553,9 @@
         "projectDetails": "Project Details",
         "editProject": "Edit Project",
         "editProjectDesc": "Edit your project details then resubmit for review",
-        "submitForReview": "Submit for Review"
+        "submitForReview": "Submit for Review",
+        "documentsAndFiles": "Documents & Files",
+        "associatedDeals": "Associated Deals"
       }
     },
     "bids": {
@@ -477,6 +577,29 @@
       "noBidsDesc": "No contractor has submitted a bid on this project yet",
       "backToProjectDetails": "Back to Project Details",
       "cantViewOthersBids": "You cannot view bids on other users' projects"
+    },
+    "myBids": {
+      "title": "My Bids",
+      "subtitle": "Track your submitted bids and their status",
+      "noBids": "No Bids Yet",
+      "noBidsDesc": "Browse available projects and submit your first bid",
+      "browseProjects": "Browse Projects",
+      "projectName": "Project",
+      "amount": "Amount",
+      "timeline": "Timeline",
+      "status": "Status",
+      "submittedAt": "Submitted",
+      "actions": "Actions",
+      "statusPending": "Pending",
+      "statusShortlisted": "Shortlisted",
+      "statusAwarded": "Awarded",
+      "statusRejected": "Rejected",
+      "totalBids": "Total Bids",
+      "pendingBids": "Pending",
+      "awardedBids": "Awarded",
+      "editBid": "Edit Bid",
+      "viewProject": "View Project",
+      "days": "{count} days"
     },
     "deals": {
       "title": "Deals",
@@ -526,6 +649,7 @@
       "tabProofs": "Proofs",
       "tabDocuments": "Documents",
       "tabActivity": "Activity",
+      "tabMessages": "Messages",
       "backToList": "Back to List",
       "dealValue": "Deal Value",
       "commissionRate": "Commission Rate",
@@ -561,9 +685,28 @@
       "submittedByYou": "Submitted by you",
       "percentageClaimed": "Percentage Claimed",
       "rejectionReason": "Rejection Reason",
+      "confirmProof": "Confirm Proof",
+      "rejectProof": "Reject Proof",
+      "rejectionReasonPlaceholder": "Explain why the proof is insufficient...",
       "attachments": "Attachments",
       "documentVault": "Document Vault",
       "documentVaultDesc": "Upload contracts, drawings, specifications and more here",
+      "uploadDocument": "Upload Document",
+      "docFile": "File",
+      "docCategory": "Category",
+      "docNotes": "Notes",
+      "docNotesPlaceholder": "Optional notes about this file...",
+      "upload": "Upload",
+      "cancel": "Cancel",
+      "noDocuments": "No documents yet",
+      "docCat_all": "All",
+      "docCat_contracts": "Contracts",
+      "docCat_drawings": "Drawings",
+      "docCat_specs": "Specifications",
+      "docCat_permits": "Permits",
+      "docCat_invoices": "Invoices",
+      "docCat_correspondence": "Correspondence",
+      "docCat_general": "General",
       "dailyLogTitle": "Daily Site Log",
       "logRecords": "records",
       "todayLog": "Today's Log",
@@ -579,11 +722,54 @@
       "dealColon": "Deal:",
       "newMilestoneTitle": "Add New Milestone",
       "newMilestoneDesc": "Add a milestone to track deal progress",
-      "submitProofDesc": "Submit proof of completion or payment (remaining: {remaining}%)"
+      "submitProofDesc": "Submit proof of completion or payment (remaining: {remaining}%)",
+      "reviewSubmitted": "Review Submitted",
+      "reviewSubmittedDesc": "Thank you for reviewing your partner on this deal",
+      "writeReview": "Write Review",
+      "cancelReview": "Cancel",
+      "reviewPartner": "Review Your Partner",
+      "reviewWindowRemaining": "{days} days remaining to leave a review",
+      "dealInfo": "Deal Information",
+      "dealType": "Type",
+      "triggerSource": "Source",
+      "viewDailyLog": "Daily Log",
+      "viewKanban": "Kanban Board",
+      "viewContract": "Contract",
+      "quickLinks": "Quick Links",
+      "requestCancellation": "Request Cancellation",
+      "noMessagesYet": "No messages yet",
+      "startConversation": "Start a conversation about this deal",
+      "typeMessage": "Type a message...",
+      "typing": "typing",
+      "chatError": "Error loading chat",
+      "you": "You",
+      "attachment": "Attachment",
+      "stepCreated": "Created",
+      "stepInProgress": "In Progress",
+      "stepCompleted": "Completed",
+      "stepCancelled": "Cancelled",
+      "pendingCount": "{count} pending",
+      "suggestChangesHint": "You can suggest changes to the buyer",
+      "skipToFinish": "Skip to Finish",
+      "pendingSkipRequests": "Pending Skip-to-Finish Requests",
+      "awaitingApproval": "Awaiting approval",
+      "cancelRequestedBy": "Requested by {party}",
+      "counterparty": "Counterparty",
+      "proofGroupPending": "Pending Review",
+      "proofGroupConfirmed": "Confirmed",
+      "proofGroupRejected": "Rejected",
+      "roleProjectOwner": "Project Owner",
+      "roleContractor": "Contractor",
+      "roleSupplier": "Supplier",
+      "roleBuyer": "Buyer",
+      "accountRole": "Account Role",
+      "dealOrigin": "Deal Origin",
+      "linkedContracts": "Linked Contracts"
     },
     "products": {
       "title": "Products",
       "subtitle": "Manage your products and track their status",
+      "name": "Name",
       "new": "New Product",
       "noProducts": "No Products",
       "noProductsDesc": "Add your products to list them in the marketplace",
@@ -602,9 +788,59 @@
       "tierLimitDesc": "Your current plan ({tier}) allows only {max} products. Please upgrade to add more.",
       "addProduct": "Add Product",
       "addFirstProduct": "Add your first product to list in the marketplace",
+      "inquiriesLabel": "Inquiries",
       "byVariants": "By Variants",
       "atLimitWarning": "You've reached the max products ({max}) in your",
-      "upgradeYourPlan": "Upgrade your plan"
+      "upgradeYourPlan": "Upgrade your plan",
+      "detail": {
+        "backToProducts": "Back to Products",
+        "productDetails": "Product Details",
+        "editProduct": "Edit Product",
+        "editProductDesc": "Edit your product details then resubmit for review",
+        "submitForReview": "Submit for Review",
+        "fixedPrice": "Fixed Price",
+        "variantBased": "Variant Based",
+        "stockQuantity": "Stock Quantity",
+        "leadTimeDays": "Lead Time",
+        "days": "days"
+      }
+    },
+    "inquiries": {
+      "title": "Product Inquiries",
+      "description": "View and respond to inquiries about your products",
+      "empty": "No Inquiries Yet",
+      "emptyDescription": "When buyers inquire about your products, they will appear here",
+      "viewDetails": "View Details",
+      "units": "units",
+      "unknownProduct": "Unknown Product",
+      "unknownSender": "Unknown Sender",
+      "sender": "Sender",
+      "requirements": "Requirements",
+      "markResponded": "Mark Responded",
+      "status": {
+        "pending": "Pending",
+        "responded": "Responded",
+        "closed": "Closed"
+      }
+    },
+    "inquiryDetail": {
+      "title": "Inquiry Details",
+      "description": "View inquiry details and respond",
+      "respondWithQuotation": "Respond with Quotation",
+      "product": "Product",
+      "from": "From",
+      "quantity": "Quantity",
+      "date": "Date",
+      "requirements": "Requirements",
+      "linkedQuotations": "Linked Quotations",
+      "viewQuotation": "View Quotation",
+      "unknownSender": "Unknown Sender",
+      "unknownProduct": "Unknown Product",
+      "status": {
+        "pending": "Pending",
+        "responded": "Responded",
+        "closed": "Closed"
+      }
     },
     "rfqs": {
       "title": "Request for Quotations",
@@ -636,7 +872,9 @@
       "noResponsesReceived": "No responses received yet",
       "responsePending": "Under Review",
       "responseAccepted": "Accepted",
-      "responseRejected": "Rejected"
+      "responseRejected": "Rejected",
+      "linkedProduct": "Linked Product",
+      "attachments": "Attachments"
     },
     "quotations": {
       "title": "Quotations",
@@ -671,9 +909,14 @@
       "receivedDirection": "Received",
       "modeInquiryResponse": "Inquiry Response",
       "modeStandalone": "Standalone",
+      "markSent": "Mark as Sent",
       "unitPrice": "Unit Price",
       "paymentTerms": "Payment Terms",
-      "deliveryTerms": "Delivery Terms"
+      "deliveryTerms": "Delivery Terms",
+      "downloadPdf": "Download PDF",
+      "unit": "Unit",
+      "sourceRfq": "From RFQ",
+      "sourceInquiry": "From Inquiry"
     },
     "contracts": {
       "title": "Contracts",
@@ -769,6 +1012,10 @@
       "unreadCount": "You have {count} unread notifications",
       "allRead": "All notifications read",
       "preferencesButton": "Preferences",
+      "typeLabel": "Type",
+      "messageLabel": "Message",
+      "timeLabel": "Time",
+      "markRead": "Mark Read",
       "types": {
         "bid_received": "New Bid",
         "bid_awarded": "Bid Awarded",
@@ -796,7 +1043,10 @@
         "rfq_response_rejected": "RFQ Response Rejected",
         "supplier_hire_request_received": "Supplier Hire Request",
         "supplier_hire_quotation_received": "Supplier Hire Quotation",
-        "deal_flagged_review": "Deal Flagged for Review"
+        "deal_flagged_review": "Deal Flagged for Review",
+        "subscription_upgraded": "Subscription Upgraded",
+        "subscription_renewed": "Subscription Renewed",
+        "subscription_payment_approved": "Payment Approved"
       },
       "prefPage": {
         "title": "Notification Preferences",
@@ -829,6 +1079,8 @@
       "clientCount": "{count} clients",
       "favorites": "Favorites",
       "archived": "Archived",
+      "boardView": "Board",
+      "listView": "List",
       "lastInteraction": "Last Interaction",
       "clientData": "Client Data",
       "phone": "Phone",
@@ -874,6 +1126,7 @@
     "profile": {
       "title": "Profile",
       "subtitle": "Manage your personal information and company details",
+      "viewPublicProfile": "Preview Public Profile",
       "roles": {
         "project_owner": "Project Owner",
         "contractor": "Contractor",
@@ -926,13 +1179,119 @@
         "commission": "Commission",
         "kanban": "Kanban",
         "analytics": "Analytics",
-        "csvUpload": "CSV Upload"
+        "csvUpload": "CSV Upload",
+        "clauseLibrary": "Clause Library",
+        "customContracts": "Custom Contracts"
       },
+      "startsOn": "Starts on",
+      "subscriptionDates": "Subscription Period",
+      "remainingDays": "Remaining",
+      "days": "days",
       "changePlan": "Change Plan",
       "monthlyVatInclusive": "Monthly, VAT inclusive",
       "currentPlanBadge": "Current Plan",
       "upgrade": "Upgrade",
-      "downgrade": "Downgrade"
+      "downgrade": "Downgrade",
+      "renew": "Renew",
+      "change": {
+        "title": "Change Subscription Plan",
+        "subtitle": "Select your new plan and complete payment",
+        "backToSubscription": "Back to Subscription",
+        "currentPlan": "Current Plan",
+        "newPlan": "New Plan",
+        "downgradeTo": "Downgrade To",
+        "renewPlan": "Renew Plan",
+        "perMonth": "/month",
+        "keyChanges": "Key Changes",
+        "selectDuration": "Select Duration",
+        "month": "month",
+        "months": "months",
+        "off": "off",
+        "priceBreakdown": "Price Breakdown",
+        "durationDiscount": "Duration discount",
+        "vat": "VAT",
+        "prorationCredit": "Credit for remaining time",
+        "totalDue": "Total Due",
+        "paymentMethod": "Payment Method",
+        "cardPayment": "Card Payment",
+        "cardDescription": "Visa/Mastercard with 3D Secure",
+        "bankTransfer": "Bank Transfer",
+        "bankDescription": "Transfer and upload receipt",
+        "couponCode": "Discount Code",
+        "couponPlaceholder": "Enter discount code",
+        "applyCoupon": "Apply",
+        "couponApplied": "Coupon applied: {discount}",
+        "couponDiscount": "Coupon discount",
+        "currentSubscription": "Current Subscription",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "remainingDays": "{days} days remaining",
+        "upgradeTitle": "Upgrade to {tier}",
+        "downgradeTitle": "Downgrade to {tier}",
+        "renewTitle": "Renew {tier}",
+        "confirmUpgrade": "Confirm Upgrade & Pay",
+        "confirmDowngrade": "Confirm Downgrade",
+        "confirmRenewal": "Confirm Renewal & Pay",
+        "redirectingToPayment": "Redirecting to payment gateway...",
+        "downgradeScheduled": "Downgrade Scheduled",
+        "downgradeEffectiveDate": "Your plan will change to the new tier on {date}. Until then, you keep all current features.",
+        "downgradeWarning": "Your plan will change at the end of your current billing period. You will keep all current features until then. Content created at the current tier will be preserved.",
+        "bankTransferSubmitted": "Payment Submitted",
+        "bankTransferPending": "Your bank transfer is being reviewed. Your subscription will be activated once payment is verified by our team.",
+        "upgradeActivated": "Upgrade Complete!",
+        "upgradeActivatedDescription": "Your subscription has been upgraded successfully. You now have access to all features of your new plan."
+      },
+      "paymentResult": {
+        "successTitle": "Payment Successful!",
+        "successDescription": "Your subscription has been activated. You can now enjoy all the features of your new plan.",
+        "failedTitle": "Payment Failed",
+        "failedDescription": "We couldn't process your payment. Please try again or choose a different payment method.",
+        "backToSubscription": "Back to Subscription",
+        "tryAgain": "Try Again"
+      },
+      "invoiceHistory": {
+        "title": "Invoice History",
+        "description": "View and download invoices for all your payments",
+        "invoiceNumber": "Invoice #",
+        "type": "Type",
+        "typeSubscription": "Subscription",
+        "typeCommission": "Commission",
+        "amount": "Amount",
+        "subtotal": "Subtotal",
+        "vat": "VAT",
+        "total": "Total",
+        "issuedAt": "Date",
+        "reference": "Reference",
+        "download": "Download PDF",
+        "noInvoices": "No Invoices Yet",
+        "noInvoicesDescription": "Invoices for your subscription and commission payments will appear here",
+        "filterAll": "All",
+        "filterSubscription": "Subscription",
+        "filterCommission": "Commission"
+      }
+    },
+    "payments": {
+      "title": "Payments",
+      "subtitle": "View all your subscription and commission payments",
+      "totalPaid": "Total Paid",
+      "subscriptionPayments": "Subscription Payments",
+      "commissionPayments": "Commission Payments",
+      "invoiceCount": "Total Invoices",
+      "invoiceNumber": "Invoice #",
+      "type": "Type",
+      "typeSubscription": "Subscription",
+      "typeCommission": "Commission",
+      "subtotal": "Subtotal",
+      "vat": "VAT (15%)",
+      "total": "Total",
+      "issuedAt": "Date",
+      "reference": "Reference",
+      "download": "Download",
+      "noPayments": "No Payments Yet",
+      "noPaymentsDescription": "Your subscription and commission payment history will appear here",
+      "filterAll": "All",
+      "filterSubscription": "Subscription",
+      "filterCommission": "Commission"
     },
     "commissions": {
       "title": "Commissions",
@@ -965,7 +1324,8 @@
       "paymentOverdue": "Payment overdue —",
       "dueDate": "Due date:",
       "disputeReason": "Dispute reason:",
-      "paidOn": "Paid on:"
+      "paidOn": "Paid on:",
+      "downloadInvoice": "Download Invoice"
     },
     "analytics": {
       "title": "Analytics",
@@ -976,16 +1336,83 @@
       "fullDashboard": "Comprehensive Analytics Dashboard",
       "summaryWidget": "Performance Summary",
       "tiers": {
+        "starter": "Starter",
         "pro": "Pro",
         "business": "Business",
         "enterprise": "Enterprise"
       },
+      "kpi": {
+        "totalDeals": "Total Deals",
+        "completedDeals": "Completed",
+        "activeDeals": "Active Deals",
+        "cancelledDeals": "Cancelled",
+        "totalRevenue": "Revenue",
+        "avgRating": "Avg. Rating",
+        "totalReviews": "Reviews"
+      },
+      "vsLastPeriod": "vs last period",
+      "rolePerformance": "Role Performance",
+      "role": {
+        "projects": "Projects",
+        "bids": "Bids Submitted",
+        "bidWinRate": "Bid Win Rate",
+        "avgBidToAward": "Avg. Bid-to-Award",
+        "products": "Products",
+        "quotations": "Quotations",
+        "conversionRate": "Conversion Rate",
+        "inquiries": "Inquiries",
+        "rfqs": "RFQs",
+        "bidsReceived": "Bids Received",
+        "avgBidsPerProject": "Avg. Bids/Project",
+        "deals": "Deals"
+      },
+      "chartsSection": "Detailed Analytics",
+      "chartsLockedTitle": "Advanced Charts",
+      "chartsLockedDesc": "Interactive charts and detailed analytics are available for Business and Enterprise subscribers",
+      "period": {
+        "7d": "7 Days",
+        "30d": "30 Days",
+        "90d": "90 Days",
+        "12m": "12 Months",
+        "all": "All Time"
+      },
+      "charts": {
+        "dealsOverTime": "Deals Over Time",
+        "deals": "Deals",
+        "revenueTrend": "Revenue Trend",
+        "revenue": "Revenue",
+        "dealsByStatus": "Deals by Status",
+        "ratingOverTime": "Rating Over Time",
+        "rating": "Rating",
+        "bidsByStatus": "Bids by Status",
+        "bidWinRateTrend": "Bid Win Rate Trend",
+        "winRate": "Win Rate",
+        "topProducts": "Top Products",
+        "quotationsByStatus": "Quotations by Status",
+        "roleSpecific": "Activity Breakdown",
+        "noData": "No data available for this period"
+      },
+      "status": {
+        "active": "Active",
+        "in_progress": "In Progress",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "disputed": "Disputed"
+      },
+      "bidStatus": {
+        "pending": "Pending",
+        "shortlisted": "Shortlisted",
+        "awarded": "Awarded",
+        "rejected": "Rejected"
+      },
+      "exportCsv": "Export CSV",
       "totalDeals": "Total Deals",
       "completedDeals": "Completed Deals",
       "activeDeals": "Active Deals",
       "avgRating": "Average Rating",
       "projects": "Projects",
       "bidsLabel": "Bids",
+      "bidWinRate": "Bid Win Rate",
       "products": "Products",
       "quotations": "Quotations",
       "recentDeals": "Recent Deals",
@@ -1029,7 +1456,11 @@
       "settings": "Settings",
       "analytics": "Analytics",
       "contacts": "Contact Submissions",
-      "messages": "Messages"
+      "messages": "Messages",
+      "groupOverview": "Overview",
+      "groupContent": "Content",
+      "groupFinance": "Finance",
+      "groupSystem": "System"
     },
     "actions": {
       "approvePost": "Approve Post",
@@ -1066,30 +1497,52 @@
     "auditActions": {
       "approve_post": "Approve Post",
       "reject_post": "Reject Post",
+      "edit_post": "Edit Post",
       "approve_documents": "Approve Documents",
       "reject_documents": "Reject Documents",
       "ban_user": "Ban User",
       "unban_user": "Unban User",
       "restrict_user": "Restrict User",
       "unrestrict_user": "Unrestrict User",
+      "admin_edit_profile": "Edit User Profile",
+      "admin_update_auth": "Update User Auth",
+      "generate_reset_link": "Generate Reset Link",
+      "bulk_approve": "Bulk Approve Users",
+      "bulk_ban": "Bulk Ban Users",
+      "bulk_unban": "Bulk Unban Users",
+      "bulk_restrict": "Bulk Restrict Users",
+      "bulk_unrestrict": "Bulk Unrestrict Users",
       "approve_commission_payment": "Approve Commission Payment",
       "resolve_commission_dispute": "Resolve Dispute",
       "update_setting": "Update Setting",
       "create_coupon": "Create Coupon",
       "update_coupon": "Update Coupon",
-      "toggle_coupon": "Toggle Coupon",
+      "activate_coupon": "Activate Coupon",
+      "deactivate_coupon": "Deactivate Coupon",
+      "update_announcement": "Update Announcement",
+      "change_subscription": "Change Subscription",
+      "extend_subscription": "Extend Subscription",
+      "cancel_subscription": "Cancel Subscription",
+      "send_email": "Send Email",
+      "mark_contact_read": "Mark Contact Read",
+      "mark_contact_unread": "Mark Contact Unread",
+      "delete_contact": "Delete Contact",
       "hide_review": "Hide Review",
-      "unhide_review": "Unhide Review"
+      "unhide_review": "Unhide Review",
+      "approve_subscription_payment": "Approve Subscription Payment"
     },
     "targetTypes": {
       "project": "Project",
       "product": "Product",
       "rfq": "RFQ",
       "user": "User",
+      "users": "Users",
       "commission": "Commission",
       "review": "Review",
       "coupon": "Coupon",
-      "platform_settings": "Setting"
+      "platform_settings": "Setting",
+      "contact_submission": "Contact",
+      "subscription": "Subscription"
     },
     "userStatus": {
       "pending_email": "Pending Activation",
@@ -1203,6 +1656,62 @@
       "noReviews": "No reviews found",
       "hiddenBadge": "Hidden"
     },
+    "table": {
+      "export": "Export CSV",
+      "showing": "{count, plural, =0 {No results} =1 {1 result} other {# results}}",
+      "clearFilters": "Clear filters",
+      "columns": {
+        "name": "Name",
+        "company": "Company",
+        "role": "Role",
+        "status": "Status",
+        "created": "Created",
+        "actions": "Actions",
+        "title": "Title",
+        "type": "Type",
+        "owner": "Owner",
+        "dealId": "Deal ID",
+        "dealType": "Deal Type",
+        "buyer": "Buyer",
+        "seller": "Seller",
+        "value": "Value",
+        "commissionId": "Commission ID",
+        "amount": "Amount",
+        "vat": "VAT",
+        "total": "Total",
+        "dueDate": "Due Date",
+        "user": "User",
+        "tier": "Tier",
+        "price": "Price",
+        "startDate": "Start Date",
+        "expiresDate": "Expires",
+        "receipt": "Receipt",
+        "viewReceipt": "View Receipt",
+        "rating": "Rating",
+        "comment": "Comment",
+        "visibility": "Visibility",
+        "action": "Action",
+        "targetType": "Target Type",
+        "targetId": "Target ID",
+        "adminId": "Admin ID",
+        "ip": "IP Address",
+        "details": "Details",
+        "timestamp": "Timestamp"
+      },
+      "sort": {
+        "newest": "Newest first",
+        "oldest": "Oldest first",
+        "nameAsc": "Name A-Z",
+        "nameDesc": "Name Z-A",
+        "valueHigh": "Value: High to Low",
+        "valueLow": "Value: Low to High",
+        "ratingHigh": "Rating: High to Low",
+        "ratingLow": "Rating: Low to High",
+        "amountHigh": "Amount: High to Low",
+        "amountLow": "Amount: Low to High",
+        "dueSoon": "Due date: Soonest"
+      }
+    },
     "settingsPage": {
       "title": "Settings",
       "subtitle": "Platform settings and coupon management",
@@ -1289,7 +1798,70 @@
       "noActivity": "No activity",
       "company": "Company",
       "personal": "Personal",
-      "notProvided": "Not provided"
+      "notProvided": "Not provided",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "saved": "Saved successfully",
+      "editProfile": "Edit Profile",
+      "editAuth": "Edit Account",
+      "companyNameAr": "Company Name (Arabic)",
+      "companyNameEn": "Company Name (English)",
+      "bioAr": "Bio (Arabic)",
+      "bioEn": "Bio (English)",
+      "addressAr": "Address (Arabic)",
+      "addressEn": "Address (English)",
+      "changeEmail": "Change Email",
+      "changePhone": "Change Phone",
+      "forceVerifyEmail": "Verify Email",
+      "forceVerifyEmailConfirm": "Force verify this user's email?",
+      "resetPassword": "Reset Password Link",
+      "resetLinkGenerated": "Reset link generated. Copy it below:",
+      "resetLinkCopied": "Link copied to clipboard",
+      "generateLink": "Generate Link",
+      "copyLink": "Copy Link",
+      "newEmail": "New Email",
+      "newPhone": "New Phone",
+      "apply": "Apply",
+      "entityTabs": "Related Entities",
+      "tabProjects": "Projects",
+      "tabProducts": "Products",
+      "tabRfqs": "RFQs",
+      "tabBids": "Bids",
+      "tabDeals": "Deals",
+      "tabQuotations": "Quotations",
+      "tabReviewsGiven": "Reviews Given",
+      "tabReviewsReceived": "Reviews Received",
+      "tabCommissions": "Commissions",
+      "tabAuditLog": "Audit Log",
+      "tabNotifications": "Notifications",
+      "noProjects": "No projects",
+      "noProducts": "No products",
+      "noRfqs": "No RFQs",
+      "noBids": "No bids",
+      "noDeals": "No deals",
+      "noQuotations": "No quotations",
+      "noReviews": "No reviews",
+      "noCommissions": "No commissions",
+      "noAuditEntries": "No audit history",
+      "noNotifications": "No notifications",
+      "dealValue": "Value",
+      "bidAmount": "Amount",
+      "rating": "Rating",
+      "status": "Status",
+      "date": "Date",
+      "type": "Type",
+      "action": "Action",
+      "target": "Target",
+      "total": "Total",
+      "number": "Number",
+      "hidden": "Hidden",
+      "read": "Read",
+      "unread": "Unread",
+      "currency": "SAR",
+      "vat": "VAT",
+      "manageSubscription": "Manage Subscription"
     },
     "analyticsPage": {
       "title": "Analytics",
@@ -1328,7 +1900,8 @@
       "products": "Products",
       "bids": "Bids",
       "incompleteRegistrations": "Incomplete Registrations",
-      "export": "Export CSV"
+      "export": "Export CSV",
+      "noData": "No data available"
     },
     "contactsPage": {
       "title": "Contact Submissions",
@@ -1370,7 +1943,15 @@
       "confirmChange": "Change the subscription plan?",
       "confirmCancel": "Cancel the subscription?",
       "success": "Subscription updated successfully",
-      "error": "Error updating subscription"
+      "error": "Error updating subscription",
+      "tierStarter": "Starter",
+      "tierPro": "Pro",
+      "tierBusiness": "Business",
+      "tierEnterprise": "Enterprise",
+      "approvePayment": "Approve Payment",
+      "approvePaymentConfirm": "Approve this bank transfer payment and activate the subscription?",
+      "paymentApproved": "Payment approved and subscription activated",
+      "pendingPayment": "Pending Payment"
     },
     "postEdit": {
       "title": "Edit Post",
@@ -1399,15 +1980,6 @@
       "completeRegistration": "Complete Registration",
       "accountStatus": "Account Status",
       "customMessage": "Custom Message"
-    },
-    "auditActions": {
-      "edit_post": "Edit Post",
-      "change_subscription": "Change Subscription",
-      "cancel_subscription": "Cancel Subscription",
-      "extend_subscription": "Extend Subscription",
-      "send_admin_email": "Send Admin Email",
-      "mark_contact_read": "Mark Contact Read",
-      "delete_contact": "Delete Contact"
     }
   },
   "public": {
@@ -1438,7 +2010,9 @@
       "medina": "Madinah",
       "subcontract": "Subcontract",
       "category": "Category",
-      "bidCount": "{count} bids"
+      "bidCount": "{count} bids",
+      "previous": "Previous",
+      "next": "Next"
     },
     "marketplace": {
       "title": "Product Marketplace",
@@ -1459,7 +2033,9 @@
       "noProductsDesc": "No products have been published yet or no results match your search",
       "variantPricing": "Varies by variant",
       "available": "In Stock",
-      "soldOut": "Sold Out"
+      "soldOut": "Sold Out",
+      "previous": "Previous",
+      "next": "Next"
     },
     "rfqs": {
       "title": "Requests for Quotation",
@@ -1479,7 +2055,9 @@
       "expired": "Expired",
       "upTo": "Up to",
       "quantityLabel": "Quantity:",
-      "responseCount": "{count} responses"
+      "responseCount": "{count} responses",
+      "previous": "Previous",
+      "next": "Next"
     },
     "partners": {
       "title": "Partners Directory",
@@ -1490,7 +2068,12 @@
       "noResults": "No matching partners found",
       "verified": "Verified",
       "projects": "projects",
+      "products": "products",
       "deals": "deals",
+      "completedDeals": "{count} completed deals",
+      "reviews": "({count} reviews)",
+      "publishedProjects": "{count} published projects",
+      "listedProducts": "{count} listed products",
       "search": "Search",
       "contractor": "Contractor",
       "supplier": "Supplier",
@@ -1511,7 +2094,12 @@
       "backToPartners": "Back to Partners Directory",
       "contractor": "Contractor",
       "supplier": "Supplier",
+      "verified": "Verified",
       "aboutCompany": "About the Company",
+      "overview": "Overview",
+      "projects": "Projects",
+      "products": "Products",
+      "reviews": "Reviews",
       "publishedProjects": "Published Projects",
       "listedProducts": "Listed Products",
       "variantPricing": "Varies by variant",
@@ -1521,7 +2109,53 @@
       "sendMessage": "Send Message",
       "loginToContact": "Login to contact",
       "companyInfo": "Company Information",
-      "memberSince": "Member since {date}"
+      "memberSince": "Member since {date}",
+      "established": "Est. {year}",
+      "crNumber": "CR",
+      "specializations": "Specializations",
+      "companyDocuments": "Company Documents",
+      "socialLinks": "Social Links",
+      "completedDeals": "{count} completed deals",
+      "statsRating": "{rating} rating",
+      "statsReviews": "{count} reviews",
+      "statsDeals": "{count} deals",
+      "statsProjects": "{count} projects",
+      "statsProducts": "{count} products",
+      "noProjects": "No published projects yet",
+      "noProducts": "No listed products yet",
+      "noReviews": "No reviews yet",
+      "noProjectsDesc": "This partner hasn't published any projects",
+      "noProductsDesc": "This supplier hasn't listed any products",
+      "noReviewsDesc": "This partner hasn't received any reviews yet",
+      "viewAllProjects": "View All Projects",
+      "viewAllProducts": "View All Products",
+      "specializationLabels": {
+        "general_contracting": "General Contracting",
+        "civil_works": "Civil Works",
+        "electrical": "Electrical",
+        "plumbing": "Plumbing",
+        "hvac": "HVAC",
+        "steel_structures": "Steel Structures",
+        "concrete_works": "Concrete Works",
+        "road_construction": "Road Construction",
+        "landscaping": "Landscaping",
+        "interior_design": "Interior Design",
+        "painting": "Painting",
+        "waterproofing": "Waterproofing",
+        "fire_safety": "Fire Safety",
+        "demolition": "Demolition",
+        "flooring": "Flooring",
+        "glass_aluminum": "Glass & Aluminum",
+        "building_materials": "Building Materials",
+        "heavy_equipment": "Heavy Equipment",
+        "safety_equipment": "Safety Equipment",
+        "tools_hardware": "Tools & Hardware",
+        "pipes_fittings": "Pipes & Fittings",
+        "cement_aggregate": "Cement & Aggregate",
+        "wood_timber": "Wood & Timber",
+        "insulation": "Insulation",
+        "tiles_ceramics": "Tiles & Ceramics"
+      }
     },
     "projectDetail": {
       "backToProjects": "Back to Projects",
@@ -1543,7 +2177,10 @@
       "bids": "Bids:",
       "projectOwner": "Project Owner",
       "defaultOwner": "Project Owner",
-      "publishedAt": "Published: {date}"
+      "publishedAt": "Published: {date}",
+      "documentsAndFiles": "Documents & Files",
+      "moreFromOwner": "More Projects by this Owner",
+      "manageListing": "Manage Listing"
     },
     "productDetail": {
       "backToMarketplace": "Back to Marketplace",
@@ -1566,7 +2203,11 @@
       "pricingType": "Pricing Type",
       "fixedPrice": "Fixed Price",
       "status": "Status",
-      "supplierLabel": "Supplier"
+      "supplierLabel": "Supplier",
+      "catalogs": "Catalogs & Documents",
+      "downloadCatalog": "Download",
+      "moreFromSupplier": "More from this Supplier",
+      "manageListing": "Manage Listing"
     },
     "rfqDetail": {
       "backToRfqs": "Back to RFQs",
@@ -1703,7 +2344,23 @@
       "createProject": "Create Project",
       "saveChanges": "Save Changes",
       "createSuccess": "Project created successfully as draft",
-      "updateSuccess": "Project updated successfully"
+      "updateSuccess": "Project updated successfully",
+      "files": {
+        "title": "Documents & Files",
+        "hint": "Upload project documents such as BOQ, drawings, specs, and images",
+        "category": "File Category",
+        "boq": "BOQ",
+        "drawings": "Drawings",
+        "images": "Images",
+        "specs": "Specifications",
+        "general": "General",
+        "addFiles": "Add Files",
+        "uploading": "Uploading...",
+        "fileLimit": "Max 10 MB per file (PDF, Word, Excel, or images)",
+        "remove": "Remove",
+        "existingFiles": "Existing Files",
+        "selectCategory": "Select category"
+      }
     },
     "variant": {
       "title": "Variants",
@@ -1727,6 +2384,14 @@
       "reasonPlaceholder": "Explain the reason for requesting deal cancellation...",
       "submitting": "Submitting...",
       "submitRequest": "Request Cancellation"
+    },
+    "skipToFinish": {
+      "requestSent": "Skip-to-finish request sent, awaiting other party's approval",
+      "reasonLabel": "Reason for skipping to finish *",
+      "reasonPlaceholder": "Explain why the deal should skip remaining milestones and finish...",
+      "submitting": "Submitting...",
+      "submitRequest": "Request Skip to Finish",
+      "cancel": "Cancel"
     },
     "bid": {
       "successMessage": "Bid submitted successfully ✓",
@@ -1771,7 +2436,9 @@
       "warrantyEnPlaceholder": "Warranty clauses...",
       "governingLaw": "Governing Law",
       "clauseLibrary": "Clause Library ({count})",
-      "clauseLibraryHint": "Select clauses to add to the contract (coming soon)",
+      "clauseLibraryHint": "Click to select clauses to include in the contract",
+      "selectedCount": "{count} selected",
+      "reorderHint": "Drag to reorder selected clauses",
       "createContract": "Create Contract"
     },
     "fileUpload": {
@@ -1841,7 +2508,23 @@
       "createProduct": "Create Product",
       "saveChanges": "Save Changes",
       "createSuccess": "Product created successfully as draft",
-      "updateSuccess": "Product updated successfully"
+      "updateSuccess": "Product updated successfully",
+      "media": {
+        "imagesTitle": "Product Images",
+        "imagesHint": "Upload product photos (JPEG, PNG, WebP)",
+        "imageHint": "Max 10 images, up to 5 MB each (JPEG, PNG, WebP)",
+        "addImages": "Add Images",
+        "uploading": "Uploading...",
+        "primary": "Primary",
+        "setPrimary": "Set Primary",
+        "imageLimit": "Max 10 images, up to 5 MB each",
+        "specsTitle": "Catalogs & Spec Sheets",
+        "specHint": "Max 5 files, up to 10 MB each (PDF, Word, or images)",
+        "catalogsTitle": "Catalogs & Spec Sheets",
+        "catalogsHint": "Upload product catalogs and technical specification sheets",
+        "addCatalog": "Add Catalog",
+        "catalogLimit": "Max 5 files, up to 10 MB each (PDF, Word, Excel, or images)"
+      }
     },
     "profile": {
       "updateSuccess": "Profile updated successfully",
@@ -1859,6 +2542,77 @@
       "bioTitle": "Bio",
       "bioAr": "Bio (Arabic)",
       "bioEn": "Bio (English)",
+      "establishedYear": "Established Year",
+      "establishedYearLabel": "Year of establishment",
+      "socialLinksTitle": "Social Media Links",
+      "specializationsTitle": "Specializations",
+      "specializationsHint": "Select the areas your company specializes in",
+      "specializations": {
+        "general_contracting": "General Contracting",
+        "civil_works": "Civil Works",
+        "electrical": "Electrical",
+        "plumbing": "Plumbing",
+        "hvac": "HVAC",
+        "steel_structures": "Steel Structures",
+        "concrete_works": "Concrete Works",
+        "road_construction": "Road Construction",
+        "landscaping": "Landscaping",
+        "interior_design": "Interior Design",
+        "painting": "Painting",
+        "waterproofing": "Waterproofing",
+        "fire_safety": "Fire Safety",
+        "demolition": "Demolition",
+        "flooring": "Flooring",
+        "glass_aluminum": "Glass & Aluminum",
+        "building_materials": "Building Materials",
+        "heavy_equipment": "Heavy Equipment",
+        "safety_equipment": "Safety Equipment",
+        "tools_hardware": "Tools & Hardware",
+        "pipes_fittings": "Pipes & Fittings",
+        "cement_aggregate": "Cement & Aggregate",
+        "wood_timber": "Wood & Timber",
+        "insulation": "Insulation",
+        "tiles_ceramics": "Tiles & Ceramics"
+      },
+      "visibilityTitle": "Privacy Settings",
+      "visibilityHint": "Control which information is visible on your public profile",
+      "visibilityCompanyName": "Show company name",
+      "visibilityPhone": "Show phone number",
+      "visibilityWebsite": "Show website",
+      "visibilityCrNumber": "Show CR number",
+      "visibilityBio": "Show bio",
+      "visibilityCity": "Show city",
+      "visibilityEstablishedYear": "Show established year",
+      "visibilitySocialLinks": "Show social media links",
+      "visibilitySpecializations": "Show specializations",
+      "visibilityDocuments": "Show company documents",
+      "documents": {
+        "title": "Company Documents",
+        "subtitle": "{count} of {max} documents uploaded",
+        "documentName": "Document Name",
+        "documentNamePlaceholder": "e.g. Company Profile, Certificate...",
+        "dropzone": "Click to upload PDF",
+        "pdfOnly": "PDF only, max 10 MB",
+        "enterNameFirst": "Enter a document name first",
+        "maxReached": "Maximum number of documents reached (3)",
+        "nameRequired": "Please enter a document name"
+      },
+      "completeness": {
+        "title": "Profile Completeness",
+        "description": "{completed} of {total} fields completed",
+        "fields": {
+          "full_name": "Full Name",
+          "phone": "Phone",
+          "city": "City",
+          "bio": "Bio",
+          "avatar": "Avatar",
+          "logo": "Logo",
+          "website": "Website",
+          "cr_number": "CR Number",
+          "documents": "Documents",
+          "specializations": "Specializations"
+        }
+      },
       "saveChanges": "Save Changes"
     },
     "proof": {
@@ -1920,7 +2674,35 @@
       "city": "City",
       "allCities": "All Cities",
       "creating": "Creating...",
-      "createRfq": "Create RFQ"
+      "createRfq": "Create RFQ",
+      "files": {
+        "title": "Attachments",
+        "hint": "Upload supporting documents (BOQ, drawings, specs)",
+        "category": "File Category",
+        "boq": "BOQ",
+        "drawings": "Drawings",
+        "specs": "Specifications",
+        "general": "General",
+        "addFiles": "Add Files",
+        "uploading": "Uploading...",
+        "fileLimit": "Max 10 MB per file (PDF, Word, Excel, or images)",
+        "remove": "Remove",
+        "existingFiles": "Existing Files",
+        "selectCategory": "Select category"
+      },
+      "productSelector": {
+        "label": "Link to Product (optional)",
+        "placeholder": "Search published products...",
+        "noResults": "No products found",
+        "searching": "Searching...",
+        "clear": "Clear selection",
+        "selected": "Selected Product",
+        "inStock": "In Stock",
+        "outOfStock": "Out of Stock",
+        "minOrder": "Min. Order: {qty}",
+        "leadTime": "Lead Time: {days} days",
+        "price": "Price"
+      }
     },
     "rfqResponse": {
       "successMessage": "Your response was submitted successfully",
@@ -2017,6 +2799,7 @@
     },
     "activityFeed": {
       "noActivity": "No activity yet",
+      "byActor": "by {name}",
       "proofType": "Type",
       "proofPercentage": "Percentage",
       "newProgress": "New progress",
@@ -2035,7 +2818,11 @@
         "cancellation_requested": "Cancellation requested",
         "cancellation_rejected": "Cancellation request rejected",
         "skip_milestone_requested": "Skip milestone requested",
-        "skip_milestone_approved": "Skip milestone approved"
+        "skip_milestone_approved": "Skip milestone approved",
+        "skip_milestone_rejected": "Skip milestone rejected",
+        "document_uploaded": "Document uploaded",
+        "milestone_progress_updated": "Milestone progress updated",
+        "deal_started": "Deal started"
       }
     },
     "commissionActions": {
@@ -2076,6 +2863,7 @@
     "chatThread": {
       "startConversation": "Start the conversation by sending a message",
       "quickReplies": "Quick replies",
+      "attachFile": "Attach file",
       "typeMessage": "Type your message..."
     },
     "reviewCard": {
@@ -2175,7 +2963,9 @@
       "acceptQuotation": "Accept Quotation",
       "rejectPrompt": "Rejection reason (optional):",
       "rejecting": "Rejecting...",
-      "reject": "Reject"
+      "reject": "Reject",
+      "duplicating": "Duplicating...",
+      "duplicate": "Duplicate"
     },
     "rfqActions": {
       "sending": "Sending...",
@@ -2186,11 +2976,41 @@
       "rejecting": "...",
       "reject": "Reject"
     },
+    "productInquiry": {
+      "requestQuote": "Request Quote",
+      "quantity": "Quantity",
+      "messageAr": "Message (Arabic)",
+      "messageEn": "Message (English)",
+      "messagePlaceholderAr": "اكتب رسالتك هنا...",
+      "messagePlaceholderEn": "Write your message here...",
+      "sending": "Sending...",
+      "submit": "Send Inquiry",
+      "inquirySent": "Your inquiry has been sent successfully! The supplier will respond soon."
+    },
     "adminSettings": {
       "keyPlaceholder": "Key (e.g.: commission_rates)",
       "valuePlaceholder": "Value (text or JSON)",
       "updateSuccess": "Updated successfully",
       "saveSetting": "Save Setting"
+    },
+    "mergeClients": {
+      "findDuplicates": "Find Duplicates",
+      "title": "Merge Duplicate Clients",
+      "description": "Select a duplicate client to merge into the current record",
+      "primaryClient": "Primary Client (kept)",
+      "searching": "Searching for duplicates...",
+      "noDuplicates": "No potential duplicates found",
+      "potentialDuplicates": "{count} potential duplicate(s) found",
+      "mergeSelected": "Merge Selected",
+      "keepSeparate": "Keep Separate",
+      "close": "Close",
+      "mergeSuccess": "Clients merged successfully",
+      "matchReason": {
+        "phone": "Phone",
+        "email": "Email",
+        "company": "Company",
+        "name": "Name"
+      }
     },
     "clientActions": {
       "quickActions": "Quick Actions",
@@ -2255,6 +3075,8 @@
       "issuesPlaceholder": "Any issues encountered today...",
       "safetyNotes": "Safety notes",
       "safetyNotesPlaceholder": "Safety observations on site...",
+      "photos": "Site Photos",
+      "photosHint": "Up to 10 photos, max 5 MB each (JPEG, PNG, WebP)",
       "save": "Save today's log"
     },
     "dealActions": {
@@ -2267,7 +3089,8 @@
       "rejectCancel": "Reject Cancellation",
       "acceptSuggestion": "Accept Suggestion",
       "rejectSuggestion": "Reject Suggestion",
-      "approveSkip": "Approve Skip Milestone"
+      "approveSkip": "Approve Skip Milestone",
+      "rejectSkip": "Reject Skip"
     },
     "markAllRead": {
       "updating": "Updating...",
@@ -2330,7 +3153,7 @@
     "privacy": {
       "title": "Privacy Policy",
       "lastUpdated": "Last updated: January 1, 2025",
-      "intro": "At Muhaned Hub, we are committed to protecting your privacy and personal data in accordance with the Personal Data Protection Law (PDPL) of Saudi Arabia.",
+      "intro": "At Muhandes HUB, we are committed to protecting your privacy and personal data in accordance with the Personal Data Protection Law (PDPL) of Saudi Arabia.",
       "dataCollection": {
         "title": "Data We Collect",
         "item1": "Registration data: Name, email, phone number, company name",
@@ -2372,12 +3195,15 @@
       "contact": {
         "title": "Contact Us",
         "description": "For any inquiries about your data privacy, please contact: privacy@muqawilhub.com"
-      }
+      },
+      "seeAlso": "See also",
+      "termsLink": "Terms of Service",
+      "cookiesLink": "Cookie Policy"
     },
     "terms": {
       "title": "Terms & Conditions",
       "lastUpdated": "Last updated: January 1, 2025",
-      "intro": "By using Muhaned Hub, you agree to comply with these terms and conditions. Please read them carefully.",
+      "intro": "By using Muhandes HUB, you agree to comply with these terms and conditions. Please read them carefully.",
       "registration": {
         "title": "Registration & Account",
         "item1": "You must be at least 18 years old to create an account",
@@ -2420,12 +3246,15 @@
       "modifications": {
         "title": "Modifications",
         "description": "We reserve the right to modify these terms at any time. Users will be notified of any material changes."
-      }
+      },
+      "seeAlso": "See also",
+      "privacyLink": "Privacy Policy",
+      "cookiesLink": "Cookie Policy"
     },
     "cookies": {
       "title": "Cookie Policy",
       "lastUpdated": "Last updated: January 1, 2025",
-      "intro": "This document explains how Muhaned Hub uses cookies and similar technologies.",
+      "intro": "This document explains how Muhandes HUB uses cookies and similar technologies.",
       "whatAreCookies": {
         "title": "What Are Cookies?",
         "description": "Cookies are small text files stored on your device when you visit a website. They help remember your preferences and improve your browsing experience."
@@ -2456,24 +3285,71 @@
       "contact": {
         "title": "Contact Us",
         "description": "For any inquiries about cookies: privacy@muqawilhub.com"
-      }
+      },
+      "seeAlso": "See also",
+      "privacyLink": "Privacy Policy",
+      "termsLink": "Terms of Service"
     }
   },
   "metadata": {
     "home": {
-      "title": "Muhaned Hub — Saudi Construction Industry Platform",
+      "title": "Muhandes HUB — Saudi Construction Industry Platform",
       "description": "A comprehensive digital ecosystem connecting project owners, contractors, suppliers, and buyers in the Saudi construction industry. Get started for free.",
-      "ogTitle": "Muhaned Hub — Construction Industry Platform",
+      "ogTitle": "Muhandes HUB — Construction Industry Platform",
       "ogDescription": "A comprehensive digital ecosystem for construction — projects, contracts, quotations, and deal management."
     },
     "default": {
-      "title": "Muhaned Hub",
+      "title": "Muhandes HUB",
       "description": "Comprehensive digital platform for the Saudi construction industry"
+    }
+  },
+  "tierGate": {
+    "upgrade": "Upgrade Subscription",
+    "hasKanban": {
+      "title": "Kanban Board Locked",
+      "description": "Kanban boards are available for Pro subscribers and above. Upgrade to manage your deal tasks visually."
+    },
+    "hasAnalytics": {
+      "title": "Analytics Not Available",
+      "description": "Analytics dashboards are available for Pro subscribers and above. Upgrade to access business insights."
+    },
+    "hasBulkUpload": {
+      "title": "Bulk Upload Locked",
+      "description": "Bulk upload is available for Business subscribers and above. Upgrade to upload products in bulk."
+    },
+    "hasClauseLibrary": {
+      "title": "Clause Library Locked",
+      "description": "The clause library is available for Pro subscribers and above. Upgrade to save and reuse contract clauses."
+    },
+    "hasCustomContracts": {
+      "title": "Custom Contracts Locked",
+      "description": "Custom contract templates are available for Business subscribers and above. Upgrade to create your own templates."
+    },
+    "bidsPerMonth": {
+      "title": "Bid Limit Reached",
+      "description": "You have reached your monthly bid limit on the {tier} plan. Upgrade to submit more bids."
+    },
+    "productPosts": {
+      "title": "Product Limit Reached",
+      "description": "You have reached your product listing limit on the {tier} plan. Upgrade to add more products."
+    },
+    "crmClients": {
+      "title": "CRM Client Limit Reached",
+      "description": "You have reached your CRM client limit on the {tier} plan. Upgrade to manage more clients."
+    },
+    "quotationsPerMonth": {
+      "title": "Quotation Limit Reached",
+      "description": "You have reached your monthly quotation limit on the {tier} plan. Upgrade to send more quotations."
+    },
+    "contractsPerMonth": {
+      "title": "Contract Limit Reached",
+      "description": "You have reached your monthly contract limit on the {tier} plan. Upgrade to create more contracts."
     }
   },
   "actions": {
     "auth": {
       "tooManyLoginAttempts": "Too many login attempts. Please try again later",
+      "tooManyResetAttempts": "Too many password reset attempts. Please try again later",
       "invalidData": "Invalid data",
       "invalidCredentials": "Incorrect email or password",
       "accountBanned": "This account has been banned",
@@ -2493,7 +3369,10 @@
       "documentUploadError": "An error occurred while uploading documents",
       "statusUpdateError": "An error occurred while updating the status",
       "resendVerificationError": "An error occurred while resending the verification link",
-      "mustLogin": "You must be logged in first"
+      "mustLogin": "You must be logged in first",
+      "invalidReceipt": "Invalid receipt. Must be PDF, JPEG, or PNG under 5 MB",
+      "receiptUploadError": "An error occurred while uploading the bank receipt",
+      "sessionReplaced": "You have been logged out because your account was signed in on another device"
     },
     "bids": {
       "mustLogin": "You must be logged in first",
@@ -2519,6 +3398,7 @@
     },
     "projects": {
       "mustLogin": "You must be logged in first",
+      "tooManyRequests": "Too many requests. Please try again later",
       "noPermissionCreate": "You do not have permission to create projects",
       "invalidData": "Invalid data",
       "createError": "An error occurred while creating the project",
@@ -2535,6 +3415,7 @@
     },
     "products": {
       "mustLogin": "You must be logged in first",
+      "tooManyRequests": "Too many requests. Please try again later",
       "suppliersOnly": "Only suppliers can add products",
       "productLimitReached": "You have reached the product limit ({limit}). Please upgrade your subscription",
       "invalidVariants": "Invalid variant format",
@@ -2559,7 +3440,14 @@
       "rowColumnMismatch": "Row {line}: column count mismatch",
       "rowTitleRequired": "Row {line}: title_ar is required",
       "rowInvalidPrice": "Row {line}: invalid price",
-      "noValidProducts": "No valid products found in the file"
+      "noValidProducts": "No valid products found in the file",
+      "imageLimitReached": "Maximum of 10 images reached",
+      "noImageSelected": "No image file selected",
+      "imageUploadError": "Failed to upload image",
+      "imageNotFound": "Image not found",
+      "specLimitReached": "Maximum of 5 catalogs reached",
+      "noFileSelected": "No file selected",
+      "specUploadError": "Failed to upload catalog"
     },
     "deals": {
       "mustLogin": "You must be logged in first",
@@ -2595,10 +3483,12 @@
       "noPermission": "You do not have permission",
       "skipRequestNotFound": "Skip request not found",
       "cannotApproveOwnSkip": "You cannot approve your own skip request",
+      "cannotRejectOwnSkip": "You cannot reject your own skip request",
       "skipRequestError": "Failed to create the skip request"
     },
     "quotations": {
       "mustLogin": "You must be logged in first",
+      "tooManyRequests": "Too many requests. Please try again later",
       "roleNotAllowed": "Only contractors and suppliers can create quotations",
       "monthlyLimitReached": "You have reached the monthly limit ({limit} quotations). Upgrade to increase your limit",
       "invalidLineItems": "Invalid line items format",
@@ -2646,6 +3536,7 @@
     },
     "contracts": {
       "mustLogin": "You must be logged in",
+      "tooManyRequests": "Too many requests. Please try again later",
       "invalidData": "Invalid data",
       "customTemplateUpgradeRequired": "Custom templates are available for Professional plan and above",
       "monthlyLimitReached": "You have reached the contract limit ({limit}/month)",
@@ -2658,7 +3549,8 @@
       "clauseDeleteError": "Deletion failed"
     },
     "contact": {
-      "validationErrors": "Please correct the errors"
+      "validationErrors": "Please correct the errors",
+      "tooManyRequests": "Too many requests. Please try again later"
     },
     "subscriptions": {
       "mustLogin": "You must be logged in",
@@ -2669,7 +3561,11 @@
       "couponNotFound": "Coupon code not found or invalid",
       "couponNotActive": "Coupon is not yet active",
       "couponExpired": "Coupon has expired",
-      "couponExhausted": "Coupon has been exhausted"
+      "couponExhausted": "Coupon has been exhausted",
+      "mustUpgradeToHigherTier": "You can only upgrade to a higher tier",
+      "mustDowngradeToLowerTier": "You can only downgrade to a lower tier",
+      "noActiveSubscription": "No active subscription found",
+      "cannotRenewStarter": "Starter plan does not require renewal"
     },
     "crm": {
       "mustLogin": "You must be logged in",
@@ -2710,7 +3606,9 @@
       "csvHeaderArchived": "Archived",
       "csvHeaderCreatedAt": "Date Added",
       "yes": "Yes",
-      "no": "No"
+      "no": "No",
+      "proPlusOnly": "This feature requires a Pro or higher subscription",
+      "cannotMergeSame": "Cannot merge a client with itself"
     },
     "inquiries": {
       "mustLogin": "You must be logged in",
@@ -2749,6 +3647,7 @@
     },
     "messages": {
       "mustLogin": "You must be logged in",
+      "tooManyRequests": "Too many messages. Please slow down",
       "invalidData": "Invalid data",
       "notParticipant": "You are not a participant in this conversation",
       "sendError": "Failed to send message",
@@ -2760,7 +3659,8 @@
       "cannotDeleteOthersMessage": "You cannot delete this message",
       "deleteError": "Failed to delete message",
       "saveQuickReplyError": "Failed to save quick reply",
-      "deleteQuickReplyError": "Failed to delete quick reply"
+      "deleteQuickReplyError": "Failed to delete quick reply",
+      "dealNotFound": "Deal not found"
     },
     "notifications": {
       "createError": "Failed to create notification",
@@ -2799,6 +3699,7 @@
     },
     "uploads": {
       "mustLogin": "You must be logged in",
+      "tooManyRequests": "Too many upload requests. Please try again later",
       "invalidBucket": "Invalid bucket",
       "fileTooLarge": "File size exceeds the limit ({maxMB} MB)",
       "invalidFileType": "File type not allowed",
@@ -2850,7 +3751,9 @@
       "unbanError": "Failed to unban user",
       "restrictError": "Failed to restrict user",
       "unrestrictError": "Failed to unrestrict user",
-      "userNotFound": "User not found"
+      "userNotFound": "User not found",
+      "validationError": "Invalid input data",
+      "resetLinkError": "Failed to generate password reset link"
     },
     "adminSubscriptions": {
       "mustLogin": "You must be logged in",
@@ -2862,7 +3765,9 @@
       "cancelError": "Failed to cancel subscription",
       "extendError": "Failed to extend subscription",
       "invalidDays": "Days must be between 1 and 365",
-      "noSubscription": "No subscription found for this user"
+      "noSubscription": "No subscription found for this user",
+      "alreadyActive": "This subscription is already active",
+      "approveError": "Failed to approve subscription payment"
     },
     "adminContact": {
       "mustLogin": "You must be logged in",
@@ -2874,6 +3779,19 @@
       "deleteError": "Failed to delete submission",
       "fetchError": "Failed to load contact submissions",
       "userNotFound": "User not found"
+    }
+  },
+  "components": {
+    "fileDisplay": {
+      "boq": "BOQ",
+      "drawings": "Drawings",
+      "images": "Images",
+      "specs": "Specifications",
+      "catalog": "Catalog",
+      "general": "General",
+      "files": "files",
+      "noFiles": "No files uploaded",
+      "download": "Download"
     }
   }
 }

@@ -12,7 +12,10 @@ import {
   VAT_RATE,
   type SubscriptionTier,
 } from '@/types';
-import { Check, X, Crown, ArrowUpLeft } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Check, X, Crown, ArrowUpLeft, RefreshCw, CalendarDays } from 'lucide-react';
+import { getInvoices } from '@/actions/subscriptions';
+import { InvoiceHistory } from '@/components/features/invoice-history';
 
 // ---------------------------------------------------------------------------
 // Tier details
@@ -81,27 +84,8 @@ export default async function SubscriptionPage() {
 
   if (!user) redirect('/login');
 
-  const db = supabase as unknown as {
-    from: (t: string) => {
-      select: (c: string) => {
-        eq: (f: string, v: string) => {
-          single: () => Promise<{
-            data: {
-              role: string;
-            } | null;
-          }>;
-          eq: (f2: string, v2: boolean) => {
-            single: () => Promise<{
-              data: {
-                tier: string;
-                expires_at: string | null;
-              } | null;
-            }>;
-          };
-        };
-      };
-    };
-  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
 
   const { data: profile } = await db
     .from('profiles')
@@ -111,17 +95,22 @@ export default async function SubscriptionPage() {
 
   const { data: sub } = await db
     .from('subscriptions')
-    .select('tier, expires_at')
+    .select('tier, starts_at, expires_at')
     .eq('user_id', user.id)
     .eq('is_active', true)
     .single();
 
+  const userRole = (profile?.role as string) || 'contractor';
   const currentTier = (sub?.tier as SubscriptionTier) || 'starter';
-  const expiresAt = sub?.expires_at || null;
+  const startsAt = (sub?.starts_at as string) || null;
+  const expiresAt = (sub?.expires_at as string) || null;
   const color = tierColors[currentTier] || tierColors.starter;
   const limits = TIER_LIMITS[currentTier] || TIER_LIMITS.starter;
 
   const isExpired = expiresAt ? new Date(expiresAt) < new Date() : false;
+  const remainingDays = expiresAt && !isExpired
+    ? Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : 0;
 
   const t = await getTranslations('dashboard.subscription');
   const tCommon = await getTranslations('dashboard.common');
@@ -129,6 +118,9 @@ export default async function SubscriptionPage() {
   const sarText = tCommon('sar');
   const freeText = tCommon('free');
   const unlimitedText = tCommon('unlimited');
+
+  // Fetch invoice history
+  const { data: invoices } = await getInvoices();
 
   return (
     <div>
@@ -176,24 +168,72 @@ export default async function SubscriptionPage() {
         </div>
 
         {expiresAt && (
-          <p className="mt-3 text-sm text-muted-foreground">
-            {isExpired ? t('expiredOn') : t('expiresOn')}: {formatDate(expiresAt, locale, t('unspecified'))}
-          </p>
+          <div className="mt-4 rounded-lg bg-muted/50 p-4 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+              {t('subscriptionDates')}
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              {startsAt && (
+                <div>
+                  <span className="text-muted-foreground block text-xs">{t('startsOn')}</span>
+                  <span className="font-medium text-foreground">{formatDate(startsAt, locale, t('unspecified'))}</span>
+                </div>
+              )}
+              <div>
+                <span className="text-muted-foreground block text-xs">{isExpired ? t('expiredOn') : t('expiresOn')}</span>
+                <span className="font-medium text-foreground">{formatDate(expiresAt, locale, t('unspecified'))}</span>
+              </div>
+            </div>
+            {!isExpired && remainingDays > 0 && (
+              <div className="flex items-center justify-between rounded-md bg-background border border-border px-3 py-2">
+                <span className="text-sm text-muted-foreground">{t('remainingDays')}</span>
+                <span className={cn(
+                  'text-sm font-bold',
+                  remainingDays <= 7 ? 'text-destructive' : remainingDays <= 30 ? 'text-accent-orange-foreground' : 'text-primary',
+                )}>
+                  {remainingDays} {t('days')}
+                </span>
+              </div>
+            )}
+          </div>
         )}
 
-        {/* Current limits */}
+        {/* Renew button for paid tiers */}
+        {currentTier !== 'starter' && (
+          <Link
+            href={`/dashboard/subscription/change?tier=${currentTier}&mode=renew`}
+            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-primary bg-primary/5 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+          >
+            <RefreshCw className="h-4 w-4" />
+            {t('renew')}
+          </Link>
+        )}
+
+        {/* Current limits — filtered by role */}
         <div className="mt-6 border-t border-border pt-4">
           <h3 className="text-sm font-semibold text-foreground mb-3">{t('currentLimits')}</h3>
           <div className="divide-y divide-border/50">
-            <LimitRow label={t('limits.bidsPerMonth')} value={limits.bidsPerMonth} unlimitedText={unlimitedText} />
-            <LimitRow label={t('limits.products')} value={limits.productPosts} unlimitedText={unlimitedText} />
+            {/* Contractor-specific */}
+            {userRole === 'contractor' && (
+              <LimitRow label={t('limits.bidsPerMonth')} value={limits.bidsPerMonth} unlimitedText={unlimitedText} />
+            )}
+            {/* Supplier-specific */}
+            {userRole === 'supplier' && (
+              <>
+                <LimitRow label={t('limits.products')} value={limits.productPosts} unlimitedText={unlimitedText} />
+                <LimitRow label={t('limits.csvUpload')} value={limits.hasBulkUpload} />
+              </>
+            )}
+            {/* Shared limits */}
             <LimitRow label={t('limits.crmClients')} value={limits.crmClients} unlimitedText={unlimitedText} />
             <LimitRow label={t('limits.quotationsPerMonth')} value={limits.quotationsPerMonth} unlimitedText={unlimitedText} />
             <LimitRow label={t('limits.contractsPerMonth')} value={limits.contractsPerMonth} unlimitedText={unlimitedText} />
             <LimitRow label={t('limits.commission')} value={`${(limits.commissionRate * 100).toFixed(0)}%`} />
             <LimitRow label={t('limits.kanban')} value={limits.hasKanban === false ? false : true} />
             <LimitRow label={t('limits.analytics')} value={limits.hasAnalytics === false ? false : true} />
-            <LimitRow label={t('limits.csvUpload')} value={limits.hasBulkUpload} />
+            <LimitRow label={t('limits.clauseLibrary')} value={limits.hasClauseLibrary} />
+            <LimitRow label={t('limits.customContracts')} value={limits.hasCustomContracts} />
           </div>
         </div>
       </div>
@@ -247,6 +287,11 @@ export default async function SubscriptionPage() {
             </div>
           );
         })}
+      </div>
+
+      {/* Invoice History */}
+      <div className="mt-8">
+        <InvoiceHistory invoices={invoices ?? []} locale={locale} />
       </div>
     </div>
   );

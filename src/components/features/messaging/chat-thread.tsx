@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Chat Thread Client Component
+// Muhandes HUB — Chat Thread Client Component
 // =============================================================================
 
 'use client';
@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl';
 import { sendMessage } from '@/actions/messages';
 import { MessageBubble } from './message-bubble';
 import { Button } from '@/components/ui/button';
-import { Send, Zap } from 'lucide-react';
+import { Send, Zap, Paperclip, X, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ActionResult } from '@/types';
 
@@ -55,10 +55,12 @@ export function ChatThread({
 }: ChatThreadProps) {
   const [state, formAction, isPending] = useActionState<State, FormData>(sendMessage, null);
   const [showQuickReplies, setShowQuickReplies] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const t = useTranslations('features.chatThread');
   const formRef = useRef<HTMLFormElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll to bottom
   const scrollToBottom = useCallback(() => {
@@ -75,6 +77,7 @@ export function ChatThread({
   useEffect(() => {
     if (state?.data?.id) {
       formRef.current?.reset();
+      setAttachedFile(null);
       inputRef.current?.focus();
     }
   }, [state]);
@@ -157,6 +160,28 @@ export function ChatThread({
         className="border-t border-border bg-card px-4 py-3 rounded-b-xl"
       >
         <input type="hidden" name="conversation_id" value={conversationId} />
+
+        {/* Attached file preview */}
+        {attachedFile && (
+          <div className="flex items-center gap-2 mb-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm">
+            <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="flex-1 truncate">{attachedFile.name}</span>
+            <span className="text-xs text-muted-foreground">
+              {(attachedFile.size / 1024).toFixed(0)} KB
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setAttachedFile(null);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+              }}
+              className="text-muted-foreground hover:text-destructive"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
         <div className="flex items-end gap-2">
           {/* Quick reply toggle */}
           {quickReplies.length > 0 && (
@@ -173,6 +198,27 @@ export function ChatThread({
             </button>
           )}
 
+          {/* File attachment button */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="shrink-0 rounded-lg p-2 text-muted-foreground hover:bg-muted transition-colors"
+            title={t('attachFile')}
+          >
+            <Paperclip className="h-5 w-5" />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            name="file"
+            className="hidden"
+            accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/png,image/webp"
+            onChange={(e) => {
+              const file = e.target.files?.[0] ?? null;
+              setAttachedFile(file);
+            }}
+          />
+
           {/* Message input */}
           <div className="flex-1 relative">
             <textarea
@@ -180,7 +226,6 @@ export function ChatThread({
               name="content"
               placeholder={t('typeMessage')}
               rows={1}
-              required
               onKeyDown={handleKeyDown}
               className="w-full resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring max-h-32"
               style={{ minHeight: '2.5rem' }}

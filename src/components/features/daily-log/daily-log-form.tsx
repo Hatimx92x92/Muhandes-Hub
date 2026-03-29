@@ -4,12 +4,13 @@
 
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useRef, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { FormField } from '@/components/forms/form-field';
+import { FileUpload } from '@/components/forms/file-upload';
 import { createDailyLog } from '@/actions/kanban';
 import type { ActionResult } from '@/types';
 
@@ -18,11 +19,21 @@ type State = ActionResult<{ id: string }> | null;
 export function DailyLogForm({ dealId }: { dealId: string }) {
   const [state, formAction, isPending] = useActionState<State, FormData>(createDailyLog, null);
   const t = useTranslations('features.dailyLog');
+  const [photos, setPhotos] = useState<File[]>([]);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const today = new Date().toISOString().split('T')[0];
 
+  const handleSubmit = useCallback((formData: FormData) => {
+    // Append photo files to form data
+    for (const photo of photos) {
+      formData.append('photos', photo);
+    }
+    formAction(formData);
+  }, [photos, formAction]);
+
   return (
-    <form action={formAction} className="space-y-4">
+    <form ref={formRef} action={handleSubmit} className="space-y-4">
       <input type="hidden" name="deal_id" value={dealId} />
       <input type="hidden" name="log_date" value={today} />
 
@@ -71,6 +82,18 @@ export function DailyLogForm({ dealId }: { dealId: string }) {
 
       <FormField label={t('safetyNotes')}>
         <Textarea name="safety_notes" rows={2} placeholder={t('safetyNotesPlaceholder')} />
+      </FormField>
+
+      <FormField label={t('photos')}>
+        <FileUpload
+          name="photos"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          maxSize={5}
+          maxFiles={10}
+          hint={t('photosHint')}
+          onUpload={setPhotos}
+        />
       </FormField>
 
       <div className="flex justify-end">

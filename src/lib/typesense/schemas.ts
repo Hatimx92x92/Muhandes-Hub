@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Typesense Index Schemas
+// Muhandes HUB — Typesense Index Schemas
 // 4 indexes: projects, products, rfqs, partners
 // =============================================================================
 

@@ -1,7 +1,7 @@
 'use client';
 
 // =============================================================================
-// Muqawil HUB — Product Variant Editor
+// Muhandes HUB — Product Variant Editor
 // =============================================================================
 
 import { useState } from 'react';
@@ -122,7 +122,7 @@ export function VariantEditor({ value, onChange, className }: VariantEditorProps
               <button
                 type="button"
                 onClick={() => removeRow(index)}
-                className="flex h-8 w-8 items-center justify-center rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+                className="flex h-8 w-8 items-center justify-center rounded text-destructive hover:bg-destructive/10"
                 aria-label={t('deleteVariant')}
               >
                 <Trash2 className="h-4 w-4" />

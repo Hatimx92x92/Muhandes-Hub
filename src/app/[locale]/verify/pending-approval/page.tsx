@@ -14,8 +14,8 @@ export default async function PendingApprovalPage() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/20">
-          <Clock className="h-8 w-8 text-amber-600" />
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-warning/10">
+          <Clock className="h-8 w-8 text-warning" />
         </div>
         <CardTitle className="text-xl">{t('title')}</CardTitle>
         <CardDescription>

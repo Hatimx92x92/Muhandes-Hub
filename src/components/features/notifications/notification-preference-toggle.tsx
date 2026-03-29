@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Notification Preference Toggle
+// Muhandes HUB — Notification Preference Toggle
 // =============================================================================
 
 'use client';

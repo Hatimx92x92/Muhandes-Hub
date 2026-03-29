@@ -7,11 +7,12 @@
 import { useActionState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { BilingualFieldPair } from '@/components/ui/bilingual-field-pair';
 import { FormField } from '@/components/forms/form-field';
 import { CurrencyInput } from '@/components/forms/currency-input';
 import { respondToRFQ } from '@/actions/rfqs';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import type { ActionResult } from '@/types';
 
 type State = ActionResult<{ id: string }> | null;
@@ -20,20 +21,27 @@ export function RFQResponseForm({ rfqId }: { rfqId: string }) {
   const t = useTranslations('forms.rfqResponse');
   const [state, formAction, isPending] = useActionState<State, FormData>(respondToRFQ, null);
 
+  function handleSubmit(formData: FormData) {
+    // Assemble pricing JSON from individual fields
+    const pricing = {
+      unit_price: parseFloat(formData.get('unit_price_field') as string) || 0,
+      total_price: parseFloat(formData.get('total_price_field') as string) || 0,
+      lead_time: parseInt(formData.get('lead_time_field') as string) || 0,
+    };
+    formData.set('pricing', JSON.stringify(pricing));
+    return formAction(formData);
+  }
+
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={handleSubmit} className="space-y-4">
       <input type="hidden" name="rfq_id" value={rfqId} />
 
       {state?.error && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-          {state.error}
-        </div>
+        <AlertBanner variant="error">{state.error}</AlertBanner>
       )}
 
       {state?.data && (
-        <div className="rounded-lg border border-success/30 bg-success/5 p-3 text-sm text-success">
-          {t('successMessage')}
-        </div>
+        <AlertBanner variant="success">{t('successMessage')}</AlertBanner>
       )}
 
       {/* Pricing — stored as JSON */}
@@ -57,24 +65,26 @@ export function RFQResponseForm({ rfqId }: { rfqId: string }) {
       />
 
       {/* Delivery Terms */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label={t('deliveryTermsAr')}>
-          <Textarea name="delivery_terms_ar" rows={2} placeholder={t('deliveryTermsArPlaceholder')} />
-        </FormField>
-        <FormField label={t('deliveryTermsEn')}>
-          <Textarea name="delivery_terms_en" rows={2} dir="ltr" placeholder={t('deliveryTermsEnPlaceholder')} />
-        </FormField>
-      </div>
+      <BilingualFieldPair
+        baseName="delivery_terms"
+        type="textarea"
+        rows={2}
+        labelAr={t('deliveryTermsAr')}
+        labelEn={t('deliveryTermsEn')}
+        placeholderAr={t('deliveryTermsArPlaceholder')}
+        placeholderEn={t('deliveryTermsEnPlaceholder')}
+      />
 
       {/* Notes */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label={t('notesAr')}>
-          <Textarea name="notes_ar" rows={2} placeholder={t('notesArPlaceholder')} />
-        </FormField>
-        <FormField label={t('notesEn')}>
-          <Textarea name="notes_en" rows={2} dir="ltr" placeholder={t('notesEnPlaceholder')} />
-        </FormField>
-      </div>
+      <BilingualFieldPair
+        baseName="notes"
+        type="textarea"
+        rows={2}
+        labelAr={t('notesAr')}
+        labelEn={t('notesEn')}
+        placeholderAr={t('notesArPlaceholder')}
+        placeholderEn={t('notesEnPlaceholder')}
+      />
 
       <div className="flex justify-end">
         <Button type="submit" disabled={isPending}>

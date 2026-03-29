@@ -1,14 +1,18 @@
-// =============================================================================
-// Muqawil HUB — Project Server Actions
+﻿// =============================================================================
+// Muhandes HUB â€” Project Server Actions
 // =============================================================================
 
 'use server';
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
+import { localizeFieldErrors } from '@/lib/zod-i18n';
 import { ProjectSchema, UpdateProjectSchema } from '@/schemas/project';
+import { apiLimiter, checkRateLimit } from '@/lib/rate-limit';
 import type { ActionResult } from '@/types';
+import { generateUniqueSlug } from '@/lib/utils';
+import { autoTranslateBilingualFields } from '@/lib/translate';
 
 // Temporary helper: cast supabase for table queries until types are generated
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,14 +23,15 @@ function db(supabase: Awaited<ReturnType<typeof createClient>>): any {
 // ---------------------------------------------------------------------------
 // Helper: parse Zod issues into fieldErrors
 // ---------------------------------------------------------------------------
-function toFieldErrors(issues: { path: PropertyKey[]; message: string }[]): Record<string, string[]> {
+async function toFieldErrors(issues: { path: PropertyKey[]; message: string }[]): Promise<Record<string, string[]>> {
+  const locale = await getLocale();
   const fieldErrors: Record<string, string[]> = {};
   for (const issue of issues) {
     const key = String(issue.path[0] ?? 'form');
     fieldErrors[key] = fieldErrors[key] ?? [];
     fieldErrors[key].push(issue.message);
   }
-  return fieldErrors;
+  return localizeFieldErrors(fieldErrors, locale);
 }
 
 // ---------------------------------------------------------------------------
@@ -44,6 +49,11 @@ export async function createProject(
   if (!user) {
     return { data: null, error: t('mustLogin') };
   }
+
+  // 1b. Rate limit
+  const rl = apiLimiter();
+  const { success: rlOk } = await checkRateLimit(rl, user.id);
+  if (!rlOk) return { data: null, error: t('tooManyRequests') };
 
   // 2. Role check
   const { data: profile } = await db(supabase)
@@ -74,26 +84,49 @@ export async function createProject(
 
   const parsed = ProjectSchema.safeParse(raw);
   if (!parsed.success) {
-    return { data: null, error: t('invalidData'), fieldErrors: toFieldErrors(parsed.error.issues) };
+    return { data: null, error: t('invalidData'), fieldErrors: await toFieldErrors(parsed.error.issues) };
   }
 
-  // 4. Insert project
+  // 3b. Auto-translate missing bilingual fields
+  const translated = await autoTranslateBilingualFields(parsed.data as Record<string, unknown>, ['title', 'description']);
+
+  // 4. Generate slugs
+  const [slug_ar, slug_en] = await Promise.all([
+    generateUniqueSlug((translated.title_ar as string) || parsed.data.title_ar || '', 'projects', 'slug_ar', db(supabase)),
+    generateUniqueSlug((translated.title_en as string) || parsed.data.title_en || '', 'projects', 'slug_en', db(supabase)),
+  ]);
+
+  // 5. Resolve city slug to UUID
+  let cityId: string | null = null;
+  if (parsed.data.city) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuidRegex.test(parsed.data.city)) {
+      cityId = parsed.data.city;
+    } else {
+      const { data: cityRow } = await (db(supabase) as { from: (t: string) => { select: (s: string) => { ilike: (col: string, val: string) => { single: () => Promise<{ data: { id: string } | null }> } } } }).from('saudi_cities').select('id').ilike('name_en', parsed.data.city).single();
+      cityId = cityRow?.id ?? null;
+    }
+  }
+
+  // 5b. Insert project
   const { data: project, error: insertErr } = await db(supabase)
     .from('projects')
     .insert({
       owner_id: user.id,
-      title_ar: parsed.data.title_ar,
-      title_en: parsed.data.title_en,
-      description_ar: parsed.data.description_ar,
-      description_en: parsed.data.description_en,
+      title_ar: (translated.title_ar as string) || parsed.data.title_ar || '',
+      title_en: (translated.title_en as string) || parsed.data.title_en || '',
+      description_ar: (translated.description_ar as string) || parsed.data.description_ar || '',
+      description_en: (translated.description_en as string) || parsed.data.description_en || '',
       category_id: parsed.data.category_id || null,
-      city: parsed.data.city,
+      city_id: cityId,
       budget_min: parsed.data.budget_min ?? null,
       budget_max: parsed.data.budget_max ?? null,
       timeline_start: parsed.data.timeline_start || null,
       timeline_end: parsed.data.timeline_end || null,
       classification: parsed.data.classification || null,
       source: parsed.data.source,
+      slug_ar,
+      slug_en,
       status: 'draft',
     })
     .select('id, status')
@@ -106,6 +139,27 @@ export async function createProject(
 
   // 5. Revalidate
   revalidatePath('/dashboard/projects');
+
+  // 6. Upload project files from FormData
+  const projectFiles = formData.getAll('project_files') as File[];
+  const fileCategory = (formData.get('file_category') as string) || 'general';
+  if (projectFiles.length > 0) {
+    const { uploadFile: doUpload } = await import('@/actions/uploads');
+    for (const file of projectFiles) {
+      if (!file || file.size === 0) continue;
+      const uploadResult = await doUpload('project-files', file, `${project.id}/${fileCategory}-${Date.now()}`);
+      if (uploadResult.data) {
+        await db(supabase).from('project_files').insert({
+          project_id: project.id,
+          file_url: uploadResult.data.url,
+          file_name: file.name,
+          file_size: file.size,
+          mime_type: file.type,
+          category: fileCategory,
+        });
+      }
+    }
+  }
 
   return { data: { id: project.id, status: project.status }, error: null };
 }
@@ -142,8 +196,11 @@ export async function updateProject(
 
   const parsed = UpdateProjectSchema.safeParse(raw);
   if (!parsed.success) {
-    return { data: null, error: t('invalidData'), fieldErrors: toFieldErrors(parsed.error.issues) };
+    return { data: null, error: t('invalidData'), fieldErrors: await toFieldErrors(parsed.error.issues) };
   }
+
+  // Auto-translate missing bilingual fields
+  const translated = await autoTranslateBilingualFields(parsed.data as Record<string, unknown>, ['title', 'description']);
 
   // Ownership + status check
   const { data: existing } = await db(supabase)
@@ -162,28 +219,69 @@ export async function updateProject(
     return { data: null, error: t('cannotEditStatus') };
   }
 
+  // Regenerate slugs
+  const [slug_ar, slug_en] = await Promise.all([
+    generateUniqueSlug((translated.title_ar as string) || parsed.data.title_ar || '', 'projects', 'slug_ar', db(supabase), parsed.data.project_id),
+    generateUniqueSlug((translated.title_en as string) || parsed.data.title_en || '', 'projects', 'slug_en', db(supabase), parsed.data.project_id),
+  ]);
+
+  // Resolve city slug to UUID
+  let cityId: string | null = null;
+  if (parsed.data.city) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuidRegex.test(parsed.data.city)) {
+      cityId = parsed.data.city;
+    } else {
+      const { data: cityRow } = await (db(supabase) as { from: (t: string) => { select: (s: string) => { ilike: (col: string, val: string) => { single: () => Promise<{ data: { id: string } | null }> } } } }).from('saudi_cities').select('id').ilike('name_en', parsed.data.city).single();
+      cityId = cityRow?.id ?? null;
+    }
+  }
+
   // Update
   const { error: updateErr } = await db(supabase)
     .from('projects')
     .update({
-      title_ar: parsed.data.title_ar,
-      title_en: parsed.data.title_en,
-      description_ar: parsed.data.description_ar,
-      description_en: parsed.data.description_en,
+      title_ar: (translated.title_ar as string) || parsed.data.title_ar || '',
+      title_en: (translated.title_en as string) || parsed.data.title_en || '',
+      description_ar: (translated.description_ar as string) || parsed.data.description_ar || '',
+      description_en: (translated.description_en as string) || parsed.data.description_en || '',
       category_id: parsed.data.category_id || null,
-      city: parsed.data.city,
+      city_id: cityId,
       budget_min: parsed.data.budget_min ?? null,
       budget_max: parsed.data.budget_max ?? null,
       timeline_start: parsed.data.timeline_start || null,
       timeline_end: parsed.data.timeline_end || null,
       classification: parsed.data.classification || null,
       source: parsed.data.source,
+      slug_ar,
+      slug_en,
       status: 'draft', // Reset to draft on edit
     })
     .eq('id', parsed.data.project_id);
 
   if (updateErr) {
     return { data: null, error: t('updateError') };
+  }
+
+  // Upload new files from FormData
+  const projectFiles = formData.getAll('project_files') as File[];
+  const fileCategory = (formData.get('file_category') as string) || 'general';
+  if (projectFiles.length > 0) {
+    const { uploadFile: doUpload } = await import('@/actions/uploads');
+    for (const file of projectFiles) {
+      if (!file || file.size === 0) continue;
+      const uploadResult = await doUpload('project-files', file, `${parsed.data.project_id}/${fileCategory}-${Date.now()}`);
+      if (uploadResult.data) {
+        await db(supabase).from('project_files').insert({
+          project_id: parsed.data.project_id,
+          file_url: uploadResult.data.url,
+          file_name: file.name,
+          file_size: file.size,
+          mime_type: file.type,
+          category: fileCategory,
+        });
+      }
+    }
   }
 
   revalidatePath('/dashboard/projects');
@@ -282,5 +380,38 @@ export async function deleteProject(
   }
 
   revalidatePath('/dashboard/projects');
+  return { data: { deleted: true }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// REMOVE PROJECT FILE
+// ---------------------------------------------------------------------------
+export async function removeProjectFile(
+  projectId: string,
+  fileId: string,
+): Promise<ActionResult<{ deleted: boolean }>> {
+  const t = await getTranslations('actions.projects');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  // Ownership check
+  const { data: project } = await db(supabase)
+    .from('projects')
+    .select('owner_id')
+    .eq('id', projectId)
+    .single();
+  if (!project) return { data: null, error: t('projectNotFound') };
+  if (project.owner_id !== user.id) return { data: null, error: t('noPermission') };
+
+  const { error: deleteErr } = await db(supabase)
+    .from('project_files')
+    .delete()
+    .eq('id', fileId)
+    .eq('project_id', projectId);
+
+  if (deleteErr) return { data: null, error: t('deleteError') };
+
+  revalidatePath(`/dashboard/projects/${projectId}`);
   return { data: { deleted: true }, error: null };
 }

@@ -3,6 +3,7 @@
 // =============================================================================
 
 import { getTranslations } from 'next-intl/server';
+import { Link } from '@/i18n/navigation';
 
 export default async function CookiesPage() {
   const t = await getTranslations('legal.cookies');
@@ -57,6 +58,16 @@ export default async function CookiesPage() {
           <p className="text-muted-foreground leading-relaxed">
             {t('contact.description')}
           </p>
+        </section>
+
+        <hr className="border-border" />
+        <section>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3">{t('seeAlso')}</h3>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/privacy" className="text-sm text-primary hover:underline">{t('privacyLink')}</Link>
+            <span className="text-border">·</span>
+            <Link href="/terms" className="text-sm text-primary hover:underline">{t('termsLink')}</Link>
+          </div>
         </section>
       </div>
     </div>

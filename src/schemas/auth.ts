@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Auth Zod Schemas
+// Muhandes HUB — Auth Zod Schemas
 // =============================================================================
 
 import { z } from 'zod/v4';
@@ -123,6 +123,7 @@ export const RegisterStep4Schema = z.object({
   tier: z.enum(['starter', 'pro', 'business', 'enterprise']),
   duration_months: z.enum(['1', '3', '6', '12']).transform(Number),
   coupon_code: z.string().optional(),
+  payment_method: z.enum(['card', 'bank_transfer']).optional(),
 });
 export type RegisterStep4Input = z.infer<typeof RegisterStep4Schema>;
 
@@ -150,5 +151,26 @@ export const RegisterSchema = z.object({
   tier: z.enum(['starter', 'pro', 'business', 'enterprise']).optional(),
   duration_months: z.number().optional(),
   coupon_code: z.string().optional(),
+  payment_method: z.enum(['card', 'bank_transfer']).optional(),
 });
 export type RegisterInput = z.infer<typeof RegisterSchema>;
+
+// ---------------------------------------------------------------------------
+// Google OAuth registration — completes profile after OAuth sign-in
+// ---------------------------------------------------------------------------
+
+export const GoogleRegisterSchema = z.object({
+  role: z.enum(['project_owner', 'contractor', 'supplier', 'buyer']),
+  phone: phoneField,
+  profile_type: z.enum(['company', 'personal']),
+  company_name_ar: z.string().optional(),
+  company_name_en: z.string().optional(),
+  cr_number: z.string().optional(),
+  website: z.union([z.url(), z.literal('')]).optional(),
+  city: z.string().min(1),
+  tier: z.enum(['starter', 'pro', 'business', 'enterprise']).optional(),
+  duration_months: z.number().optional(),
+  coupon_code: z.string().optional(),
+  payment_method: z.enum(['card', 'bank_transfer']).optional(),
+});
+export type GoogleRegisterInput = z.infer<typeof GoogleRegisterSchema>;

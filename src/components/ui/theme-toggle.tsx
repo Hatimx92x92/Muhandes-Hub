@@ -1,7 +1,6 @@
 'use client';
 
 import { Sun, Moon, Monitor } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { useTheme } from './theme-provider';
 
@@ -9,16 +8,22 @@ import { useTheme } from './theme-provider';
 // ThemeToggle — cycles light → dark → system
 // =============================================================================
 
-export function ThemeToggle({ className }: { className?: string }) {
+interface ThemeToggleProps {
+  className?: string;
+  labels?: { light: string; dark: string; system: string; ariaLabel: string };
+}
+
+const defaultLabels = { light: 'Light', dark: 'Dark', system: 'Auto', ariaLabel: 'Toggle theme' };
+
+export function ThemeToggle({ className, labels = defaultLabels }: ThemeToggleProps) {
   const { theme, setTheme, resolved } = useTheme();
-  const t = useTranslations('theme');
 
   const cycle = () => {
     const next = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
     setTheme(next);
   };
 
-  const label = t(theme === 'light' ? 'light' : theme === 'dark' ? 'dark' : 'system');
+  const label = theme === 'light' ? labels.light : theme === 'dark' ? labels.dark : labels.system;
 
   const Icon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor;
 
@@ -31,7 +36,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         'text-foreground hover:bg-muted transition-colors',
         className,
       )}
-      aria-label={t('ariaLabel', { mode: label })}
+      aria-label={labels.ariaLabel}
       title={label}
     >
       <Icon className={cn('h-4 w-4 transition-transform duration-300', resolved === 'dark' && 'rotate-180')} />

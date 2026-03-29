@@ -1,13 +1,15 @@
-// =============================================================================
-// Muqawil HUB — Quotation Server Actions
+﻿// =============================================================================
+// Muhandes HUB â€” Quotation Server Actions
 // =============================================================================
 
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
+import { localizeFieldErrors } from '@/lib/zod-i18n';
 import { createClient } from '@/lib/supabase/server';
 import { QuotationSchema } from '@/schemas/quotation';
+import { apiLimiter, checkRateLimit } from '@/lib/rate-limit';
 import type { ActionResult } from '@/types';
 import { TIER_LIMITS, VAT_RATE } from '@/types';
 import {
@@ -15,20 +17,22 @@ import {
   notifyQuotationAccepted,
   notifyDealCreated,
 } from '@/actions/notification-triggers';
+import { autoLinkClient } from '@/actions/crm';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: Awaited<ReturnType<typeof createClient>>): any {
   return supabase;
 }
 
-function toFieldErrors(issues: { path: PropertyKey[]; message: string }[]): Record<string, string[]> {
+async function toFieldErrors(issues: { path: PropertyKey[]; message: string }[]): Promise<Record<string, string[]>> {
+  const locale = await getLocale();
   const fieldErrors: Record<string, string[]> = {};
   for (const issue of issues) {
     const key = String(issue.path[0] ?? 'form');
     fieldErrors[key] = fieldErrors[key] ?? [];
     fieldErrors[key].push(issue.message);
   }
-  return fieldErrors;
+  return localizeFieldErrors(fieldErrors, locale);
 }
 
 // Commission rates
@@ -52,7 +56,12 @@ export async function createQuotation(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: null, error: t('mustLogin') };
 
-  // 2. Role check — contractor or supplier
+  // 1b. Rate limit
+  const rl = apiLimiter();
+  const { success: rlOk } = await checkRateLimit(rl, user.id);
+  if (!rlOk) return { data: null, error: t('tooManyRequests') };
+
+  // 2. Role check â€” contractor or supplier
   const { data: profile } = await db(supabase)
     .from('profiles')
     .select('role, company_name_ar')
@@ -118,7 +127,7 @@ export async function createQuotation(
   // 5. Validate
   const parsed = QuotationSchema.safeParse(raw);
   if (!parsed.success) {
-    return { data: null, error: t('invalidData'), fieldErrors: toFieldErrors(parsed.error.issues) };
+    return { data: null, error: t('invalidData'), fieldErrors: await toFieldErrors(parsed.error.issues) };
   }
 
   // 6. Calculate totals
@@ -224,7 +233,7 @@ export async function sendQuotation(quotationId: string): Promise<ActionResult<{
 
     notifyQuotationReceived({
       buyerId: quotation.recipient_id,
-      supplierName: senderProfile?.company_name_ar || 'مورد',
+      supplierName: senderProfile?.company_name_ar || 'Ù…ÙˆØ±Ø¯',
       quotationNumber: qtnDetail?.number || quotationId,
       quotationId,
     }).catch(() => {});
@@ -235,7 +244,7 @@ export async function sendQuotation(quotationId: string): Promise<ActionResult<{
 }
 
 // ---------------------------------------------------------------------------
-// ACCEPT QUOTATION (recipient) → create DEAL-PRODUCT
+// ACCEPT QUOTATION (recipient) â†’ create DEAL-PRODUCT
 // ---------------------------------------------------------------------------
 export async function acceptQuotation(quotationId: string): Promise<ActionResult<{ quotationId: string; dealId: string }>> {
   const t = await getTranslations('actions.quotations');
@@ -253,7 +262,7 @@ export async function acceptQuotation(quotationId: string): Promise<ActionResult
   if (quotation.recipient_id !== user.id) {
     return { data: null, error: t('unauthorized') };
   }
-  if (quotation.status !== 'sent') {
+  if (quotation.status !== 'sent' && quotation.status !== 'viewed') {
     return { data: null, error: t('cannotAcceptInThisStatus') };
   }
 
@@ -315,6 +324,9 @@ export async function acceptQuotation(quotationId: string): Promise<ActionResult
     dealId: deal.id,
   }).catch(() => {});
 
+  // Auto-link counterparty as CRM client
+  autoLinkClient(deal.id).catch(() => {});
+
   revalidatePath('/dashboard/quotations');
   revalidatePath('/dashboard/deals');
   return { data: { quotationId, dealId: deal.id }, error: null };
@@ -342,7 +354,7 @@ export async function rejectQuotation(
     return { data: null, error: t('quotationNotFound') };
   }
 
-  if (quotation.status !== 'sent') {
+  if (quotation.status !== 'sent' && quotation.status !== 'viewed') {
     return { data: null, error: t('cannotRejectInThisStatus') };
   }
 
@@ -355,4 +367,152 @@ export async function rejectQuotation(
 
   revalidatePath('/dashboard/quotations');
   return { data: { rejected: true }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// DUPLICATE QUOTATION (sender) â€” creates a draft copy
+// ---------------------------------------------------------------------------
+export async function duplicateQuotation(
+  quotationId: string,
+): Promise<ActionResult<{ id: string; quotation_number: string }>> {
+  const t = await getTranslations('actions.quotations');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  // Fetch original quotation
+  const { data: original } = await db(supabase)
+    .from('quotations')
+    .select('*')
+    .eq('id', quotationId)
+    .single();
+
+  if (!original || original.sender_id !== user.id) {
+    return { data: null, error: t('quotationNotFound') };
+  }
+
+  // Tier limit check (monthly quotation count)
+  const { data: sub } = await db(supabase)
+    .from('subscriptions')
+    .select('tier')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .single();
+  const tier = (sub?.tier || 'starter') as keyof typeof TIER_LIMITS;
+  const monthlyLimit = TIER_LIMITS[tier]?.quotationsPerMonth ?? 3;
+
+  if (monthlyLimit !== Infinity) {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const { count } = await db(supabase)
+      .from('quotations')
+      .select('id', { count: 'exact', head: true })
+      .eq('sender_id', user.id)
+      .gte('created_at', startOfMonth.toISOString());
+
+    if ((count ?? 0) >= monthlyLimit) {
+      return { data: null, error: t('monthlyLimitReached', { limit: monthlyLimit }) };
+    }
+  }
+
+  // Auto-generate quotation number
+  const year = new Date().getFullYear();
+  const { count: existingCount } = await db(supabase)
+    .from('quotations')
+    .select('id', { count: 'exact', head: true })
+    .eq('sender_id', user.id)
+    .gte('created_at', `${year}-01-01T00:00:00Z`);
+
+  const seqNum = ((existingCount ?? 0) + 1).toString().padStart(4, '0');
+  const quotationNumber = `QTN-${year}-${seqNum}`;
+
+  // Insert copy as draft
+  const { data: copy, error } = await db(supabase)
+    .from('quotations')
+    .insert({
+      sender_id: user.id,
+      recipient_id: original.recipient_id || null,
+      mode: original.mode,
+      number: quotationNumber,
+      inquiry_id: original.inquiry_id || null,
+      rfq_response_id: original.rfq_response_id || null,
+      hire_request_id: original.hire_request_id || null,
+      client_name: original.client_name || null,
+      project_ref: original.project_ref || null,
+      line_items: original.line_items,
+      subtotal: original.subtotal,
+      vat_amount: original.vat_amount,
+      total: original.total,
+      validity_days: original.validity_days,
+      payment_terms_ar: original.payment_terms_ar || null,
+      payment_terms_en: original.payment_terms_en || null,
+      delivery_terms_ar: original.delivery_terms_ar || null,
+      delivery_terms_en: original.delivery_terms_en || null,
+      notes_ar: original.notes_ar || null,
+      notes_en: original.notes_en || null,
+      status: 'draft',
+    })
+    .select('id')
+    .single();
+
+  if (error || !copy) {
+    return { data: null, error: t('genericError') };
+  }
+
+  revalidatePath('/dashboard/quotations');
+  return { data: { id: copy.id, quotation_number: quotationNumber }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// BULK DELETE DRAFT QUOTATIONS (sender only)
+// ---------------------------------------------------------------------------
+export async function bulkDeleteDraftQuotations(
+  ids: string[],
+): Promise<ActionResult<{ deleted: number }>> {
+  const t = await getTranslations('actions.quotations');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+  if (!ids.length) return { data: { deleted: 0 }, error: null };
+
+  // Only delete drafts owned by the current user
+  const { count, error } = await db(supabase)
+    .from('quotations')
+    .delete({ count: 'exact' })
+    .in('id', ids)
+    .eq('sender_id', user.id)
+    .eq('status', 'draft');
+
+  if (error) return { data: null, error: t('genericError') };
+
+  revalidatePath('/dashboard/quotations');
+  return { data: { deleted: count ?? 0 }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// BULK SEND DRAFT QUOTATIONS (sender only)
+// ---------------------------------------------------------------------------
+export async function bulkSendQuotations(
+  ids: string[],
+): Promise<ActionResult<{ sent: number }>> {
+  const t = await getTranslations('actions.quotations');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+  if (!ids.length) return { data: { sent: 0 }, error: null };
+
+  // Only send drafts owned by the current user
+  const { count, error } = await db(supabase)
+    .from('quotations')
+    .update({ status: 'sent', sent_at: new Date().toISOString() })
+    .in('id', ids)
+    .eq('sender_id', user.id)
+    .eq('status', 'draft');
+
+  if (error) return { data: null, error: t('genericError') };
+
+  revalidatePath('/dashboard/quotations');
+  return { data: { sent: count ?? 0 }, error: null };
 }

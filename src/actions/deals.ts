@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Deal Server Actions
+// Muhandes HUB — Deal Server Actions
 // =============================================================================
 
 'use server';
@@ -12,7 +12,7 @@ import {
   ProofSchema,
   ProofRejectionSchema,
   CancelRequestSchema,
-  SkipMilestoneSchema,
+  SkipToFinishSchema,
 } from '@/schemas/deal';
 import type { ActionResult } from '@/types';
 import { VAT_RATE } from '@/types';
@@ -20,7 +20,12 @@ import {
   notifyDealCompleted,
   notifyDealStatusChanged,
   notifyDealFlaggedForReview,
+  notifyCancellationRequested,
+  notifyCancellationResolved,
+  notifySkipMilestoneRequested,
+  notifySkipMilestoneResolved,
 } from '@/actions/notification-triggers';
+import { createCommissionForDeal } from '@/actions/commissions';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: Awaited<ReturnType<typeof createClient>>): any {
@@ -476,6 +481,16 @@ export async function confirmProof(
       dealId: deal.id,
     }).catch(() => {});
 
+    // Create commission record for the seller
+    const dealValue = Number(deal.total_value) || 0;
+    if (dealValue > 0) {
+      createCommissionForDeal({
+        dealId: deal.id,
+        sellerId: deal.seller_id,
+        dealValue,
+      }).catch(() => {});
+    }
+
     await logActivity(supabase, deal.id, user.id, 'deal_completed', {});
   }
 
@@ -640,6 +655,14 @@ export async function requestCancellation(
       auto_approved: true,
     });
 
+    const counterpartyId = check.deal.buyer_id === user.id ? check.deal.seller_id as string : check.deal.buyer_id as string;
+    await notifyCancellationResolved({
+      userIds: [user.id, counterpartyId],
+      dealNumber: data.deal_id.slice(0, 8),
+      dealId: data.deal_id,
+      outcome: 'approved',
+    });
+
     revalidatePath(`/dashboard/deals/${data.deal_id}`);
     return { data: { requestId: existingRequest.id, autoApproved: true }, error: null };
   }
@@ -662,6 +685,14 @@ export async function requestCancellation(
 
   await logActivity(supabase, data.deal_id, user.id, 'cancellation_requested', {
     request_id: request.id,
+    reason: data.reason,
+  });
+
+  const counterpartyId = check.deal.buyer_id === user.id ? check.deal.seller_id as string : check.deal.buyer_id as string;
+  await notifyCancellationRequested({
+    counterpartyId,
+    dealNumber: data.deal_id.slice(0, 8),
+    dealId: data.deal_id,
     reason: data.reason,
   });
 
@@ -714,6 +745,13 @@ export async function approveCancellation(
     request_id: requestId,
   });
 
+  await notifyCancellationResolved({
+    userIds: [deal.buyer_id, deal.seller_id],
+    dealNumber: deal.id.slice(0, 8),
+    dealId: deal.id,
+    outcome: 'approved',
+  });
+
   revalidatePath(`/dashboard/deals/${deal.id}`);
   return { data: undefined, error: null };
 }
@@ -755,6 +793,13 @@ export async function rejectCancellation(
     request_id: requestId,
   });
 
+  await notifyCancellationResolved({
+    userIds: [request.requester_id],
+    dealNumber: deal.id.slice(0, 8),
+    dealId: deal.id,
+    outcome: 'rejected',
+  });
+
   revalidatePath(`/dashboard/deals/${deal.id}`);
   return { data: undefined, error: null };
 }
@@ -762,7 +807,7 @@ export async function rejectCancellation(
 // ---------------------------------------------------------------------------
 // REQUEST SKIP MILESTONE
 // ---------------------------------------------------------------------------
-export async function requestSkipMilestone(
+export async function requestSkipToFinish(
   _prevState: ActionResult<{ requestId: string }> | null,
   formData: FormData,
 ): Promise<ActionResult<{ requestId: string }>> {
@@ -772,28 +817,26 @@ export async function requestSkipMilestone(
   if (!user) return { data: null, error: t('mustLogin') };
 
   const raw = {
-    milestone_id: formData.get('milestone_id'),
+    deal_id: formData.get('deal_id'),
     reason: formData.get('reason'),
   };
 
-  const result = SkipMilestoneSchema.safeParse(raw);
+  const result = SkipToFinishSchema.safeParse(raw);
   if (!result.success) {
     return { data: null, error: t('invalidData'), fieldErrors: toFieldErrors(result.error.issues) };
   }
 
   const data = result.data;
 
-  // Fetch milestone + deal
-  const { data: milestone } = await db(supabase)
-    .from('deal_milestones')
-    .select('*, deal:deals(*)')
-    .eq('id', data.milestone_id)
+  // Fetch deal
+  const { data: deal } = await db(supabase)
+    .from('deals')
+    .select('*')
+    .eq('id', data.deal_id)
     .single();
 
-  if (!milestone) return { data: null, error: t('milestoneNotFound') };
-
-  const deal = milestone.deal;
-  if (!deal || (deal.buyer_id !== user.id && deal.seller_id !== user.id)) {
+  if (!deal) return { data: null, error: t('dealNotFound') };
+  if (deal.buyer_id !== user.id && deal.seller_id !== user.id) {
     return { data: null, error: t('noPermission') };
   }
 
@@ -810,9 +853,16 @@ export async function requestSkipMilestone(
 
   if (error || !request) return { data: null, error: t('skipRequestError') };
 
-  await logActivity(supabase, deal.id, user.id, 'skip_milestone_requested', {
-    milestone_id: data.milestone_id,
+  await logActivity(supabase, deal.id, user.id, 'skip_to_finish_requested', {
     request_id: request.id,
+  });
+
+  const counterpartyId = deal.buyer_id === user.id ? deal.seller_id : deal.buyer_id;
+  await notifySkipMilestoneRequested({
+    counterpartyId,
+    dealNumber: deal.id.slice(0, 8),
+    dealId: deal.id,
+    milestoneTitle: { ar: 'تخطي إلى الإنهاء', en: 'Skip to Finish' },
   });
 
   revalidatePath(`/dashboard/deals/${deal.id}`);
@@ -854,6 +904,61 @@ export async function approveSkipMilestone(
 
   await logActivity(supabase, deal.id, user.id, 'skip_milestone_approved', {
     request_id: requestId,
+  });
+
+  await notifySkipMilestoneResolved({
+    requesterId: request.requester_id,
+    dealNumber: deal.id.slice(0, 8),
+    dealId: deal.id,
+    outcome: 'approved',
+  });
+
+  revalidatePath(`/dashboard/deals/${deal.id}`);
+  return { data: undefined, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// REJECT SKIP MILESTONE (counterparty)
+// ---------------------------------------------------------------------------
+export async function rejectSkipMilestone(
+  requestId: string,
+): Promise<ActionResult> {
+  const t = await getTranslations('actions.deals');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  const { data: request } = await db(supabase)
+    .from('deal_skip_requests')
+    .select('*, deal:deals(*)')
+    .eq('id', requestId)
+    .eq('status', 'pending')
+    .single();
+
+  if (!request) return { data: null, error: t('skipRequestNotFound') };
+  if (request.requester_id === user.id) {
+    return { data: null, error: t('cannotRejectOwnSkip') };
+  }
+
+  const deal = request.deal;
+  if (!deal || (deal.buyer_id !== user.id && deal.seller_id !== user.id)) {
+    return { data: null, error: t('noPermission') };
+  }
+
+  await db(supabase)
+    .from('deal_skip_requests')
+    .update({ status: 'rejected', responded_by: user.id, responded_at: new Date().toISOString() })
+    .eq('id', requestId);
+
+  await logActivity(supabase, deal.id, user.id, 'skip_milestone_rejected', {
+    request_id: requestId,
+  });
+
+  await notifySkipMilestoneResolved({
+    requesterId: request.requester_id,
+    dealNumber: deal.id.slice(0, 8),
+    dealId: deal.id,
+    outcome: 'rejected',
   });
 
   revalidatePath(`/dashboard/deals/${deal.id}`);

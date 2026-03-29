@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Supabase Browser Client (Client Components only)
+// Muhandes HUB — Supabase Browser Client (Client Components only)
 // =============================================================================
 
 import { createBrowserClient } from '@supabase/ssr';

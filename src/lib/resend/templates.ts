@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Email Notification Templates
+// Muhandes HUB — Email Notification Templates
 // Sends bilingual emails via Resend for key notification types
 // =============================================================================
 
@@ -112,5 +112,17 @@ export async function emailReviewReceived(to: string, reviewerName: string, rati
     bodyAr: 'تلقيت تقييماً جديداً. قم بمراجعته في لوحة التحكم.',
     bodyEn: 'You received a new review. Check it in your dashboard.',
     link: '/dashboard/reviews',
+  });
+}
+
+export async function emailFollowUpReminder(to: string, clientName: string, note: string | null, clientPath: string) {
+  await sendNotificationEmail({
+    to,
+    type: 'follow_up_reminder',
+    titleAr: `تذكير متابعة: ${clientName}`,
+    titleEn: `Follow-up reminder: ${clientName}`,
+    bodyAr: note || 'لديك متابعة مجدولة لهذا العميل اليوم.',
+    bodyEn: note || 'You have a scheduled follow-up with this client today.',
+    link: clientPath,
   });
 }

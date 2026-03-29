@@ -1,4 +1,4 @@
-# Muqawil HUB — Master Task List
+# Muhandes HUB — Master Task List
 
 > **Generated from**: `ROADMAP.md`, `CHECKLIST.md`, `FEATURES.md`, `API-DESIGN.md`, `ARCHITECTURE.md`, `DATABASE.sql`  
 > **Total Phases**: 12 (0–11) | **Estimated Duration**: 16 weeks  
@@ -115,16 +115,16 @@
 
 ### 1.3 Registration Wizard
 
-| #   | Task                                                                                        | Priority | Effort | Status |
-| --- | ------------------------------------------------------------------------------------------- | -------- | ------ | ------ |
-| 57  | Build `register-wizard.tsx` — multi-step form container with state management               | 🔴       | L      | [x]    |
-| 58  | Step 1: Role selection — 4 visual cards (PO, Contractor, Supplier, Buyer) with descriptions | 🔴       | M      | [x]    |
-| 59  | Step 2: Account details — email, password, phone (+966), PDPL consent                       | 🔴       | M      | [x]    |
-| 60  | Step 3: Company/Personal profile — conditional fields per role and profile type             | 🔴       | L      | [x]    |
-| 61  | Step 4: Subscription tier selection — Starter (free), Pro, Business, Enterprise             | 🔴       | M      | [x]    |
-| 62  | Step 5: Payment via Moyasar — skip for Starter tier                                         | 🟡       | L      | [ ]    |
-| 63  | Step 6: Document upload — skip for PO/Buyer/Starter                                         | 🟡       | M      | [ ]    |
-| 64  | Progress indicator component showing current step                                           | 🔴       | S      | [x]    |
+| #   | Task                                                                                        | Priority | Effort | Status                                          |
+| --- | ------------------------------------------------------------------------------------------- | -------- | ------ | ----------------------------------------------- |
+| 57  | Build `register-wizard.tsx` — multi-step form container with state management               | 🔴       | L      | [x]                                             |
+| 58  | Step 1: Role selection — 4 visual cards (PO, Contractor, Supplier, Buyer) with descriptions | 🔴       | M      | [x]                                             |
+| 59  | Step 2: Account details — email, password, phone (+966), PDPL consent                       | 🔴       | M      | [x]                                             |
+| 60  | Step 3: Company/Personal profile — conditional fields per role and profile type             | 🔴       | L      | [x]                                             |
+| 61  | Step 4: Subscription tier selection — Starter (free), Pro, Business, Enterprise             | 🔴       | M      | [x]                                             |
+| 62  | Step 5: Payment via Moyasar — skip for Starter tier                                         | 🟡       | L      | [x] Payment step with card + bank transfer      |
+| 63  | Step 6: Document upload — skip for PO/Buyer/Starter                                         | 🟡       | M      | [x] DocumentStep component + auth action upload |
+| 64  | Progress indicator component showing current step                                           | 🔴       | S      | [x]                                             |
 
 ### 1.4 Login & Recovery Pages
 
@@ -141,7 +141,7 @@
 | --- | ---------------------------------------------------------------------- | -------- | ------ | ------ |
 | 69  | Create `src/app/api/auth/callback/route.ts` — code exchange + redirect | 🔴       | M      | [x]    |
 | 70  | Handle new Google users — redirect to Step 1 for role selection        | 🔴       | M      | [x]    |
-| 71  | Configure Supabase email templates (bilingual AR/EN)                   | 🔴       | M      | [ ]    |
+| 71  | Configure Supabase email templates (bilingual AR/EN)                   | 🔴       | M      | [x]    |
 | 72  | Handle email verification redirect back to app                         | 🔴       | S      | [x]    |
 
 ### 1.6 Verification Gates (4-gate flow)
@@ -170,14 +170,14 @@
 
 ### 2.2 Subscription Management
 
-| #   | Task                                                                                                                                    | Priority | Effort | Status |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------ |
-| 83  | Create `src/actions/subscriptions.ts` — `subscribe`, `upgradeSubscription`, `downgradeSubscription`, `renewSubscription`, `applyCoupon` | 🔴       | XL     | [x]    |
-| 84  | Build `src/app/(dashboard)/dashboard/subscription/page.tsx`                                                                             | 🔴       | L      | [x]    |
-| 85  | Current tier display with usage stats (bids used, products posted, etc.)                                                                | 🔴       | M      | [x]    |
-| 86  | Upgrade / downgrade / renew UI                                                                                                          | 🔴       | L      | [x]    |
-| 87  | Coupon input and validation system                                                                                                      | 🟡       | M      | [x]    |
-| 88  | Moyasar payment integration for subscription payments                                                                                   | 🔴       | XL     | [ ]    |
+| #   | Task                                                                                                                                    | Priority | Effort | Status                                                                       |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ---------------------------------------------------------------------------- |
+| 83  | Create `src/actions/subscriptions.ts` — `subscribe`, `upgradeSubscription`, `downgradeSubscription`, `renewSubscription`, `applyCoupon` | 🔴       | XL     | [x]                                                                          |
+| 84  | Build `src/app/(dashboard)/dashboard/subscription/page.tsx`                                                                             | 🔴       | L      | [x]                                                                          |
+| 85  | Current tier display with usage stats (bids used, products posted, etc.)                                                                | 🔴       | M      | [x]                                                                          |
+| 86  | Upgrade / downgrade / renew UI                                                                                                          | 🔴       | L      | [x]                                                                          |
+| 87  | Coupon input and validation system                                                                                                      | 🟡       | M      | [x]                                                                          |
+| 88  | Moyasar payment integration for subscription payments                                                                                   | 🔴       | XL     | [x] Moyasar Invoice API + upgrade/downgrade/renew flow + payment result page |
 
 ### 2.3 Custom Hooks
 
@@ -293,20 +293,20 @@
 
 ### 5.1 Quotation System
 
-| #   | Task                                                                                                                                                        | Priority | Effort | Status                               |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------------------------------ |
-| 139 | Create `src/schemas/quotation.ts`                                                                                                                           | 🔴       | M      | [x]                                  |
-| 140 | Create `src/actions/quotations.ts` — `createQuotation`, `sendQuotation`, `acceptQuotation`, `rejectQuotation`, `duplicateQuotation`, `generateQuotationPDF` | 🔴       | XL     | [~] duplicateQuotation + PDF pending |
-| 141 | Build `src/app/(dashboard)/dashboard/quotations/page.tsx` — quotation list                                                                                  | 🔴       | L      | [x]                                  |
-| 142 | Build `src/app/(dashboard)/dashboard/quotations/new/page.tsx` — create form                                                                                 | 🔴       | L      | [x]                                  |
-| 143 | Build line-item editor component — dynamic add/remove line items                                                                                            | 🔴       | L      | [x]                                  |
-| 144 | Auto-numbering: `QTN-YYYY-NNNN` per company                                                                                                                 | 🔴       | M      | [x]                                  |
-| 145 | VAT calculation (15% auto-added, net + VAT stored separately)                                                                                               | 🔴       | M      | [x]                                  |
-| 146 | Clause library selection (Pro+ tiers)                                                                                                                       | 🟡       | M      | [ ]                                  |
-| 147 | PDF generation — bilingual quotation document                                                                                                               | 🔴       | L      | [ ]                                  |
-| 148 | Send quotation via Resend email                                                                                                                             | 🔴       | M      | [x]                                  |
-| 149 | Accept quotation → create `DEAL-PRODUCT` deal                                                                                                               | 🔴       | M      | [x]                                  |
-| 150 | Monthly quotation limit per tier (Starter 3, Pro 20, Business+ ∞)                                                                                           | 🔴       | S      | [x]                                  |
+| #   | Task                                                                                                                                                        | Priority | Effort | Status                                                     |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ---------------------------------------------------------- |
+| 139 | Create `src/schemas/quotation.ts`                                                                                                                           | 🔴       | M      | [x]                                                        |
+| 140 | Create `src/actions/quotations.ts` — `createQuotation`, `sendQuotation`, `acceptQuotation`, `rejectQuotation`, `duplicateQuotation`, `generateQuotationPDF` | 🔴       | XL     | [x] duplicateQuotation done; PDF pending                   |
+| 141 | Build `src/app/(dashboard)/dashboard/quotations/page.tsx` — quotation list                                                                                  | 🔴       | L      | [x]                                                        |
+| 142 | Build `src/app/(dashboard)/dashboard/quotations/new/page.tsx` — create form                                                                                 | 🔴       | L      | [x]                                                        |
+| 143 | Build line-item editor component — dynamic add/remove line items                                                                                            | 🔴       | L      | [x]                                                        |
+| 144 | Auto-numbering: `QTN-YYYY-NNNN` per company                                                                                                                 | 🔴       | M      | [x]                                                        |
+| 145 | VAT calculation (15% auto-added, net + VAT stored separately)                                                                                               | 🔴       | M      | [x]                                                        |
+| 146 | Clause library selection (Pro+ tiers)                                                                                                                       | 🟡       | M      | [x] Interactive selection UI with toggle + category badges |
+| 147 | PDF generation — bilingual quotation document                                                                                                               | 🔴       | L      | [x] @react-pdf/renderer + API route                        |
+| 148 | Send quotation via Resend email                                                                                                                             | 🔴       | M      | [x]                                                        |
+| 149 | Accept quotation → create `DEAL-PRODUCT` deal                                                                                                               | 🔴       | M      | [x]                                                        |
+| 150 | Monthly quotation limit per tier (Starter 3, Pro 20, Business+ ∞)                                                                                           | 🔴       | S      | [x]                                                        |
 
 ### 5.2 Inquiry Flow
 
@@ -377,13 +377,13 @@
 
 ### 6.4 Deal Lifecycle
 
-| #   | Task                                                             | Priority | Effort | Status                                                   |
-| --- | ---------------------------------------------------------------- | -------- | ------ | -------------------------------------------------------- |
-| 184 | Deal completion: both progress bars at 100% → status `completed` | 🔴       | M      | [x]                                                      |
-| 185 | Cancellation request + counterparty approval flow                | 🔴       | L      | [x]                                                      |
-| 186 | Skip milestone request (mutual agreement)                        | 🟡       | M      | [x]                                                      |
-| 187 | Document vault tab within deal workspace                         | 🟡       | M      | Partial — placeholder UI, file upload blocked on Storage |
-| 188 | Realtime updates on deal workspace (Supabase Realtime channels)  | 🔴       | L      | [x]                                                      |
+| #   | Task                                                             | Priority | Effort | Status                                        |
+| --- | ---------------------------------------------------------------- | -------- | ------ | --------------------------------------------- |
+| 184 | Deal completion: both progress bars at 100% → status `completed` | 🔴       | M      | [x]                                           |
+| 185 | Cancellation request + counterparty approval flow                | 🔴       | L      | [x]                                           |
+| 186 | Skip milestone request (mutual agreement)                        | 🟡       | M      | [x]                                           |
+| 187 | Document vault tab within deal workspace                         | 🟡       | M      | [x] Full upload + categorized list + download |
+| 188 | Realtime updates on deal workspace (Supabase Realtime channels)  | 🔴       | L      | [x]                                           |
 
 ### 6.5 Realtime Hook
 
@@ -399,38 +399,38 @@
 ### 7.1 Contract Generator
 
 | #   | Task                                                                                                          | Priority | Effort | Status |
-| --- | ------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------ | ------------------------------------------------------------- |
+| --- | ------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------ | ------------------------------------------------ |
 | 191 | Create `src/schemas/contract.ts`                                                                              | 🔴       | M      | [x]    |
-| 192 | Create `src/actions/contracts.ts` — `createContract`, `signContract`, `generateContractPDF`, `verifyContract` | 🔴       | XL     | [~]    | Partial — generateContractPDF not implemented (needs PDF lib) |
+| 192 | Create `src/actions/contracts.ts` — `createContract`, `signContract`, `generateContractPDF`, `verifyContract` | 🔴       | XL     | [x]    | PDF generation via @react-pdf/renderer API route |
 | 193 | Build `src/app/(dashboard)/dashboard/contracts/page.tsx` — contract list                                      | 🔴       | L      | [x]    |
 | 194 | Build `src/app/(dashboard)/dashboard/contracts/new/page.tsx` — create from template or deal                   | 🔴       | L      | [x]    |
 | 195 | Template selection: Construction Agreement, Supply Agreement, Custom/Blank                                    | 🔴       | M      | [x]    |
-| 196 | Clause library (add/remove/reorder clauses)                                                                   | 🟡       | L      | [~]    | Partial — display only, no reorder UI                         |
+| 196 | Clause library (add/remove/reorder clauses)                                                                   | 🟡       | L      | [x]    |
 | 197 | Auto-fill from user profile (company name, CR, VAT, address)                                                  | 🔴       | M      | [x]    |
 | 198 | Dual signature flow (Party A → Party B typed signature)                                                       | 🔴       | L      | [x]    |
-| 199 | QR code generation for contract verification                                                                  | 🟡       | M      | [~]    | Partial — qr_uuid + verify page done, no QR image generation  |
-| 200 | PDF generation (bilingual with signatures + company letterhead)                                               | 🔴       | L      | [ ]    | Blocked — needs PDF generation library                        |
-| 201 | Build `src/app/verify/contract/[id]/page.tsx` — public verification page                                      | 🟡       | M      | [x]    | Route: /verify/contract/[uuid]                                |
+| 199 | QR code generation for contract verification                                                                  | 🟡       | M      | [x]    |
+| 200 | PDF generation (bilingual with signatures + company letterhead)                                               | 🔴       | L      | [x]    | Done — @react-pdf/renderer v4.3.2 + API route    |
+| 201 | Build `src/app/verify/contract/[id]/page.tsx` — public verification page                                      | 🟡       | M      | [x]    | Route: /verify/contract/[uuid]                   |
 | 202 | Tier limits on contracts per month (Starter 2 basic, Pro 10 all, Business+ unlimited)                         | 🔴       | S      | [x]    |
 
 ### 7.2 CRM
 
 | #   | Task                                                                                       | Priority | Effort | Status |
-| --- | ------------------------------------------------------------------------------------------ | -------- | ------ | ------ | --------------------------------------- |
+| --- | ------------------------------------------------------------------------------------------ | -------- | ------ | ------ | --------------------------------------------- |
 | 203 | Create `src/schemas/crm.ts`                                                                | 🔴       | M      | [x]    |
-| 204 | Create `src/actions/crm.ts` — full CRM CRUD (clients, notes, tags, pipeline, scoring)      | 🔴       | XL     | [x]    | Scoring not implemented                 |
+| 204 | Create `src/actions/crm.ts` — full CRM CRUD (clients, notes, tags, pipeline, scoring)      | 🔴       | XL     | [x]    | Scoring not implemented                       |
 | 205 | Build `src/app/(dashboard)/dashboard/crm/page.tsx` — pipeline view + client list           | 🔴       | L      | [x]    |
-| 206 | Build `src/app/(dashboard)/dashboard/crm/clients/[id]/page.tsx` — client detail            | 🔴       | L      | [x]    | Route: /dashboard/crm/[id]              |
-| 207 | Build drag-and-drop pipeline board (Lead → Negotiation → Active Deal → Completed → Repeat) | 🔴       | XL     | [~]    | Partial — clickable stage cards, no DnD |
+| 206 | Build `src/app/(dashboard)/dashboard/crm/clients/[id]/page.tsx` — client detail            | 🔴       | L      | [x]    | Route: /dashboard/crm/[id]                    |
+| 207 | Build drag-and-drop pipeline board (Lead → Negotiation → Active Deal → Completed → Repeat) | 🔴       | XL     | [x]    | @dnd-kit pipeline-board.tsx + CRM page toggle |
 | 208 | Tags and custom categories (Pro+ tiers)                                                    | 🟡       | M      | [x]    |
 | 209 | Timestamped notes log per client (append-only, pinnable)                                   | 🔴       | M      | [x]    |
-| 210 | Follow-up reminders (date-based, in-app + email) (Pro+ tiers)                              | 🟡       | L      | [~]    | Partial — in-app only, no email         |
+| 210 | Follow-up reminders (date-based, in-app + email) (Pro+ tiers)                              | 🟡       | L      | [x]    |
 | 211 | Auto-add clients from completed deals                                                      | 🔴       | M      | [x]    |
 | 212 | Client scoring: A (≥80), B (≥50), C (<50)                                                  | 🟡       | M      | [x]    |
 | 213 | Client source tracking (auto-tag origin: Bid Award, RFQ Response, etc.)                    | 🟡       | M      | [x]    |
-| 214 | Last contact indicator with color coding (green < 30d, yellow 30–90d, red > 90d)           | 🟡       | S      | [~]    | Partial — date shown, no color coding   |
+| 214 | Last contact indicator with color coding (green < 30d, yellow 30–90d, red > 90d)           | 🟡       | S      | [x]    |
 | 215 | Favorites / pinned clients                                                                 | 🟢       | S      | [x]    |
-| 216 | Duplicate detection and merge (Pro+ tiers)                                                 | 🟢       | L      | [ ]    |
+| 216 | Duplicate detection and merge (Pro+ tiers)                                                 | 🟢       | L      | [x]    |
 | 217 | Bulk actions: tag, export CSV, archive (Business+ only)                                    | 🟡       | L      | [x]    |
 | 218 | Soft archive with restore                                                                  | 🟢       | M      | [x]    |
 | 219 | Revenue analytics per client                                                               | 🟡       | M      | [x]    |
@@ -439,14 +439,14 @@
 ### 7.3 Kanban Board
 
 | #   | Task                                                                      | Priority | Effort | Status |
-| --- | ------------------------------------------------------------------------- | -------- | ------ | ------ | -------------------------------------------------------------- |
+| --- | ------------------------------------------------------------------------- | -------- | ------ | ------ | ------------------------------------------- |
 | 221 | Build `src/app/(dashboard)/dashboard/deals/[id]/kanban/page.tsx`          | 🔴       | L      | [x]    |
-| 222 | Build drag-and-drop Kanban board component                                | 🔴       | XL     | [~]    | Partial — button-based move, no DnD library                    |
+| 222 | Build drag-and-drop Kanban board component                                | 🔴       | XL     | [x]    | @dnd-kit with SortableContext + DragOverlay |
 | 223 | Default columns: To Do → In Progress → Review → Done                      | 🔴       | M      | [x]    |
-| 224 | Task cards: title, description, assignee, due date, priority, attachments | 🔴       | L      | [~]    | Partial — no attachments (blocked on Storage)                  |
-| 225 | Pro tier: simple checklist only (no drag-and-drop)                        | 🔴       | M      | [~]    | Partial — tier check exists, checklist mode not differentiated |
+| 224 | Task cards: title, description, assignee, due date, priority, attachments | 🔴       | L      | [x]    | File upload via FormData + uploadFile()     |
+| 225 | Pro tier: simple checklist only (no drag-and-drop)                        | 🔴       | M      | [x]    |
 | 226 | Business+ tier: full Kanban board                                         | 🔴       | S      | [x]    |
-| 227 | PO: read-only view; Contractor: manage access                             | 🔴       | M      | [~]    | Partial — contractor-only gate, PO read-only not fully wired   |
+| 227 | PO: read-only view; Contractor: manage access                             | 🔴       | M      | [x]    |
 | 228 | Cards moved to "Done" → prompt work proof submission                      | 🟡       | M      | [x]    |
 | 229 | Progress sync: % Done cards feeds seller progress bar                     | 🟡       | M      | [x]    |
 | 230 | Realtime updates on Kanban board                                          | 🟡       | M      | [x]    |
@@ -454,9 +454,9 @@
 ### 7.4 Daily Site Log
 
 | #   | Task                                                                               | Priority | Effort | Status |
-| --- | ---------------------------------------------------------------------------------- | -------- | ------ | ------ | ---------------------------------------------- |
+| --- | ---------------------------------------------------------------------------------- | -------- | ------ | ------ | --------------------------------------- |
 | 231 | Build `src/app/(dashboard)/dashboard/deals/[id]/daily-log/page.tsx`                | 🔴       | L      | [x]    |
-| 232 | Daily entry form: date, weather, worker count, description, issues, safety, photos | 🔴       | M      | [~]    | Partial — no photo upload (blocked on Storage) |
+| 232 | Daily entry form: date, weather, worker count, description, issues, safety, photos | 🔴       | M      | [x]    | Photo upload via site-log-photos bucket |
 | 233 | One entry per day per deal constraint (enforced)                                   | 🔴       | S      | [x]    |
 | 234 | Chronological timeline display                                                     | 🔴       | M      | [x]    |
 
@@ -474,7 +474,7 @@
 | 238 | Build conversation list component                                                                                       | 🔴       | M      | [x]    | Inline in messages/page.tsx                          |
 | 239 | Build chat thread component — real-time messages                                                                        | 🔴       | L      | [x]    | src/components/features/messaging/chat-thread.tsx    |
 | 240 | Build message bubble component (sent/received styling)                                                                  | 🔴       | S      | [x]    | src/components/features/messaging/message-bubble.tsx |
-| 241 | File attachments in messages (10 MB max)                                                                                | 🔴       | M      | [~]    | Partial — display support, upload blocked on Storage |
+| 241 | File attachments in messages (10 MB max)                                                                                | 🔴       | M      | [x]    | Upload via message-attachments bucket + chat UI      |
 | 242 | Quick reply templates (saved responses)                                                                                 | 🟡       | M      | [x]    | Action + UI in chat thread                           |
 | 243 | Context linking (conversations linked to project, product, or deal)                                                     | 🔴       | M      | [x]    | DB columns + context display in thread header        |
 | 244 | Supabase Realtime for instant message delivery                                                                          | 🔴       | L      | [x]    |                                                      |
@@ -504,30 +504,30 @@
 
 ### 9.1 Reviews
 
-| #   | Task                                                                                                                              | Priority | Effort | Status                                                                       |
-| --- | --------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ---------------------------------------------------------------------------- |
-| 259 | Create `src/schemas/review.ts`                                                                                                    | 🔴       | M      | [x]                                                                          |
-| 260 | Create `src/actions/reviews.ts` — `submitReview`, `editReview`                                                                    | 🔴       | L      | [x]                                                                          |
-| 261 | Build `src/app/(dashboard)/dashboard/reviews/page.tsx` — reviews given & received                                                 | 🔴       | L      | [x]                                                                          |
-| 262 | Build review form — star ratings (overall + sub: Quality, Timeliness, Communication) + bilingual comment + "would recommend" flag | 🔴       | L      | [x]                                                                          |
-| 263 | Review button on completed deals (30-day window)                                                                                  | 🔴       | M      | [~] Action validates 30-day window; button not yet wired on deal detail page |
-| 264 | 48-hour edit window after submission                                                                                              | 🔴       | S      | [x] Enforced in editReview action + UI shows editable flag                   |
-| 265 | One review per direction per deal (DB-enforced)                                                                                   | 🔴       | S      | [x] Checked in submitReview + DB UNIQUE constraint                           |
-| 266 | DB trigger updates `average_rating` + `total_reviews` on profile                                                                  | 🔴       | M      | [ ] DB trigger defined in schema; needs Supabase migration                   |
-| 267 | Display reviews on partner profile page                                                                                           | 🔴       | M      | [x]                                                                          |
+| #   | Task                                                                                                                              | Priority | Effort | Status                                                     |
+| --- | --------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ---------------------------------------------------------- |
+| 259 | Create `src/schemas/review.ts`                                                                                                    | 🔴       | M      | [x]                                                        |
+| 260 | Create `src/actions/reviews.ts` — `submitReview`, `editReview`                                                                    | 🔴       | L      | [x]                                                        |
+| 261 | Build `src/app/(dashboard)/dashboard/reviews/page.tsx` — reviews given & received                                                 | 🔴       | L      | [x]                                                        |
+| 262 | Build review form — star ratings (overall + sub: Quality, Timeliness, Communication) + bilingual comment + "would recommend" flag | 🔴       | L      | [x]                                                        |
+| 263 | Review button on completed deals (30-day window)                                                                                  | 🔴       | M      | [x] DealReviewSection component wired on deal detail page  |
+| 264 | 48-hour edit window after submission                                                                                              | 🔴       | S      | [x] Enforced in editReview action + UI shows editable flag |
+| 265 | One review per direction per deal (DB-enforced)                                                                                   | 🔴       | S      | [x] Checked in submitReview + DB UNIQUE constraint         |
+| 266 | DB trigger updates `average_rating` + `total_reviews` on profile                                                                  | 🔴       | M      | [x] Trigger defined in schema + migration SQL created      |
+| 267 | Display reviews on partner profile page                                                                                           | 🔴       | M      | [x]                                                        |
 
 ### 9.2 Commissions
 
-| #   | Task                                                                                     | Priority | Effort | Status                                                    |
-| --- | ---------------------------------------------------------------------------------------- | -------- | ------ | --------------------------------------------------------- |
-| 268 | Create `src/actions/commissions.ts` — `payCommission`, `disputeCommission`               | 🔴       | L      | [x]                                                       |
-| 269 | Build `src/app/(dashboard)/dashboard/commissions/page.tsx` — commission history          | 🔴       | L      | [x]                                                       |
-| 270 | Commission auto-calculated at deal creation (Starter 2%, Pro 1%, Business/Enterprise 0%) | 🔴       | M      | [x]                                                       |
-| 271 | 14-day payment deadline with escalation (Day 14, 21, 28 reminders → Day 30 restriction)  | 🔴       | L      | [x]                                                       |
-| 272 | Card payment via Moyasar                                                                 | 🔴       | L      | [~] Action + webhook ready; needs Moyasar SDK integration |
-| 273 | Bank transfer + receipt upload + admin verification                                      | 🔴       | M      | [~] Action ready; receipt upload needs Storage            |
-| 274 | Dispute within 7 days (freezes deadline)                                                 | 🔴       | M      | [x] Enforced in disputeCommission action                  |
-| 275 | ZATCA-compliant invoice generation (bilingual PDF)                                       | 🔴       | L      | [ ] Needs PDF generation library                          |
+| #   | Task                                                                                     | Priority | Effort | Status                                                                 |
+| --- | ---------------------------------------------------------------------------------------- | -------- | ------ | ---------------------------------------------------------------------- |
+| 268 | Create `src/actions/commissions.ts` — `payCommission`, `disputeCommission`               | 🔴       | L      | [x]                                                                    |
+| 269 | Build `src/app/(dashboard)/dashboard/commissions/page.tsx` — commission history          | 🔴       | L      | [x]                                                                    |
+| 270 | Commission auto-calculated at deal creation (Starter 2%, Pro 1%, Business/Enterprise 0%) | 🔴       | M      | [x]                                                                    |
+| 271 | 14-day payment deadline with escalation (Day 14, 21, 28 reminders → Day 30 restriction)  | 🔴       | L      | [x]                                                                    |
+| 272 | Card payment via Moyasar                                                                 | 🔴       | L      | [x] Moyasar Invoice API integration in subscribe/upgrade/renew actions |
+| 273 | Bank transfer + receipt upload + admin verification                                      | 🔴       | M      | [x] Receipt upload to bank-payments bucket + admin review              |
+| 274 | Dispute within 7 days (freezes deadline)                                                 | 🔴       | M      | [x] Enforced in disputeCommission action                               |
+| 275 | ZATCA-compliant invoice generation (bilingual PDF)                                       | 🔴       | L      | [x] @react-pdf/renderer + API route                                    |
 
 ### 9.3 Payment Webhooks
 
@@ -581,14 +581,14 @@
 
 ### 10.3 Analytics Dashboard
 
-| #   | Task                                                            | Priority | Effort | Status                                                        |
-| --- | --------------------------------------------------------------- | -------- | ------ | ------------------------------------------------------------- |
-| 307 | Build `src/app/(dashboard)/dashboard/analytics/page.tsx`        | 🔴       | L      | [x]                                                           |
-| 308 | Pro tier: summary widget only                                   | 🔴       | M      | [x]                                                           |
-| 309 | Business+: full dashboard                                       | 🔴       | L      | [x]                                                           |
-| 310 | Metrics: revenue, deals, bids, win rate, response time, ratings | 🔴       | L      | [~] Deals, ratings done; bids/win-rate/response-time deferred |
-| 311 | Charts: deals over time, revenue trend, category breakdown      | 🟡       | L      | [x] Deferred — needs chart library                            |
-| 312 | Export data (CSV)                                               | 🟡       | M      | [x] Deferred                                                  |
+| #   | Task                                                            | Priority | Effort | Status                             |
+| --- | --------------------------------------------------------------- | -------- | ------ | ---------------------------------- |
+| 307 | Build `src/app/(dashboard)/dashboard/analytics/page.tsx`        | 🔴       | L      | [x]                                |
+| 308 | Pro tier: summary widget only                                   | 🔴       | M      | [x]                                |
+| 309 | Business+: full dashboard                                       | 🔴       | L      | [x]                                |
+| 310 | Metrics: revenue, deals, bids, win rate, response time, ratings | 🔴       | L      | [x] bid win rate added             |
+| 311 | Charts: deals over time, revenue trend, category breakdown      | 🟡       | L      | [x] Recharts: area, bar, pie, line |
+| 312 | Export data (CSV)                                               | 🟡       | M      | [x]                                |
 
 ### 10.4 Homepage & SEO
 
@@ -610,28 +610,28 @@
 | --- | ---------------------------------------------------------- | -------- | ------ | ------ |
 | 318 | Cross-browser testing (Chrome, Safari, Firefox, Edge)      | 🔴       | L      | [ ]    |
 | 319 | Mobile responsive testing (all pages)                      | 🔴       | L      | [ ]    |
-| 320 | RTL layout verification for all components                 | 🔴       | L      | [ ]    |
+| 320 | RTL layout verification for all components                 | 🔴       | L      | [x]    |
 | 321 | Accessibility audit (WCAG 2.1 AA)                          | 🟡       | L      | [ ]    |
-| 322 | Form validation coverage (all Zod schemas client + server) | 🔴       | L      | [ ]    |
+| 322 | Form validation coverage (all Zod schemas client + server) | 🔴       | L      | [x]    |
 
 ### 11.2 Performance
 
 | #   | Task                                                  | Priority | Effort | Status |
 | --- | ----------------------------------------------------- | -------- | ------ | ------ |
-| 323 | Core Web Vitals optimization (LCP, FID, CLS)          | 🔴       | L      | [ ]    |
-| 324 | Image optimization (`next/image`, proper sizing)      | 🔴       | M      | [ ]    |
-| 325 | Code splitting verification                           | 🟡       | M      | [ ]    |
-| 326 | Database query optimization (slow query review)       | 🔴       | L      | [ ]    |
+| 323 | Core Web Vitals optimization (LCP, FID, CLS)          | 🔴       | L      | [x]    |
+| 324 | Image optimization (`next/image`, proper sizing)      | 🔴       | M      | [x]    |
+| 325 | Code splitting verification                           | 🟡       | M      | [x]    |
+| 326 | Database query optimization (slow query review)       | 🔴       | L      | [x]    |
 | 327 | Add `loading.tsx` and `error.tsx` to all route groups | 🔴       | L      | [x]    |
 
 ### 11.3 Security Hardening
 
 | #   | Task                                                                       | Priority | Effort | Status |
 | --- | -------------------------------------------------------------------------- | -------- | ------ | ------ |
-| 328 | Verify all Server Actions have auth + role + tier checks                   | 🔴       | L      | [ ]    |
-| 329 | Verify RLS policies cover all access patterns                              | 🔴       | L      | [ ]    |
+| 328 | Verify all Server Actions have auth + role + tier checks                   | 🔴       | L      | [x]    |
+| 329 | Verify RLS policies cover all access patterns                              | 🔴       | L      | [x]    |
 | 330 | CSP headers in `next.config.ts`                                            | 🔴       | M      | [x]    |
-| 331 | Rate limiting on all public-facing actions (14 endpoint rules via Upstash) | 🔴       | L      | [ ]    |
+| 331 | Rate limiting on all public-facing actions (14 endpoint rules via Upstash) | 🔴       | L      | [x]    |
 | 332 | No sensitive env vars exposed to client                                    | 🔴       | S      | [x]    |
 | 333 | File upload MIME validation server-side                                    | 🔴       | M      | [x]    |
 
@@ -677,12 +677,12 @@
 
 ### Bilingual (AR/EN)
 
-| #   | Task                                                                                                        | Priority | Effort | Status |
-| --- | ----------------------------------------------------------------------------------------------------------- | -------- | ------ | ------ |
-| 355 | All UI text supports Arabic (RTL) + English (LTR)                                                           | 🔴       | XL     | [ ]    |
-| 356 | Tailwind logical properties only (`ps-`, `pe-`, `ms-`, `me-`, `start`, `end`) — no `pl`/`pr`/`left`/`right` | 🔴       | XL     | [x]    |
-| 357 | `dir` attribute toggled on `<html>` per locale                                                              | 🔴       | S      | [x]    |
-| 358 | Paired DB fields: `*_ar` / `*_en` for all user-facing content                                               | 🔴       | XL     | [ ]    |
+| #   | Task                                                                                                        | Priority | Effort | Status                      |
+| --- | ----------------------------------------------------------------------------------------------------------- | -------- | ------ | --------------------------- |
+| 355 | All UI text supports Arabic (RTL) + English (LTR)                                                           | 🔴       | XL     | [~] Audited, key gaps fixed |
+| 356 | Tailwind logical properties only (`ps-`, `pe-`, `ms-`, `me-`, `start`, `end`) — no `pl`/`pr`/`left`/`right` | 🔴       | XL     | [x]                         |
+| 357 | `dir` attribute toggled on `<html>` per locale                                                              | 🔴       | S      | [x]                         |
+| 358 | Paired DB fields: `*_ar` / `*_en` for all user-facing content                                               | 🔴       | XL     | [~] Audited, key gaps fixed |
 
 ### Saudi Compliance
 
@@ -697,7 +697,7 @@
 
 | #   | Task                                                                                                         | Priority | Effort | Status |
 | --- | ------------------------------------------------------------------------------------------------------------ | -------- | ------ | ------ |
-| 363 | Client-side: hide/disable gated UI per tier                                                                  | 🔴       | XL     | [ ]    |
+| 363 | Client-side: hide/disable gated UI per tier                                                                  | 🔴       | XL     | [x]    |
 | 364 | Server-side: reject in server action if tier limit exceeded                                                  | 🔴       | XL     | [x]    |
 | 365 | Double-check for every gated feature (bids, products, CRM clients, quotations, contracts, Kanban, analytics) | 🔴       | L      | [x]    |
 

@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Notification Server Actions
+// Muhandes HUB — Notification Server Actions
 // =============================================================================
 
 'use server';
@@ -7,6 +7,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getTranslations } from 'next-intl/server';
 import { NotificationPreferenceSchema } from '@/schemas/message';
 import type { ActionResult, NotificationType } from '@/types';
@@ -56,9 +57,9 @@ export async function createNotification(params: {
   entity_id?: string;
 }): Promise<ActionResult<{ id: string }>> {
   const t = await getTranslations('actions.notifications');
-  const supabase = await createClient();
+  const admin = createAdminClient();
 
-  const { data: notification, error } = await db(supabase)
+  const { data: notification, error } = await admin
     .from('notifications')
     .insert({
       user_id: params.user_id,
@@ -205,4 +206,52 @@ export async function getUnreadMessageCount(): Promise<number> {
 
   if (!data) return 0;
   return data.reduce((sum: number, p: { unread_count: number }) => sum + p.unread_count, 0);
+}
+
+// ---------------------------------------------------------------------------
+// BULK MARK NOTIFICATIONS READ
+// ---------------------------------------------------------------------------
+export async function bulkMarkNotificationsRead(
+  ids: string[],
+): Promise<ActionResult<{ updated: number }>> {
+  const t = await getTranslations('actions.notifications');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+  if (!ids.length) return { data: { updated: 0 }, error: null };
+
+  const { count, error } = await db(supabase)
+    .from('notifications')
+    .update({ is_read: true }, { count: 'exact' })
+    .in('id', ids)
+    .eq('user_id', user.id);
+
+  if (error) return { data: null, error: t('markReadError') };
+
+  revalidatePath('/dashboard/notifications');
+  return { data: { updated: count ?? 0 }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// BULK DELETE NOTIFICATIONS
+// ---------------------------------------------------------------------------
+export async function bulkDeleteNotifications(
+  ids: string[],
+): Promise<ActionResult<{ deleted: number }>> {
+  const t = await getTranslations('actions.notifications');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+  if (!ids.length) return { data: { deleted: 0 }, error: null };
+
+  const { count, error } = await db(supabase)
+    .from('notifications')
+    .delete({ count: 'exact' })
+    .in('id', ids)
+    .eq('user_id', user.id);
+
+  if (error) return { data: null, error: t('deleteError') };
+
+  revalidatePath('/dashboard/notifications');
+  return { data: { deleted: count ?? 0 }, error: null };
 }

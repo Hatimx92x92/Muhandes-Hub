@@ -1,12 +1,12 @@
 // =============================================================================
-// Muqawil HUB — Open Graph Image Generation
+// Muhandes HUB — Open Graph Image Generation
 // Dynamic OG images for social sharing
 // =============================================================================
 
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Muhaned Hub | منصة مهندس';
+export const alt = 'Muhandes HUB | منصة مهندس';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -67,7 +67,7 @@ export default async function Image() {
             marginBottom: '24px',
           }}
         >
-          Muhaned Hub
+          Muhandes HUB
         </div>
 
         {/* Tagline */}

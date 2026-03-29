@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Subscription Expiry Check (Cron Endpoint)
+// Muhandes HUB — Subscription Expiry Check (Cron Endpoint)
 // Call via Vercel Cron or external scheduler once daily
 // Sends 7-day and 1-day warnings, and handles expired subscriptions
 // =============================================================================

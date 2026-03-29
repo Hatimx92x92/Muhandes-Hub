@@ -1,4 +1,4 @@
-# Muqawil HUB — API Design (Server Actions & Routes)
+# Muhandes HUB — API Design (Server Actions & Routes)
 
 > **Version**: 1.0 | **Date**: March 4, 2026  
 > **Source**: `.docs/FEATURES.md`
@@ -7,7 +7,7 @@
 
 ## Overview
 
-Muqawil HUB uses **Server Actions** for all mutations and **API Routes** only for external webhooks/callbacks. This document specifies every action signature, input schema, authorization, and side effects.
+Muhandes HUB uses **Server Actions** for all mutations and **API Routes** only for external webhooks/callbacks. This document specifies every action signature, input schema, authorization, and side effects.
 
 ### Standard Response Type
 

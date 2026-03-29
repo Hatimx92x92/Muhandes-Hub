@@ -1,11 +1,18 @@
 // =============================================================================
-// Profile Page — view and edit profile
+// Profile Page — view and edit profile (with avatar, logo, visibility, docs)
 // =============================================================================
 
 import { redirect } from 'next/navigation';
+import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { ProfileForm } from '@/components/forms/profile-form';
+import { CompanyDocuments } from '@/components/features/profile/company-documents';
+import { ProfileCompleteness } from '@/components/features/profile/profile-completeness';
+import { AvatarUpload } from '@/components/forms/avatar-upload';
+import { Button } from '@/components/ui/button';
+import { ExternalLink } from 'lucide-react';
+import { getEntitySlug } from '@/lib/utils';
 import type { UserProfile } from '@/hooks/use-auth';
 
 export default async function ProfilePage() {
@@ -14,36 +21,83 @@ export default async function ProfilePage() {
 
   if (!user) redirect('/login');
 
-  // Fetch full profile
-  const db = supabase as unknown as {
-    from: (t: string) => {
-      select: (c: string) => {
-        eq: (f: string, v: string) => {
-          single: () => Promise<{ data: UserProfile | null }>;
-        };
-      };
-    };
-  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
 
-  const { data: profile } = await db
+  const { data: profileData } = await db
     .from('profiles')
     .select(
-      'id, role, full_name, email, phone, profile_type, company_name_ar, company_name_en, avatar_url, logo_url, city, cr_number, website, bio_ar, bio_en, verification_status, subscription_tier, subscription_expires_at, is_admin',
+      'id, role, full_name, phone, profile_type, company_name_ar, company_name_en, avatar_url, logo_url, city_id, cr_number, website, bio_ar, bio_en, verification_status, is_admin, slug_ar, slug_en, profile_visibility, social_links, specializations, established_year',
     )
     .eq('id', user.id)
     .single();
 
-  if (!profile) redirect('/login');
+  if (!profileData) redirect('/login');
+
+  let subTier = 'starter';
+  let subExpires: string | null = null;
+  try {
+    const { data: subData } = await db
+      .from('subscriptions')
+      .select('tier, expires_at')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .single();
+    if (subData) {
+      subTier = subData.tier;
+      subExpires = subData.expires_at;
+    }
+  } catch {
+    // No active subscription
+  }
+
+  // Fetch company documents
+  const { data: companyDocs } = await db
+    .from('company_documents')
+    .select('id, display_name, file_url, file_name, file_size, mime_type, created_at')
+    .eq('user_id', user.id)
+    .order('sort_order', { ascending: true });
+
+  const profile: UserProfile = {
+    ...profileData,
+    email: user.email ?? '',
+    city: profileData.city_id,
+    subscription_tier: subTier,
+    subscription_expires_at: subExpires,
+    profile_visibility: profileData.profile_visibility || {},
+    social_links: profileData.social_links || {},
+    specializations: profileData.specializations || [],
+    established_year: profileData.established_year || null,
+  };
 
   const t = await getTranslations('dashboard.profile');
   const locale = await getLocale();
 
+  const profileSlug = getEntitySlug(profile, locale);
+  const showPublicProfile =
+    profileSlug && (profile.role === 'contractor' || profile.role === 'supplier');
+
   return (
     <div>
-      <h1 className="text-2xl font-bold text-foreground mb-2">{t('title')}</h1>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
+        {showPublicProfile && (
+          <Link href={`/partners/${profileSlug}`}>
+            <Button variant="outline" size="sm">
+              <ExternalLink className="me-1.5 h-4 w-4" />
+              {t('viewPublicProfile')}
+            </Button>
+          </Link>
+        )}
+      </div>
       <p className="text-sm text-muted-foreground mb-8">
         {t('subtitle')}
       </p>
+
+      {/* Profile completeness */}
+      <div className="mb-8">
+        <ProfileCompleteness profile={profile} documentsCount={companyDocs?.length || 0} />
+      </div>
 
       {/* Role + verification badges */}
       <div className="flex flex-wrap gap-3 mb-8">
@@ -63,21 +117,32 @@ export default async function ProfilePage() {
         </span>
       </div>
 
-      {/* Avatar placeholder */}
-      <div className="mb-8 flex items-center gap-4 rounded-xl border border-border bg-card p-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary text-xl font-bold">
-          {profile.full_name?.charAt(0) || '?'}
-        </div>
-        <div>
-          <p className="font-semibold text-foreground">{profile.full_name}</p>
+      {/* Avatar + Logo upload */}
+      <div className="mb-8 flex items-start gap-6 rounded-xl border border-border bg-card p-6">
+        <AvatarUpload
+          currentUrl={profile.avatar_url}
+          type="avatar"
+          size="lg"
+        />
+        <AvatarUpload
+          currentUrl={profile.logo_url}
+          type="logo"
+          size="lg"
+        />
+        <div className="flex flex-col justify-center min-w-0 flex-1">
+          <p className="font-semibold text-foreground text-lg">{profile.full_name}</p>
           <p className="text-sm text-muted-foreground" dir="ltr">{profile.email}</p>
-          {/* TODO: Avatar upload with Supabase Storage */}
         </div>
       </div>
 
       {/* Edit form */}
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="rounded-xl border border-border bg-card p-6 mb-8">
         <ProfileForm profile={profile} />
+      </div>
+
+      {/* Company documents */}
+      <div className="rounded-xl border border-border bg-card p-6">
+        <CompanyDocuments documents={companyDocs || []} />
       </div>
     </div>
   );

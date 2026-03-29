@@ -1,4 +1,4 @@
-# Muqawil HUB — System Architecture
+# Muhandes HUB — System Architecture
 
 > **Version**: 1.0 | **Date**: March 4, 2026  
 > **Source**: `.docs/FEATURES.md`
@@ -9,12 +9,12 @@
 
 ```mermaid
 C4Context
-    title Muqawil HUB — System Context
+    title Muhandes HUB — System Context
 
     Person(user, "Platform User", "PO / Contractor / Supplier / Buyer")
     Person(admin, "Admin", "Moderates content, manages users")
 
-    System(app, "Muqawil HUB", "Next.js 16 App Router on Vercel")
+    System(app, "Muhandes HUB", "Next.js 16 App Router on Vercel")
 
     System_Ext(supabase, "Supabase", "Postgres · Auth · Storage · Realtime")
     System_Ext(typesense, "Typesense Cloud", "Full-text search AR+EN")

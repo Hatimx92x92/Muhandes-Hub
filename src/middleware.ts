@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Middleware
+// Muhandes HUB — Middleware
 // next-intl locale routing + Supabase session refresh + route protection
 // =============================================================================
 
@@ -49,7 +49,7 @@ export async function middleware(request: NextRequest) {
   // Route protection — operates on locale-stripped path
   // ---------------------------------------------------------------------------
 
-  // Helper: redirect with locale prefix
+  // Helper: redirect with locale prefix (copies cookies from intlResponse)
   const localeRedirect = (path: string, params?: Record<string, string>) => {
     const url = new URL(`/${locale}${path}`, request.url);
     if (params) {
@@ -57,7 +57,20 @@ export async function middleware(request: NextRequest) {
         url.searchParams.set(key, value);
       }
     }
-    return NextResponse.redirect(url);
+    const res = NextResponse.redirect(url);
+    // Propagate cookies (e.g. session refresh / signOut) from intlResponse
+    for (const cookie of intlResponse.cookies.getAll()) {
+      res.cookies.set(cookie);
+    }
+    return res;
+  };
+
+  // Helper: sign out user and redirect (single-device enforcement)
+  const forceSignOut = async (reason: string) => {
+    await supabase.auth.signOut();
+    const res = localeRedirect('/login', { reason });
+    res.cookies.set('mh_session_token', '', { maxAge: 0, path: '/' });
+    return res;
   };
 
   // Protected: /dashboard/* requires authentication + active status
@@ -69,9 +82,17 @@ export async function middleware(request: NextRequest) {
   if (strippedPath.startsWith('/dashboard') && user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('verification_status, role, is_admin')
+      .select('verification_status, role, is_admin, active_session_token')
       .eq('id', user.id)
-      .single() as { data: { verification_status: string; role: string; is_admin: boolean } | null };
+      .single() as { data: { verification_status: string; role: string; is_admin: boolean; active_session_token: string | null } | null };
+
+    // Single-device enforcement: compare cookie token with DB token
+    if (profile?.active_session_token) {
+      const cookieToken = request.cookies.get('mh_session_token')?.value;
+      if (cookieToken !== profile.active_session_token) {
+        return forceSignOut('session_replaced');
+      }
+    }
 
     // Admin users should only use /admin/* — redirect away from /dashboard
     if (profile?.is_admin) {
@@ -95,14 +116,14 @@ export async function middleware(request: NextRequest) {
       if (status === 'banned') {
         return localeRedirect('/login', { error: 'banned' });
       }
-      if (status === 'restricted') {
-        return localeRedirect('/login', { error: 'restricted' });
-      }
+      // Restricted users can access dashboard with limited actions
+      // (enforced at server action level, not middleware)
     }
   }
 
   // Verification pages require authentication but NOT active status
-  if (strippedPath.startsWith('/verify') && !user) {
+  // Exception: /verify/email-sent is accessible without auth (no session after signUp)
+  if (strippedPath.startsWith('/verify') && strippedPath !== '/verify/email-sent' && !user) {
     return localeRedirect('/login');
   }
 
@@ -114,9 +135,17 @@ export async function middleware(request: NextRequest) {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('is_admin')
+      .select('is_admin, active_session_token')
       .eq('id', user.id)
-      .single() as { data: { is_admin: boolean } | null };
+      .single() as { data: { is_admin: boolean; active_session_token: string | null } | null };
+
+    // Single-device enforcement for admin routes
+    if (profile?.active_session_token) {
+      const cookieToken = request.cookies.get('mh_session_token')?.value;
+      if (cookieToken !== profile.active_session_token) {
+        return forceSignOut('session_replaced');
+      }
+    }
 
     if (!profile?.is_admin) {
       return localeRedirect('/dashboard');

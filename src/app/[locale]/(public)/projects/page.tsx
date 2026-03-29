@@ -8,8 +8,11 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/features/empty-state';
 import { MapPin, Banknote, Calendar, Users, FolderKanban, Search } from 'lucide-react';
-import { formatSAR, formatDate, getLocaleField } from '@/lib/utils';
+import { formatSAR, formatDate, getLocaleField, getEntitySlug } from '@/lib/utils';
 import { getTranslations, getLocale } from 'next-intl/server';
+import { BrowsePagination } from '@/components/features/browse-pagination';
+
+const PAGE_SIZE = 24;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -19,16 +22,19 @@ function db(supabase: any): any {
 export default async function ProjectsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; city?: string; source?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; city?: string; source?: string; sort?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
   const t = await getTranslations('public.projects');
   const locale = await getLocale();
+  const currentPage = Math.max(1, parseInt(params.page || '1', 10) || 1);
+  const from = (currentPage - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
 
   let query = db(supabase)
     .from('projects')
-    .select('id, title_ar, title_en, description_ar, description_en, city, budget_min, budget_max, source, classification, bid_count, created_at, timeline_start, timeline_end')
+    .select('id, title_ar, title_en, description_ar, description_en, city_id, budget_min, budget_max, source, classification, bid_count, created_at, timeline_start, timeline_end, slug_ar, slug_en', { count: 'exact' })
     .eq('status', 'published');
 
   if (params.q) {
@@ -37,7 +43,7 @@ export default async function ProjectsPage({
   }
 
   if (params.city) {
-    query = query.eq('city', params.city);
+    query = query.eq('city_id', params.city);
   }
   if (params.source) {
     query = query.eq('source', params.source);
@@ -54,7 +60,8 @@ export default async function ProjectsPage({
       query = query.order('created_at', { ascending: false });
   }
 
-  const { data: projects } = await query.limit(50);
+  const { data: projects, count } = await query.range(from, to);
+  const totalPages = Math.ceil((count ?? 0) / PAGE_SIZE);
 
   const items = (projects ?? []) as Array<{
     id: string;
@@ -62,7 +69,7 @@ export default async function ProjectsPage({
     title_en: string;
     description_ar: string;
     description_en: string;
-    city: string;
+    city_id: string;
     budget_min: number | null;
     budget_max: number | null;
     source: string;
@@ -74,7 +81,7 @@ export default async function ProjectsPage({
   }>;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <div className="py-16">
       <div className="mb-10">
         <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">{t('title')}</h1>
         <p className="mt-2 text-muted-foreground">{t('subtitle')}</p>
@@ -132,7 +139,7 @@ export default async function ProjectsPage({
       </div>
 
       <p className="mb-4 text-sm text-muted-foreground">
-        {t('resultCount', { count: items.length })}
+        {t('resultCount', { count: count ?? items.length })}
       </p>
 
       {items.length === 0 ? (
@@ -148,6 +155,13 @@ export default async function ProjectsPage({
           ))}
         </div>
       )}
+
+      <BrowsePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        searchParams={params as Record<string, string | undefined>}
+        labels={{ previous: t('previous'), next: t('next') }}
+      />
     </div>
   );
 }
@@ -166,7 +180,7 @@ function PublicProjectCard({
     title_en: string;
     description_ar: string;
     description_en: string;
-    city: string;
+    city_id: string;
     budget_min: number | null;
     budget_max: number | null;
     source: string;
@@ -174,6 +188,8 @@ function PublicProjectCard({
     bid_count: number;
     created_at: string;
     timeline_start: string | null;
+    slug_ar?: string | null;
+    slug_en?: string | null;
   };
   locale: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -184,7 +200,7 @@ function PublicProjectCard({
   const desc = descField?.slice(0, 120) + (descField?.length > 120 ? '…' : '');
 
   return (
-    <Link href={`/projects/${project.id}`}>
+    <Link href={`/projects/${getEntitySlug(project, locale)}`}>
       <Card className="h-full p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/20">
         <div className="space-y-3">
           <div>
@@ -202,10 +218,10 @@ function PublicProjectCard({
           <p className="text-sm text-muted-foreground line-clamp-2">{desc}</p>
 
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-            {project.city && (
+            {project.city_id && (
               <span className="flex items-center gap-1">
                 <MapPin className="h-3 w-3" />
-                {project.city}
+                {project.city_id}
               </span>
             )}
             {(project.budget_min || project.budget_max) && (

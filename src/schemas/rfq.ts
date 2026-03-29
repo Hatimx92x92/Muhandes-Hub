@@ -6,10 +6,10 @@ import { z } from 'zod/v4';
 
 // -- Create RFQ ---------------------------------------------------------------
 export const RFQSchema = z.object({
-  title_ar: z.string().min(5, 'Arabic title required (min 5 characters)'),
-  title_en: z.string().min(5, 'Title in English required (min 5 chars)'),
-  description_ar: z.string().min(20, 'Arabic description required (min 20 characters)'),
-  description_en: z.string().min(20, 'Description required (min 20 chars)'),
+  title_ar: z.string().optional(),
+  title_en: z.string().optional(),
+  description_ar: z.string().optional(),
+  description_en: z.string().optional(),
   category_id: z.string().uuid().optional(),
   quantity: z.coerce.number().int().min(1).optional(),
   budget_min: z.coerce.number().min(0).optional(),
@@ -19,6 +19,20 @@ export const RFQSchema = z.object({
   project_id: z.string().uuid().optional(),
   product_id: z.string().uuid().optional(),
 }).refine(
+  (data) => {
+    const ar = data.title_ar?.trim();
+    const en = data.title_en?.trim();
+    return (!!ar && ar.length >= 5) || (!!en && en.length >= 5);
+  },
+  { message: 'At least one language is required for title (min 5 characters)', path: ['title_ar'] },
+).refine(
+  (data) => {
+    const ar = data.description_ar?.trim();
+    const en = data.description_en?.trim();
+    return (!!ar && ar.length >= 20) || (!!en && en.length >= 20);
+  },
+  { message: 'At least one language is required for description (min 20 characters)', path: ['description_ar'] },
+).refine(
   (d) => !d.budget_min || !d.budget_max || d.budget_max >= d.budget_min,
   { message: 'Maximum must be greater than minimum', path: ['budget_max'] },
 );

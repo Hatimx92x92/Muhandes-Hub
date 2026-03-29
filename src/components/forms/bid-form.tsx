@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { CurrencyInput } from '@/components/forms/currency-input';
 import { FormField } from '@/components/forms/form-field';
 import { Card } from '@/components/ui/card';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import type { ActionResult } from '@/types';
 
 interface BidFormProps {
@@ -29,16 +30,12 @@ export function BidForm({ projectId, projectTitle }: BidFormProps) {
 
       {/* Success message */}
       {state?.data && (
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
-          {t('successMessage')}
-        </div>
+        <AlertBanner variant="success">{t('successMessage')}</AlertBanner>
       )}
 
       {/* Error message */}
       {state?.error && (
-        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
-          {state.error}
-        </div>
+        <AlertBanner variant="error">{state.error}</AlertBanner>
       )}
 
       {/* Project reference */}

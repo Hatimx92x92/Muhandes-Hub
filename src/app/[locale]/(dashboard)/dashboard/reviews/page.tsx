@@ -86,8 +86,8 @@ export default async function ReviewsPage({
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-100 dark:bg-yellow-900/30">
-              <Star className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warning/10">
+              <Star className="h-5 w-5 text-warning" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">{t('overallRating')}</p>
@@ -97,8 +97,8 @@ export default async function ReviewsPage({
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
-              <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-info/10">
+              <TrendingUp className="h-5 w-5 text-info" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">{t('totalReviewsCount')}</p>
@@ -108,8 +108,8 @@ export default async function ReviewsPage({
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
-              <ThumbsUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10">
+              <ThumbsUp className="h-5 w-5 text-success" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">{t('recommendRate')}</p>

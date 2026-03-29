@@ -21,11 +21,10 @@ export interface CurrencyInputProps
 }
 
 const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
-  ({ className, label, error, hint, showVat, id, onValueChange, onChange, value, ...props }, ref) => {
+  ({ className, label, error, hint, showVat, id, onValueChange, onChange, value, defaultValue, ...props }, ref) => {
     const inputId = id || props.name || 'amount';
-    const [displayValue, setDisplayValue] = useState<string>(
-      value !== undefined ? String(value) : '',
-    );
+    const initialValue = value !== undefined ? String(value) : defaultValue !== undefined ? String(defaultValue) : '';
+    const [displayValue, setDisplayValue] = useState<string>(initialValue);
 
     const numericValue = parseFloat(displayValue.replace(/,/g, '')) || 0;
     const vatAmount = numericValue * VAT_RATE;
@@ -64,6 +63,7 @@ const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
             SAR
           </div>
           <input
+            suppressHydrationWarning
             ref={ref}
             id={inputId}
             type="text"

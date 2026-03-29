@@ -1,18 +1,30 @@
 'use client';
 
 // =============================================================================
-// Muqawil HUB — Project Form (Create/Edit)
+// Muhandes HUB — Project Form (Create/Edit)
 // =============================================================================
 
-import { useActionState } from 'react';
+import { useActionState, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { BilingualFieldPair } from '@/components/ui/bilingual-field-pair';
 import { CitySelect } from '@/components/forms/city-select';
 import { CurrencyInput } from '@/components/forms/currency-input';
-import { createProject, updateProject } from '@/actions/projects';
+import { FileUpload } from '@/components/forms/file-upload';
+import { createProject, updateProject, removeProjectFile } from '@/actions/projects';
+import { AlertBanner } from '@/components/ui/alert-banner';
+import { X, FileText } from 'lucide-react';
 import type { ActionResult } from '@/types';
+
+interface ExistingFile {
+  id: string;
+  file_url: string;
+  file_name: string;
+  file_size: number;
+  category: string;
+  mime_type?: string;
+}
 
 interface ProjectFormProps {
   mode: 'create' | 'edit';
@@ -30,22 +42,41 @@ interface ProjectFormProps {
     timeline_end?: string;
     classification?: string;
     source?: string;
+    existingFiles?: ExistingFile[];
   };
 }
 
 export function ProjectForm({ mode, defaultValues }: ProjectFormProps) {
   const t = useTranslations('forms.project');
+  const tFiles = useTranslations('forms.project.files');
   const action = mode === 'create' ? createProject : updateProject;
   const [state, formAction, isPending] = useActionState<
     ActionResult<{ id: string; status?: string }> | null,
     FormData
   >(action as (state: ActionResult<{ id: string; status?: string }> | null, formData: FormData) => Promise<ActionResult<{ id: string; status?: string }>>, null);
 
+  const [projectFiles, setProjectFiles] = useState<File[]>([]);
+  const [fileCategory, setFileCategory] = useState('general');
+  const [existingFiles, setExistingFiles] = useState<ExistingFile[]>(defaultValues?.existingFiles ?? []);
+  const [isRemoving, startRemoveTransition] = useTransition();
+
   const getError = (field: string) =>
     state?.error ? state.fieldErrors?.[field]?.[0] : undefined;
 
   return (
-    <form action={formAction} className="space-y-8">
+    <form
+      action={(formData) => {
+        // Append files with their category
+        projectFiles.forEach((file) => {
+          formData.append('project_files', file);
+        });
+        if (projectFiles.length > 0) {
+          formData.set('file_category', fileCategory);
+        }
+        formAction(formData);
+      }}
+      className="space-y-8"
+    >
       {/* Hidden fields */}
       {mode === 'edit' && defaultValues?.project_id && (
         <input type="hidden" name="project_id" value={defaultValues.project_id} />
@@ -53,54 +84,38 @@ export function ProjectForm({ mode, defaultValues }: ProjectFormProps) {
 
       {/* Global error */}
       {state?.error && !state.fieldErrors && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
-          {state.error}
-        </div>
+        <AlertBanner variant="error">{state.error}</AlertBanner>
       )}
 
       {/* Success */}
       {state?.data && (
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300">
-          {mode === 'create' ? t('createSuccess') : t('updateSuccess')}
-        </div>
+        <AlertBanner variant="success">{mode === 'create' ? t('createSuccess') : t('updateSuccess')}</AlertBanner>
       )}
 
       {/* Section: Bilingual Content */}
       <section>
         <h2 className="mb-4 text-lg font-semibold text-foreground">{t('infoTitle')}</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Input
-            name="title_ar"
-            label={t('titleAr')}
-            defaultValue={defaultValues?.title_ar}
-            error={getError('title_ar')}
-            required
-          />
-          <Input
-            name="title_en"
-            label={t('titleEn')}
-            defaultValue={defaultValues?.title_en}
-            error={getError('title_en')}
-            dir="ltr"
-            required
-          />
-        </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Textarea
-            name="description_ar"
-            label={t('descAr')}
-            defaultValue={defaultValues?.description_ar}
-            error={getError('description_ar')}
+        <BilingualFieldPair
+          baseName="title"
+          labelAr={t('titleAr')}
+          labelEn={t('titleEn')}
+          defaultValueAr={defaultValues?.title_ar}
+          defaultValueEn={defaultValues?.title_en}
+          errorAr={getError('title_ar')}
+          errorEn={getError('title_en')}
+          required
+        />
+        <div className="mt-4">
+          <BilingualFieldPair
+            baseName="description"
+            type="textarea"
             rows={5}
-            required
-          />
-          <Textarea
-            name="description_en"
-            label={t('descEn')}
-            defaultValue={defaultValues?.description_en}
-            error={getError('description_en')}
-            dir="ltr"
-            rows={5}
+            labelAr={t('descAr')}
+            labelEn={t('descEn')}
+            defaultValueAr={defaultValues?.description_ar}
+            defaultValueEn={defaultValues?.description_en}
+            errorAr={getError('description_ar')}
+            errorEn={getError('description_en')}
             required
           />
         </div>
@@ -189,7 +204,85 @@ export function ProjectForm({ mode, defaultValues }: ProjectFormProps) {
         </div>
       </section>
 
-      {/* TODO: File upload section for BOQ, drawings, specs (Phase 3 - Task #109) */}
+      {/* Section: Documents & Files */}
+      <section>
+        <h2 className="mb-2 text-lg font-semibold text-foreground">{tFiles('title')}</h2>
+        <p className="mb-4 text-sm text-muted-foreground">{tFiles('hint')}</p>
+
+        {/* Existing files (edit mode) */}
+        {mode === 'edit' && existingFiles.length > 0 && (
+          <div className="mb-4">
+            <p className="mb-2 text-sm font-medium text-foreground">{tFiles('existingFiles')}</p>
+            <ul className="space-y-2">
+              {existingFiles.map((file) => (
+                <li
+                  key={file.id}
+                  className="flex items-center gap-2 rounded-lg border p-2 text-sm"
+                >
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span className="rounded bg-muted px-1.5 py-0.5 text-xs capitalize text-muted-foreground">
+                    {tFiles(file.category as 'boq' | 'drawings' | 'images' | 'specs' | 'general')}
+                  </span>
+                  <a
+                    href={file.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 truncate text-primary underline-offset-2 hover:underline"
+                  >
+                    {file.file_name}
+                  </a>
+                  <span className="text-xs text-muted-foreground">
+                    {(file.file_size / 1024).toFixed(0)} KB
+                  </span>
+                  <button
+                    type="button"
+                    disabled={isRemoving}
+                    onClick={() => {
+                      if (!defaultValues?.project_id) return;
+                      startRemoveTransition(async () => {
+                        await removeProjectFile(defaultValues.project_id!, file.id);
+                        setExistingFiles((prev) => prev.filter((f) => f.id !== file.id));
+                      });
+                    }}
+                    className="rounded p-1 text-muted-foreground transition-colors hover:text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Category selector */}
+        <div className="mb-3">
+          <label htmlFor="file_category" className="mb-1.5 block text-sm font-medium text-foreground">
+            {tFiles('category')}
+          </label>
+          <select
+            id="file_category"
+            value={fileCategory}
+            onChange={(e) => setFileCategory(e.target.value)}
+            className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:w-auto"
+          >
+            <option value="general">{tFiles('general')}</option>
+            <option value="boq">{tFiles('boq')}</option>
+            <option value="drawings">{tFiles('drawings')}</option>
+            <option value="images">{tFiles('images')}</option>
+            <option value="specs">{tFiles('specs')}</option>
+          </select>
+        </div>
+
+        <FileUpload
+          name="project_files_input"
+          accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/jpeg,image/png,image/webp"
+          multiple
+          maxSize={10}
+          maxFiles={10}
+          hint={tFiles('fileLimit')}
+          onUpload={setProjectFiles}
+        />
+      </section>
 
       {/* Submit */}
       <div className="flex gap-3">

@@ -1,8 +1,8 @@
-# Muqawil HUB — Lovable Custom Knowledge
+# Muhandes HUB — Lovable Custom Knowledge
 
 ## Project Overview
 
-Muqawil HUB is a bilingual (Arabic/English) B2B marketplace for the Saudi construction industry. It connects Project Owners, Contractors, Suppliers, and Buyers through project bidding, product procurement, RFQs, deal workspaces, and subscription-based services.
+Muhandes HUB is a bilingual (Arabic/English) B2B marketplace for the Saudi construction industry. It connects Project Owners, Contractors, Suppliers, and Buyers through project bidding, product procurement, RFQs, deal workspaces, and subscription-based services.
 
 - **Production URL**: https://www.muqawilhub.com
 - **Domain**: Saudi construction B2B marketplace

@@ -15,6 +15,7 @@ import {
   approveMilestoneSuggestion,
   rejectMilestoneSuggestion,
   approveSkipMilestone,
+  rejectSkipMilestone,
 } from '@/actions/deals';
 
 // ---------------------------------------------------------------------------
@@ -226,6 +227,41 @@ export function ApproveSkipButton({ requestId }: { requestId: string }) {
         disabled={isPending}
       >
         {isPending ? t('approving') : t('approveSkip')}
+      </Button>
+      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Reject Skip Milestone Button
+// ---------------------------------------------------------------------------
+export function RejectSkipButton({ requestId }: { requestId: string }) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const t = useTranslations('features.dealActions');
+
+  function handleReject() {
+    startTransition(async () => {
+      const result = await rejectSkipMilestone(requestId);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        router.refresh();
+      }
+    });
+  }
+
+  return (
+    <div>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleReject}
+        disabled={isPending}
+      >
+        {isPending ? t('rejecting') : t('rejectSkip')}
       </Button>
       {error && <p className="text-xs text-destructive mt-1">{error}</p>}
     </div>

@@ -1,5 +1,5 @@
 // =============================================================================
-// Muqawil HUB — Product Inquiry & Direct Hire Server Actions
+// Muhandes HUB — Product Inquiry & Direct Hire Server Actions
 // =============================================================================
 
 'use server';
@@ -58,7 +58,7 @@ export async function sendProductInquiry(
   // get product and supplier
   const { data: product } = await db(supabase)
     .from('products')
-    .select('id, supplier_id, title_ar')
+    .select('id, supplier_id, name_ar, name_en')
     .eq('id', parsed.data.product_id)
     .eq('status', 'published')
     .single();
@@ -72,13 +72,12 @@ export async function sendProductInquiry(
 
   // Insert inquiry
   const { data: inquiry, error } = await db(supabase)
-    .from('product_inquiries')
+    .from('inquiries')
     .insert({
       product_id: parsed.data.product_id,
       sender_id: user.id,
-      supplier_id: product.supplier_id,
-      message_ar: parsed.data.message_ar,
-      message_en: parsed.data.message_en || null,
+      requirements_ar: parsed.data.message_ar,
+      requirements_en: parsed.data.message_en || null,
       quantity: parsed.data.quantity || null,
       status: 'pending',
     })
@@ -98,7 +97,7 @@ export async function sendProductInquiry(
 
   notifyInquiryReceived({
     supplierId: product.supplier_id,
-    productTitle: { ar: product.title_ar, en: product.title_ar },
+    productTitle: { ar: product.name_ar, en: product.name_en },
     inquirerName: senderProfile?.company_name_ar || t('defaultUser'),
     productId: parsed.data.product_id,
     inquiryId: inquiry.id,
@@ -327,4 +326,68 @@ export async function declineHireRequest(
 
   revalidatePath('/dashboard/hire-requests');
   return { data: undefined, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// BULK MARK INQUIRIES AS RESPONDED (supplier only)
+// ---------------------------------------------------------------------------
+export async function bulkMarkInquiriesResponded(
+  ids: string[],
+): Promise<ActionResult<{ updated: number }>> {
+  const t = await getTranslations('actions.inquiries');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+  if (!ids.length) return { data: { updated: 0 }, error: null };
+
+  // Get supplier's product IDs so we only update inquiries on their products
+  const { data: myProducts } = await db(supabase)
+    .from('products')
+    .select('id')
+    .eq('supplier_id', user.id);
+  const productIds = (myProducts ?? []).map((p: { id: string }) => p.id);
+  if (!productIds.length) return { data: { updated: 0 }, error: null };
+
+  const { count, error } = await db(supabase)
+    .from('inquiries')
+    .update({ status: 'responded' }, { count: 'exact' })
+    .in('id', ids)
+    .in('product_id', productIds)
+    .eq('status', 'pending');
+
+  if (error) return { data: null, error: t('genericError') };
+
+  revalidatePath('/dashboard/inquiries');
+  return { data: { updated: count ?? 0 }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// BULK CLOSE INQUIRIES (supplier only)
+// ---------------------------------------------------------------------------
+export async function bulkCloseInquiries(
+  ids: string[],
+): Promise<ActionResult<{ updated: number }>> {
+  const t = await getTranslations('actions.inquiries');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+  if (!ids.length) return { data: { updated: 0 }, error: null };
+
+  const { data: myProducts } = await db(supabase)
+    .from('products')
+    .select('id')
+    .eq('supplier_id', user.id);
+  const productIds = (myProducts ?? []).map((p: { id: string }) => p.id);
+  if (!productIds.length) return { data: { updated: 0 }, error: null };
+
+  const { count, error } = await db(supabase)
+    .from('inquiries')
+    .update({ status: 'closed' }, { count: 'exact' })
+    .in('id', ids)
+    .in('product_id', productIds);
+
+  if (error) return { data: null, error: t('genericError') };
+
+  revalidatePath('/dashboard/inquiries');
+  return { data: { updated: count ?? 0 }, error: null };
 }

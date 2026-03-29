@@ -5,19 +5,33 @@
 import { Link } from '@/i18n/navigation';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import { PostStatusBadge } from '@/components/features/post-status-badge';
 import { EmptyState } from '@/components/features/empty-state';
+import { TierLimitIndicator } from '@/components/features/tier-gate';
 import { Plus, Package, AlertTriangle } from 'lucide-react';
 import { formatSAR, getLocaleField } from '@/lib/utils';
 import { TIER_LIMITS } from '@/types';
 import { getTranslations, getLocale } from 'next-intl/server';
+import { ProductsTableClient } from './products-table-client';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
   return supabase;
+}
+
+export interface ProductRow {
+  id: string;
+  name_ar: string;
+  name_en: string;
+  pricing_model: string;
+  price: number | null;
+  in_stock: boolean;
+  status: string;
+  created_at: string;
+  inquiry_count: number;
 }
 
 export default async function ProductsListPage() {
@@ -51,23 +65,24 @@ export default async function ProductsListPage() {
   const tCommon = await getTranslations('dashboard.common');
   const locale = await getLocale();
 
-  // Fetch products
+  // Fetch products with inquiry counts
   const { data: products } = await db(supabase)
     .from('products')
-    .select('id, name_ar, name_en, pricing_model, price, in_stock, status, created_at')
+    .select('id, name_ar, name_en, pricing_model, price, in_stock, status, created_at, inquiries(count)')
     .eq('supplier_id', user.id)
     .order('created_at', { ascending: false });
 
-  const items = (products ?? []) as Array<{
-    id: string;
-    name_ar: string;
-    name_en: string;
-    pricing_model: string;
-    price: number | null;
-    in_stock: boolean;
-    status: string;
-    created_at: string;
-  }>;
+  const items = (products ?? []).map((p: ProductRow & { inquiries: { count: number }[] }) => ({
+    id: p.id,
+    name_ar: p.name_ar,
+    name_en: p.name_en,
+    pricing_model: p.pricing_model,
+    price: p.price,
+    in_stock: p.in_stock,
+    status: p.status,
+    created_at: p.created_at,
+    inquiry_count: p.inquiries?.[0]?.count ?? 0,
+  })) as ProductRow[];
 
   const usedCount = items.length;
   const atLimit = maxProducts !== Infinity && usedCount >= maxProducts;
@@ -78,6 +93,26 @@ export default async function ProductsListPage() {
     draft: items.filter((p) => p.status === 'draft').length,
     pending: items.filter((p) => p.status === 'pending').length,
     published: items.filter((p) => p.status === 'published').length,
+  };
+
+  // Build serializable translations for the client component
+  const translations = {
+    name: t('name' as never) || 'Name',
+    status: tCommon('status'),
+    price: t('price'),
+    stock: t('inStock'),
+    outOfStock: t('outOfStock'),
+    inStock: t('inStock'),
+    created: tCommon('createdAt'),
+    byVariants: t('byVariants'),
+    actions: tCommon('actions'),
+    delete: tCommon('delete'),
+    submitForReview: t('detail.submitForReview' as never) || 'Submit for Review',
+    noProducts: t('noProducts'),
+    addFirstProduct: t('addFirstProduct'),
+    addProduct: t('addProduct'),
+    inquiries: t('inquiriesLabel' as never) || 'Inquiries',
+    selected: '{count} selected',
   };
 
   return (
@@ -91,12 +126,7 @@ export default async function ProductsListPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Tier limit indicator */}
-          <span className="text-sm text-muted-foreground">
-            {maxProducts === Infinity
-              ? `${usedCount} ${t('productCount')}`
-              : `${usedCount} / ${maxProducts}`}
-          </span>
+          <TierLimitIndicator current={usedCount} max={maxProducts} label={t('productCount')} />
           {atLimit ? (
             <Link href="/dashboard/subscription">
               <Button variant="outline" size="sm">
@@ -138,78 +168,9 @@ export default async function ProductsListPage() {
         <SummaryCard label={tCommon('published')} count={counts.published} variant="green" />
       </div>
 
-      {/* Products Grid */}
-      {items.length === 0 ? (
-        <EmptyState
-          icon={<Package className="h-12 w-12" />}
-          title={t('noProducts')}
-          description={t('addFirstProduct')}
-          actionLabel={t('addProduct')}
-          actionHref="/dashboard/products/new"
-        />
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      )}
+      {/* Products Table */}
+      <ProductsTableClient items={items} locale={locale} translations={translations} />
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Product Card
-// ---------------------------------------------------------------------------
-async function ProductCard({
-  product,
-}: {
-  product: {
-    id: string;
-    name_ar: string;
-    name_en: string;
-    pricing_model: string;
-    price: number | null;
-    in_stock: boolean;
-    status: string;
-    created_at: string;
-  };
-}) {
-  const t = await getTranslations('dashboard.products');
-  const locale = await getLocale();
-  const name = getLocaleField(product, 'name', locale);
-  const validStatuses = ['draft', 'pending', 'published', 'rejected', 'awarded', 'completed', 'expired', 'closed'] as const;
-  const status = validStatuses.includes(product.status as typeof validStatuses[number])
-    ? (product.status as typeof validStatuses[number])
-    : 'draft';
-
-  return (
-    <Link href={`/dashboard/products/${product.id}`}>
-      <Card className="h-full p-4 transition-colors hover:bg-card/80">
-        {/* Placeholder image */}
-        <div className="mb-3 flex h-32 items-center justify-center rounded-lg bg-muted">
-          <Package className="h-10 w-10 text-muted-foreground/50" />
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="truncate text-sm font-semibold text-foreground">{name}</h3>
-            <PostStatusBadge status={status} showIcon={false} />
-          </div>
-
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">
-              {product.pricing_model === 'fixed'
-                ? product.price ? formatSAR(product.price) : '—'
-                : t('byVariants')}
-            </span>
-            <span className={product.in_stock ? 'text-status-completed' : 'text-destructive'}>
-              {product.in_stock ? t('inStock') : t('outOfStock')}
-            </span>
-          </div>
-        </div>
-      </Card>
-    </Link>
   );
 }
 

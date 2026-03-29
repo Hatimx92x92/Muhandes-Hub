@@ -14,6 +14,7 @@ import {
   moveClientPipeline,
   tagClient,
 } from '@/actions/crm';
+import { MergeClientsModal } from '@/components/features/crm/merge-clients-modal';
 
 interface Props {
   clientId: string;
@@ -22,6 +23,10 @@ interface Props {
   currentStage: string;
   allTags: Array<Record<string, unknown>>;
   currentTagIds: string[];
+  clientName: string;
+  clientEmail: string | null;
+  clientPhone: string | null;
+  clientCompany: string | null;
 }
 
 const STAGES = [
@@ -32,7 +37,7 @@ const STAGES = [
   { key: 'repeat' },
 ] as const;
 
-export function ClientActions({ clientId, isFavorite, isArchived, currentStage, allTags, currentTagIds }: Props) {
+export function ClientActions({ clientId, isFavorite, isArchived, currentStage, allTags, currentTagIds, clientName, clientEmail, clientPhone, clientCompany }: Props) {
   const [isPending, startTransition] = useTransition();
   const t = useTranslations('features.clientActions');
 
@@ -79,6 +84,14 @@ export function ClientActions({ clientId, isFavorite, isArchived, currentStage, 
           >
             {isArchived ? t('unarchive') : t('archiveClient')}
           </Button>
+          <MergeClientsModal
+            clientId={clientId}
+            clientName={clientName}
+            clientEmail={clientEmail}
+            clientPhone={clientPhone}
+            clientCompany={clientCompany}
+            clientStage={currentStage}
+          />
         </div>
       </Card>
 

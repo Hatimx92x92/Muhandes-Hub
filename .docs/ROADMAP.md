@@ -1,4 +1,4 @@
-# Muqawil HUB — Implementation Roadmap
+# Muhandes HUB — Implementation Roadmap
 
 > **Version**: 1.0 | **Date**: March 4, 2026  
 > **Total Duration**: ~16 weeks (4 months) | **11 Phases**  
@@ -25,7 +25,7 @@
 
 ```mermaid
 gantt
-    title Muqawil HUB — 16 Week Roadmap
+    title Muhandes HUB — 16 Week Roadmap
     dateFormat YYYY-MM-DD
     axisFormat %b %d
 
@@ -161,8 +161,8 @@ Complete auth flow including email/password registration, Google OAuth, multi-st
 - [x] Step 2: Account details (email, password, phone, PDPL)
 - [x] Step 3: Company/Personal profile (conditional fields)
 - [x] Step 4: Subscription selection (Starter free, Pro/Business/Enterprise paid)
-- [ ] Step 5: Payment (Moyasar integration — skip for Starter)
-- [ ] Step 6: Document upload (skip for PO/Buyer/Starter)
+- [x] Step 5: Payment (card + bank transfer — skip for Starter)
+- [x] Step 6: Document upload (skip for PO/Buyer/Starter)
 - [x] Progress indicator showing current step
 
 #### 1.4 Login & Recovery
@@ -179,7 +179,7 @@ Complete auth flow including email/password registration, Google OAuth, multi-st
 
 #### 1.6 Email Verification
 
-- [ ] Configure Supabase email templates (bilingual AR/EN)
+- [x] Configure Supabase email templates (bilingual AR/EN)
 - [x] Handle verification redirect back to app
 
 ### Deliverables
@@ -215,7 +215,7 @@ Profile management, subscription system with Moyasar payments, coupon system, an
 - [x] Current tier display with usage stats (bids used, products posted, etc.)
 - [x] Upgrade/downgrade/renew UI
 - [x] Coupon input and validation
-- [ ] Moyasar payment integration for subscriptions
+- [x] Moyasar payment integration for subscriptions
 
 #### 2.3 Hooks
 
@@ -356,8 +356,8 @@ Complete quotation system (inquiry response + standalone), RFQ workflow, direct 
 - [x] Build `src/components/features/quotations/line-item-editor.tsx` — dynamic line items
 - [x] Auto-numbering: QTN-YYYY-NNNN per company
 - [x] VAT calculation (15% auto-added)
-- [ ] Clause library selection
-- [ ] PDF generation (bilingual)
+- [x] Clause library selection
+- [x] PDF generation (bilingual)
 - [x] Send via Resend email
 - [x] Accept quotation → create deal
 
@@ -433,7 +433,7 @@ Complete deal workspace with milestones, proof submission/review, dual progress 
 - [x] Deal completion: both progress bars at 100% → status: completed
 - [x] Cancellation request/approval flow
 - [x] Skip milestone request flow
-- [ ] Document vault tab (`src/app/(dashboard)/dashboard/deals/[id]/documents/page.tsx`)
+- [x] Document vault tab
 - [x] Realtime updates on deal workspace (Supabase channels)
 
 #### 6.5 Realtime Hook
@@ -467,10 +467,10 @@ Contract generator with templates and signatures, CRM pipeline, Kanban project m
 - [x] Build `src/app/(dashboard)/dashboard/contracts/page.tsx` — contract list
 - [x] Build `src/app/(dashboard)/dashboard/contracts/new/page.tsx` — create from template or deal
 - [x] Template selection: construction, supply, custom
-- [~] Clause library — display only, no reorder UI
+- [x] Clause library — interactive selection UI
 - [x] Dual signature flow (Party A → Party B)
-- [~] QR code — qr_uuid + verify page, no image generation
-- [ ] PDF generation (bilingual with signatures) — blocked, needs PDF lib
+- [x] QR code — qr_uuid + verify page + QR image generation
+- [x] PDF generation (bilingual with signatures)
 - [x] Build `src/app/verify/contract/[uuid]/page.tsx` — public verification page
 - [x] Tier limits on contracts per month
 
@@ -480,7 +480,7 @@ Contract generator with templates and signatures, CRM pipeline, Kanban project m
 - [x] Create `src/actions/crm.ts` — full CRM CRUD (scoring deferred)
 - [x] Build `src/app/(dashboard)/dashboard/crm/page.tsx` — pipeline view + client list
 - [x] Build `src/app/(dashboard)/dashboard/crm/[id]/page.tsx` — client detail (route simplified)
-- [~] Pipeline board — clickable stage cards, no drag-and-drop
+- [x] Pipeline board — @dnd-kit drag-and-drop with board/list toggle
 - [x] Tags, notes, reminders, interaction history
 - [x] Auto-link deal counterparties as CRM clients
 - [x] Client scoring (total deal value + count based)
@@ -492,17 +492,17 @@ Contract generator with templates and signatures, CRM pipeline, Kanban project m
 - [x] Build `src/app/(dashboard)/dashboard/deals/[id]/kanban/page.tsx`
 - [x] Build `src/components/features/kanban/kanban-board.tsx` — button-based move (DnD deferred)
 - [x] Default columns: To Do → In Progress → Review → Done
-- [~] Task cards: title, description, assignee, due date, priority (no attachments)
-- [~] Pro tier: tier check exists, checklist mode not differentiated
+- [x] Task cards: title, description, assignee, due date, priority, attachments
+- [x] Pro tier: simple checklist mode (no DnD)
 - [x] Business+: full Kanban board
-- [~] PO read-only view — contractor gate exists, not fully wired
+- [x] PO read-only view; Contractor manage access
 - [x] Done cards → prompt proof submission
 - [x] Realtime updates
 
 #### 7.4 Daily Site Log
 
 - [x] Build `src/app/(dashboard)/dashboard/deals/[id]/daily-log/page.tsx`
-- [~] Daily entry: weather, workers, description, issues (no photos — blocked on Storage)
+- [x] Daily entry: weather, workers, description, issues, photos
 - [x] One entry per day per deal constraint
 - [x] Chronological timeline display
 
@@ -532,7 +532,7 @@ Real-time messaging system and full notification pipeline (in-app, email, WhatsA
 - [x] Conversation list — inline in messages page
 - [x] Build `src/components/features/messaging/chat-thread.tsx`
 - [x] Build `src/components/features/messaging/message-bubble.tsx`
-- [~] File attachments — display support, upload blocked on Storage
+- [x] File attachments — upload via message-attachments bucket + chat UI
 - [x] Quick reply templates
 - [x] Context linking (from project, product, deal)
 - [x] Supabase Realtime for instant delivery
@@ -574,9 +574,9 @@ Review system, commission calculation and payment, Moyasar webhook handling, ZAT
 - [x] Create `src/actions/reviews.ts` — `submitReview`, `editReview`
 - [x] Build `src/app/(dashboard)/dashboard/reviews/page.tsx` — reviews given & received
 - [x] Build `src/components/features/reviews/review-form.tsx` — star ratings + comment
-- [~] Review button on completed deals (30-day window) — action validates; not yet wired on deal page
+- [x] Review button on completed deals (30-day window)
 - [x] 48-hour edit window
-- [ ] DB trigger updates profile averages — needs Supabase migration
+- [x] DB trigger updates profile averages
 - [x] Display reviews on partner profile page
 
 #### 9.2 Commissions
@@ -585,10 +585,10 @@ Review system, commission calculation and payment, Moyasar webhook handling, ZAT
 - [x] Build `src/app/(dashboard)/dashboard/commissions/page.tsx` — commission history
 - [x] Commission auto-calculated on deal creation (Starter 2%, Pro 1%) — DB trigger needs migration
 - [x] 14-day payment deadline with escalation (Day 14, 21, 28 reminders → Day 30 restriction)
-- [~] Card payment via Moyasar — action + webhook ready; needs Moyasar SDK
-- [~] Bank transfer + receipt upload — action ready; receipt needs Storage
+- [x] Card payment via Moyasar — Moyasar Invoice API integrated
+- [x] Bank transfer + receipt upload to bank-payments bucket + admin verification
 - [x] Dispute within 7 days (freezes deadline)
-- [ ] ZATCA invoice generation (bilingual PDF) — needs PDF library
+- [x] ZATCA invoice generation (bilingual PDF) — subscription + commission PDF templates + invoice history UI
 
 #### 9.3 Payment Webhook
 
@@ -649,9 +649,9 @@ Typesense full-text search, complete admin panel, analytics dashboard, and publi
 - [x] Build `src/app/(dashboard)/dashboard/analytics/page.tsx`
 - [x] Pro tier: summary widget only
 - [x] Business+: full dashboard
-- [~] Metrics: revenue, deals, bids, win rate, response time, ratings _(deals + ratings done; others deferred)_
-- [x] Charts: deals over time, revenue trend, category breakdown _(deferred — needs chart library)_
-- [x] Export data (CSV) _(deferred)_
+- [x] Metrics: revenue, deals, bids, win rate, response time, ratings
+- [x] Charts: deals over time, revenue trend, category breakdown _(Recharts implemented)_
+- [x] Export data (CSV) _(tier-gated: Business+ only)_
 
 #### 10.4 Homepage & Public Pages (Week 15)
 
@@ -680,24 +680,24 @@ Bug fixes, performance optimization, accessibility audit, responsive design veri
 
 - [ ] Cross-browser testing (Chrome, Safari, Firefox, Edge)
 - [ ] Mobile responsive testing (all pages)
-- [ ] RTL layout verification for all components
+- [x] RTL layout verification for all components
 - [ ] Accessibility audit (WCAG 2.1 AA)
-- [ ] Form validation coverage (all Zod schemas client + server)
+- [x] Form validation coverage (all Zod schemas client + server)
 
 #### 11.2 Performance
 
-- [ ] Core Web Vitals optimization (LCP, FID, CLS)
-- [ ] Image optimization (next/image, proper sizing)
-- [ ] Code splitting verification
-- [ ] Database query optimization (check slow queries in Supabase dashboard)
+- [x] Core Web Vitals optimization (LCP, FID, CLS)
+- [x] Image optimization (next/image, proper sizing)
+- [x] Code splitting verification
+- [x] Database query optimization (check slow queries in Supabase dashboard)
 - [x] Add loading.tsx and error.tsx to all route groups
 
 #### 11.3 Security Hardening
 
-- [ ] Verify all Server Actions have auth + role + tier checks
-- [ ] Verify RLS policies cover all access patterns
+- [x] Verify all Server Actions have auth + role + tier checks
+- [x] Verify RLS policies cover all access patterns
 - [x] CSP headers in next.config.ts
-- [ ] Rate limiting on all public-facing actions
+- [x] Rate limiting on all public-facing actions
 - [x] No sensitive env vars exposed to client
 - [ ] File upload MIME validation server-side
 
@@ -761,10 +761,10 @@ Bug fixes, performance optimization, accessibility audit, responsive design veri
 - [ ] All tasks checked off
 - [ ] No TypeScript errors (`npm run build` passes)
 - [ ] No ESLint errors (`npm run lint` passes)
-- [ ] Bilingual (AR + EN) verified for all new UI
+- [x] Bilingual (AR + EN) verified for all new UI
 - [ ] RTL layout correct for all new components
 - [ ] Mobile responsive for all new pages
 - [ ] RLS policies verified for new tables/actions
 - [x] Tier limits enforced (client + server) for gated features
-- [ ] Rate limiting active on public actions
+- [x] Rate limiting active on public actions
 - [ ] Error states handled (loading, empty, error boundaries)
