@@ -2,21 +2,54 @@
 // Marketplace Page — public product catalog with search & filters
 // =============================================================================
 
+import type { Metadata } from 'next';
 import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/features/empty-state';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Package, Search, Star } from 'lucide-react';
 import { formatSAR, getLocaleField, getEntitySlug } from '@/lib/utils';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { BrowsePagination } from '@/components/features/browse-pagination';
+import { SavedFilters } from '@/components/features/saved-filters';
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
 const PAGE_SIZE = 24;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
   return supabase;
+}
+
+// ---------------------------------------------------------------------------
+// SEO — generateMetadata
+// ---------------------------------------------------------------------------
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('metadata.marketplace');
+  const locale = await getLocale();
+
+  return {
+    title: t('title'),
+    description: t('description'),
+    openGraph: {
+      title: t('title'),
+      description: t('description'),
+      type: 'website',
+      locale: locale === 'ar' ? 'ar_SA' : 'en_US',
+      alternateLocale: locale === 'ar' ? 'en_US' : 'ar_SA',
+      siteName: 'Muhandes HUB',
+    },
+    alternates: {
+      canonical: `${BASE_URL}/${locale}/marketplace`,
+      languages: {
+        ar: `${BASE_URL}/ar/marketplace`,
+        en: `${BASE_URL}/en/marketplace`,
+      },
+    },
+  };
 }
 
 export default async function MarketplacePage({
@@ -27,7 +60,9 @@ export default async function MarketplacePage({
   const params = await searchParams;
   const supabase = await createClient();
   const t = await getTranslations('public.marketplace');
+  const sf = await getTranslations('features.savedFilters');
   const locale = await getLocale();
+  const { data: { user } } = await supabase.auth.getUser();
   const currentPage = Math.max(1, parseInt(params.page || '1', 10) || 1);
   const from = (currentPage - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
@@ -99,36 +134,42 @@ export default async function MarketplacePage({
               className="w-full rounded-lg border border-input bg-background py-2.5 pe-3 ps-10 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
-          <select
-            name="stock"
-            defaultValue={params.stock}
-            className="rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground"
-          >
-            <option value="">{t('allStock')}</option>
-            <option value="true">{t('inStock')}</option>
-          </select>
-          <select
-            name="sort"
-            defaultValue={params.sort}
-            className="rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground"
-          >
-            <option value="recent">{t('sortRecent')}</option>
-            <option value="price_asc">{t('sortPriceLow')}</option>
-            <option value="price_desc">{t('sortPriceHigh')}</option>
-          </select>
-          <button
-            type="submit"
-            className="rounded-xl bg-gradient-to-r from-primary to-primary-dark px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.98]"
-          >
+          <Select name="stock" defaultValue={params.stock}>
+            <SelectTrigger>
+              <SelectValue placeholder={t('allStock')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">{t('allStock')}</SelectItem>
+              <SelectItem value="true">{t('inStock')}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select name="sort" defaultValue={params.sort}>
+            <SelectTrigger>
+              <SelectValue placeholder={t('sortRecent')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">{t('sortRecent')}</SelectItem>
+              <SelectItem value="price_asc">{t('sortPriceLow')}</SelectItem>
+              <SelectItem value="price_desc">{t('sortPriceHigh')}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button type="submit">
             {t('search')}
-          </button>
+          </Button>
         </form>
       </div>
 
-      {/* Results count */}
-      <p className="mb-4 text-sm text-muted-foreground">
-        {t('resultCount', { count: count ?? items.length })}
-      </p>
+      {/* Results count + Saved filters */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          {t('resultCount', { count: count ?? items.length })}
+        </p>
+        <SavedFilters
+          page="marketplace"
+          translations={{ save: sf('save'), saveTitle: sf('saveTitle'), namePlaceholder: sf('namePlaceholder'), cancel: sf('cancel'), confirm: sf('confirm') }}
+          isAuthenticated={!!user}
+        />
+      </div>
 
       {/* Products Grid */}
       {items.length === 0 ? (

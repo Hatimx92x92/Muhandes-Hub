@@ -6,8 +6,10 @@ import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/features/empty-state';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Building2, Shield, Star, Search, Users, Briefcase, Package } from 'lucide-react';
 import { getLocaleField, getEntitySlug } from '@/lib/utils';
 import { getTranslations, getLocale } from 'next-intl/server';
@@ -90,21 +92,19 @@ export default async function PartnersPage({
               className="ps-10"
             />
           </div>
-          <select
-            name="role"
-            defaultValue={filters.role ?? ''}
-            className="rounded-lg border border-input bg-background px-3 py-2 text-sm"
-          >
-            <option value="">{t('allRoles')}</option>
-            <option value="contractor">{t('contractor')}</option>
-            <option value="supplier">{t('supplier')}</option>
-          </select>
-          <button
-            type="submit"
-            className="rounded-xl bg-gradient-to-r from-primary to-primary-dark px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.98]"
-          >
+          <Select name="role" defaultValue={filters.role ?? ''}>
+            <SelectTrigger>
+              <SelectValue placeholder={t('allRoles')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">{t('allRoles')}</SelectItem>
+              <SelectItem value="contractor">{t('contractor')}</SelectItem>
+              <SelectItem value="supplier">{t('supplier')}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button type="submit">
             {t('search')}
-          </button>
+          </Button>
         </form>
       </Card>
 

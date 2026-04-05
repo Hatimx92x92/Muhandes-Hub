@@ -14,6 +14,7 @@ import { CurrencyInput } from '@/components/forms/currency-input';
 import { FileUpload } from '@/components/forms/file-upload';
 import { createProject, updateProject, removeProjectFile } from '@/actions/projects';
 import { AlertBanner } from '@/components/ui/alert-banner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, FileText } from 'lucide-react';
 import type { ActionResult } from '@/types';
 
@@ -135,31 +136,31 @@ export function ProjectForm({ mode, defaultValues }: ProjectFormProps) {
             <label htmlFor="source" className="mb-1.5 block text-sm font-medium text-foreground">
               {t('source')}
             </label>
-            <select
-              id="source"
-              name="source"
-              defaultValue={defaultValues?.source || 'owner'}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            >
-              <option value="owner">{t('sourceOwner')}</option>
-              <option value="subcontract">{t('sourceSubcontract')}</option>
-            </select>
+            <Select name="source" defaultValue={defaultValues?.source || 'owner'}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="owner">{t('sourceOwner')}</SelectItem>
+                <SelectItem value="subcontract">{t('sourceSubcontract')}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <label htmlFor="classification" className="mb-1.5 block text-sm font-medium text-foreground">
               {t('classification')}
             </label>
-            <select
-              id="classification"
-              name="classification"
-              defaultValue={defaultValues?.classification || ''}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            >
-              <option value="">{t('noClassification')}</option>
-              <option value="a">{t('classA')}</option>
-              <option value="b">{t('classB')}</option>
-              <option value="c">{t('classC')}</option>
-            </select>
+            <Select name="classification" defaultValue={defaultValues?.classification || ''}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t('noClassification')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">{t('noClassification')}</SelectItem>
+                <SelectItem value="a">{t('classA')}</SelectItem>
+                <SelectItem value="b">{t('classB')}</SelectItem>
+                <SelectItem value="c">{t('classC')}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </section>
@@ -259,18 +260,18 @@ export function ProjectForm({ mode, defaultValues }: ProjectFormProps) {
           <label htmlFor="file_category" className="mb-1.5 block text-sm font-medium text-foreground">
             {tFiles('category')}
           </label>
-          <select
-            id="file_category"
-            value={fileCategory}
-            onChange={(e) => setFileCategory(e.target.value)}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:w-auto"
-          >
-            <option value="general">{tFiles('general')}</option>
-            <option value="boq">{tFiles('boq')}</option>
-            <option value="drawings">{tFiles('drawings')}</option>
-            <option value="images">{tFiles('images')}</option>
-            <option value="specs">{tFiles('specs')}</option>
-          </select>
+          <Select value={fileCategory} onValueChange={(v) => setFileCategory(v ?? '')}>
+            <SelectTrigger className="w-full sm:w-auto">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="general">{tFiles('general')}</SelectItem>
+              <SelectItem value="boq">{tFiles('boq')}</SelectItem>
+              <SelectItem value="drawings">{tFiles('drawings')}</SelectItem>
+              <SelectItem value="images">{tFiles('images')}</SelectItem>
+              <SelectItem value="specs">{tFiles('specs')}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <FileUpload

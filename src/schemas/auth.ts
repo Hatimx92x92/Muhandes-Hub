@@ -118,6 +118,19 @@ export const RegisterStep3Schema = z
   });
 export type RegisterStep3Input = z.infer<typeof RegisterStep3Schema>;
 
+/** OAuth Account step — name, phone, PDPL (no email/password since Google provides identity) */
+export const OAuthAccountSchema = z.object({
+  full_name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must not exceed 100 characters'),
+  phone: phoneField,
+  pdpl_consent: z.literal(true, {
+    error: 'You must agree to the privacy policy and terms of use',
+  }),
+});
+export type OAuthAccountInput = z.infer<typeof OAuthAccountSchema>;
+
 /** Step 4: Subscription tier (Contractor/Supplier only) */
 export const RegisterStep4Schema = z.object({
   tier: z.enum(['starter', 'pro', 'business', 'enterprise']),

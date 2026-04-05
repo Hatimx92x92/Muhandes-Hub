@@ -363,6 +363,8 @@ export async function acceptRFQResponse(responseId: string): Promise<ActionResul
     .from('deals')
     .insert({
       title_slug: `deal-${slugBase}`,
+      title_ar: rfq.title_ar || null,
+      title_en: rfq.title_en || null,
       deal_type: 'deal_product',
       trigger_source: 'rfq_response',
       rfq_response_id: responseId,

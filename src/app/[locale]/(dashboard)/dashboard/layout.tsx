@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { NotificationListener } from '@/components/features/notifications/notification-listener';
 import { BreadcrumbProvider } from '@/components/layout/breadcrumb-provider';
 import { BreadcrumbNav } from '@/components/layout/breadcrumb-nav';
+import { CommandSearch } from '@/components/features/command-search';
 import { getUnreadNotificationCount, getUnreadMessageCount } from '@/actions/notifications';
 import { getLocale } from 'next-intl/server';
 import { getEntitySlug } from '@/lib/utils';
@@ -69,7 +70,10 @@ export default async function DashboardLayout({
         <div className="flex flex-1 flex-col">
           <BreadcrumbProvider>
             <main className="flex-1 p-4 sm:p-6 lg:p-8">
-              <BreadcrumbNav rootType="dashboard" className="mb-6" />
+              <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <BreadcrumbNav rootType="dashboard" />
+                <CommandSearch isAdmin={profile?.is_admin} />
+              </div>
               {children}
             </main>
           </BreadcrumbProvider>

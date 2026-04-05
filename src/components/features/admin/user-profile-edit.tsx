@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pencil, Save, X, User, Building2, Hash, Globe, MapPin } from 'lucide-react';
 
 interface AdminProfileEditFormProps {
@@ -164,14 +165,15 @@ export function AdminProfileEditForm({ userId, profile, isAdmin }: AdminProfileE
             <div className="min-w-0 flex-1">
               <p className="text-xs text-muted-foreground">{t('profileType')}</p>
               {isEditing ? (
-                <select
-                  className="mt-1 h-8 w-full rounded-md border border-input bg-background px-2 text-sm"
-                  value={fields.profile_type}
-                  onChange={(e) => update('profile_type', e.target.value)}
-                >
-                  <option value="company">{t('company')}</option>
-                  <option value="personal">{t('personal')}</option>
-                </select>
+                <Select value={fields.profile_type} onValueChange={(val) => update('profile_type', val ?? '')}>
+                  <SelectTrigger className="mt-1 w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="company">{t('company')}</SelectItem>
+                    <SelectItem value="personal">{t('personal')}</SelectItem>
+                  </SelectContent>
+                </Select>
               ) : (
                 <Badge variant="secondary" className="mt-0.5">{t(fields.profile_type as 'company' | 'personal')}</Badge>
               )}
@@ -260,15 +262,16 @@ export function AdminProfileEditForm({ userId, profile, isAdmin }: AdminProfileE
             <div className="min-w-0 flex-1">
               <p className="text-xs text-muted-foreground">{t('verificationStatus')}</p>
               {isEditing ? (
-                <select
-                  className="mt-1 h-8 w-full rounded-md border border-input bg-background px-2 text-sm"
-                  value={fields.verification_status}
-                  onChange={(e) => update('verification_status', e.target.value)}
-                >
-                  {VERIFICATION_STATUSES.map((s) => (
-                    <option key={s} value={s}>{tAdmin(`userStatus.${s}`)}</option>
-                  ))}
-                </select>
+                <Select value={fields.verification_status} onValueChange={(val) => update('verification_status', val ?? '')}>
+                  <SelectTrigger className="mt-1 w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {VERIFICATION_STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>{tAdmin(`userStatus.${s}`)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               ) : (
                 <Badge variant={
                   fields.verification_status === 'active' ? 'success' :

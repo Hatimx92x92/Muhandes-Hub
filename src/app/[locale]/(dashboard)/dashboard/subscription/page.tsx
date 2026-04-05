@@ -13,6 +13,7 @@ import {
   type SubscriptionTier,
 } from '@/types';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 import { Check, X, Crown, ArrowUpLeft, RefreshCw, CalendarDays } from 'lucide-react';
 import { getInvoices } from '@/actions/subscriptions';
 import { InvoiceHistory } from '@/components/features/invoice-history';
@@ -155,15 +156,11 @@ export default async function SubscriptionPage() {
           </div>
 
           {isExpired && (
-            <span className="rounded-full bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive">
-              {t('expired')}
-            </span>
+            <Badge variant="destructive">{t('expired')}</Badge>
           )}
 
           {!isExpired && currentTier !== 'starter' && (
-            <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-              {t('active')}
-            </span>
+            <Badge variant="active">{t('active')}</Badge>
           )}
         </div>
 

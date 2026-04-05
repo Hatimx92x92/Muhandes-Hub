@@ -7,6 +7,7 @@ import { StarRating } from './star-rating';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertBanner } from '@/components/ui/alert-banner';
+import { Switch } from '@/components/ui/switch';
 import type { ActionResult } from '@/types';
 
 type State = ActionResult<{ id: string }> | null;
@@ -89,19 +90,10 @@ export function ReviewForm({ dealId, existingReview }: ReviewFormProps) {
 
       {/* Would Recommend */}
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => setWouldRecommend(!wouldRecommend)}
-          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-            wouldRecommend ? 'bg-primary' : 'bg-muted'
-          }`}
-        >
-          <span
-            className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg transition-transform ${
-              wouldRecommend ? 'translate-x-5 rtl:-translate-x-5' : 'translate-x-0'
-            }`}
-          />
-        </button>
+        <Switch
+          checked={wouldRecommend}
+          onCheckedChange={setWouldRecommend}
+        />
         <span className="text-sm font-medium">{t('wouldRecommend')}</span>
       </div>
 

@@ -699,7 +699,7 @@ Bug fixes, performance optimization, accessibility audit, responsive design veri
 - [x] CSP headers in next.config.ts
 - [x] Rate limiting on all public-facing actions
 - [x] No sensitive env vars exposed to client
-- [ ] File upload MIME validation server-side
+- [x] File upload MIME validation server-side
 
 #### 11.4 Testing Setup
 

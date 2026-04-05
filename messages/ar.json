@@ -56,6 +56,7 @@
     "milestones": "المراحل",
     "proofs": "الإثباتات",
     "users": "المستخدمون",
+    "registrations": "التسجيلات",
     "posts": "المنشورات",
     "subscriptions": "الاشتراكات",
     "auditLog": "سجل المراجعة",
@@ -94,15 +95,19 @@
     "cookies": "سياسة ملفات تعريف الارتباط",
     "adminPanel": "لوحة الإدارة",
     "groupOverview": "نظرة عامة",
+    "groupCore": "الرئيسية",
+    "groupCommerce": "الأعمال",
     "groupProjectManagement": "إدارة المشاريع",
     "groupProjectsBidding": "المشاريع والعطاءات",
     "groupProductsSales": "المنتجات والمبيعات",
     "groupProcurement": "المشتريات",
     "groupCommunication": "التواصل",
+    "groupTools": "الأدوات",
     "groupBusiness": "الأعمال",
     "groupAccount": "الحساب",
     "viewPublicProfile": "عرض الملف العام",
-    "myBids": "عروضي"
+    "myBids": "عروضي",
+    "invitations": "الدعوات"
   },
   "locale": {
     "switchToEn": "Switch to English",
@@ -707,6 +712,13 @@
       "docCat_invoices": "الفواتير",
       "docCat_correspondence": "المراسلات",
       "docCat_general": "عام",
+      "photoTimeline": "الجدول الزمني للصور",
+      "photoTimelineDesc": "عرض زمني لجميع صور الصفقة من السجلات اليومية والإثباتات",
+      "noPhotos": "لا توجد صور بعد",
+      "noPhotosDesc": "ستظهر الصور من سجلات الموقع اليومية وتقديمات الإثبات هنا",
+      "photosCount": "{count} صور",
+      "fromDailyLog": "سجل يومي",
+      "fromProof": "إثبات",
       "dailyLogTitle": "سجل الموقع اليومي",
       "logRecords": "سجلات",
       "todayLog": "سجل اليوم",
@@ -764,7 +776,33 @@
       "roleBuyer": "مشتري",
       "accountRole": "نوع الحساب",
       "dealOrigin": "أصل الصفقة",
-      "linkedContracts": "العقود المرتبطة"
+      "linkedContracts": "العقود المرتبطة",
+      "untitledDeal": "صفقة بدون عنوان",
+      "guide": {
+        "nextStep": "الخطوة التالية",
+        "yourRole": "دورك: {role}",
+        "createFirstMilestone": "أنشئ المرحلة الأولى لبدء تتبع التقدم والمدفوعات",
+        "createFirstMilestoneBtn": "إضافة أول مرحلة",
+        "waitingForMilestones": "في انتظار قيام المشتري بإنشاء المراحل. سيتم إعلامك عندما تكون جاهزة.",
+        "submitProgress": "أرسل تحديث تقدم العمل لإظهار ما تم إنجازه",
+        "submitProgressBtn": "إرسال تقدم العمل",
+        "submitPayment": "أرسل إثبات الدفع لتأكيد التحويل",
+        "submitPaymentBtn": "إرسال إثبات الدفع",
+        "reviewPendingProofs": "لديك {count} إثبات(ات) معلقة من الطرف الآخر للمراجعة",
+        "reviewPendingProofsBtn": "مراجعة الإثباتات",
+        "reviewCancellation": "طلب الطرف الآخر إلغاء هذه الصفقة",
+        "reviewCancellationBtn": "مراجعة طلب الإلغاء",
+        "reviewSkipRequest": "طلب الطرف الآخر التخطي إلى الإنهاء",
+        "reviewSkipRequestBtn": "مراجعة طلب التخطي",
+        "reviewSuggestions": "اقترح البائع تعديلات على {count} مرحلة(مراحل)",
+        "reviewSuggestionsBtn": "مراجعة الاقتراحات",
+        "writeReview": "تمت الصفقة. شارك تجربتك في العمل مع شريكك",
+        "writeReviewBtn": "كتابة تقييم",
+        "dealComplete": "تمت هذه الصفقة بنجاح",
+        "dealCompleteReviewed": "تمت الصفقة — شكراً لتقييمك!",
+        "dealCancelled": "تم إلغاء هذه الصفقة",
+        "dealDisputed": "هذه الصفقة قيد النزاع وتتم مراجعتها من قبل الإدارة"
+      }
     },
     "products": {
       "title": "المنتجات",
@@ -841,6 +879,86 @@
         "responded": "تم الرد",
         "closed": "مغلق"
       }
+    },
+    "invitations": {
+      "title": "الدعوات",
+      "tabSendQuote": "دعوة لتقديم عرض سعر",
+      "tabSendBid": "دعوة لتقديم عرض",
+      "tabSent": "الدعوات المرسلة",
+      "tabReceived": "الدعوات المستلمة",
+      "inviteToQuoteTitle": "دعوة مورد لتقديم عرض سعر",
+      "inviteToQuoteDesc": "اختر مشروعاً منشوراً وادعُ مورداً لتقديم عرض سعر.",
+      "inviteToBidTitle": "دعوة مقاول لتقديم عرض",
+      "inviteToBidDesc": "اختر مشروعاً منشوراً وادعُ مقاولاً لتقديم عرض.",
+      "selectProject": "المشروع",
+      "selectProjectPlaceholder": "اختر مشروعاً...",
+      "selectSupplier": "المورد",
+      "selectSupplierPlaceholder": "اختر مورداً...",
+      "selectContractor": "المقاول",
+      "selectContractorPlaceholder": "اختر مقاولاً...",
+      "descriptionAr": "الوصف (عربي)",
+      "descriptionArPlaceholder": "صف ما تحتاجه من المورد...",
+      "descriptionEn": "الوصف (إنجليزي)",
+      "descriptionEnPlaceholder": "وصف اختياري بالإنجليزية...",
+      "messageAr": "الرسالة (عربي)",
+      "messageArPlaceholder": "رسالة اختيارية للمقاول...",
+      "messageEn": "الرسالة (إنجليزي)",
+      "messageEnPlaceholder": "رسالة اختيارية بالإنجليزية...",
+      "sending": "جارٍ الإرسال...",
+      "sendQuoteInvitation": "إرسال دعوة عرض سعر",
+      "sendBidInvitation": "إرسال دعوة عرض",
+      "quoteInvitationSent": "تم إرسال دعوة عرض السعر بنجاح!",
+      "bidInvitationSent": "تم إرسال دعوة العرض بنجاح!",
+      "noSentInvitations": "لا توجد دعوات مرسلة",
+      "noSentInvitationsDesc": "ستظهر الدعوات التي ترسلها هنا",
+      "noQuoteInvitations": "لا توجد دعوات عروض أسعار",
+      "noQuoteInvitationsDesc": "عندما يدعوك صاحب مشروع لتقديم عرض سعر، ستظهر هنا",
+      "noBidInvitations": "لا توجد دعوات عروض",
+      "noBidInvitationsDesc": "عندما يدعوك صاحب مشروع لتقديم عرض، ستظهر هنا",
+      "from": "من",
+      "to": "إلى",
+      "typeQuote": "عرض سعر",
+      "typeBid": "عرض",
+      "acceptAndQuote": "قبول وتقديم عرض سعر",
+      "decline": "رفض",
+      "submitBid": "تقديم عرض",
+      "quotationAmount": "مبلغ عرض السعر (ر.س)",
+      "quotationDescAr": "وصف عرض السعر (عربي)",
+      "quotationDescArPlaceholder": "صف عرض السعر...",
+      "quotationDescEn": "وصف عرض السعر (إنجليزي)",
+      "quotationDescEnPlaceholder": "وصف اختياري بالإنجليزية...",
+      "sendQuotation": "إرسال عرض السعر",
+      "quotationCreated": "تم إنشاء عرض السعر بنجاح!",
+      "invitationDeclined": "تم رفض الدعوة",
+      "declineReason": "السبب (اختياري)",
+      "declineReasonPlaceholder": "اشرح سبب الرفض باختصار...",
+      "confirmDecline": "تأكيد الرفض",
+      "cancel": "إلغاء",
+      "status_pending": "قيد الانتظار",
+      "status_accepted": "مقبول",
+      "status_declined": "مرفوض",
+      "status_cancelled": "ملغي"
+    },
+    "bulkUpload": {
+      "title": "رفع المنتجات بالجملة",
+      "subtitle": "رفع عدة منتجات دفعة واحدة باستخدام ملف CSV",
+      "requiresBusiness": "الرفع بالجملة يتطلب اشتراك أعمال أو مؤسسات",
+      "suppliersOnly": "الرفع بالجملة متاح للموردين فقط",
+      "instructions": "تعليمات الرفع",
+      "step1": "حمّل قالب CSV أدناه",
+      "step2": "املأ بيانات منتجاتك (title_ar و price مطلوبان)",
+      "step3": "ارفع ملف CSV المكتمل",
+      "downloadTemplate": "تحميل قالب CSV",
+      "selectFile": "اختر ملف CSV",
+      "maxSize": "الحد الأقصى لحجم الملف: 5 ميجابايت",
+      "uploading": "جارٍ استيراد المنتجات...",
+      "importProducts": "استيراد المنتجات",
+      "results": "نتائج الاستيراد",
+      "imported": "منتجات تم استيرادها",
+      "skipped": "منتجات تم تخطيها",
+      "errors": "أخطاء",
+      "noFile": "يرجى اختيار ملف CSV",
+      "columns": "الأعمدة المطلوبة: title_ar, price. اختيارية: title_en, description_ar, description_en, category_id, unit, moq, sku"
     },
     "rfqs": {
       "title": "طلبات عروض الأسعار",
@@ -1348,7 +1466,10 @@
         "cancelledDeals": "ملغية",
         "totalRevenue": "الإيرادات",
         "avgRating": "متوسط التقييم",
-        "totalReviews": "التقييمات"
+        "totalReviews": "التقييمات",
+        "avgDealValue": "متوسط قيمة الصفقة",
+        "avgCompletionDays": "متوسط وقت الإنجاز",
+        "days": "يوم"
       },
       "vsLastPeriod": "مقارنة بالفترة السابقة",
       "rolePerformance": "أداء الدور",
@@ -1378,26 +1499,72 @@
       },
       "charts": {
         "dealsOverTime": "الصفقات عبر الزمن",
+        "dealsOverTimeDesc": "عدد الصفقات المنشأة خلال الفترة المحددة",
         "deals": "الصفقات",
         "revenueTrend": "اتجاه الإيرادات",
+        "revenueTrendDesc": "الإيرادات المحققة عبر الزمن بالريال السعودي",
         "revenue": "الإيرادات",
         "dealsByStatus": "الصفقات حسب الحالة",
+        "dealsByStatusDesc": "توزيع الصفقات حسب حالاتها المختلفة",
         "ratingOverTime": "التقييم عبر الزمن",
+        "ratingOverTimeDesc": "اتجاه متوسط التقييم خلال الفترة المحددة",
         "rating": "التقييم",
         "bidsByStatus": "العروض حسب الحالة",
+        "bidsByStatusDesc": "تصنيف عروضك حسب حالتها الحالية",
         "bidWinRateTrend": "اتجاه نسبة الفوز",
+        "bidWinRateTrendDesc": "نسبة الفوز بعروضك عبر الزمن",
         "winRate": "نسبة الفوز",
         "topProducts": "أفضل المنتجات",
+        "topProductsDesc": "أكثر منتجاتك مشاهدة واستفساراً",
         "quotationsByStatus": "عروض الأسعار حسب الحالة",
+        "quotationsByStatusDesc": "توزيع عروض الأسعار حسب حالاتها",
+        "subRatings": "تحليل التقييمات",
+        "subRatingsDesc": "متوسط الدرجات عبر الجودة والالتزام بالمواعيد والتواصل",
+        "topPartners": "أفضل الشركاء",
+        "topPartnersDesc": "شركاؤك الأعلى قيمة حسب إيرادات الصفقات",
+        "conversionFunnel": "قمع التحويل",
+        "conversionFunnelDesc": "تقدم مسار العمل من البداية حتى إتمام الصفقة",
+        "projectsByStatus": "المشاريع حسب الحالة",
+        "projectsByStatusDesc": "توزيع مشاريعك حسب حالاتها",
+        "bidsReceivedByStatus": "العروض المستلمة حسب الحالة",
+        "bidsReceivedByStatusDesc": "تصنيف العروض المستلمة على مشاريعك",
+        "ratingCategory": {
+          "quality": "الجودة",
+          "timeliness": "الالتزام بالمواعيد",
+          "communication": "التواصل"
+        },
+        "funnelStage": {
+          "bids": "العروض",
+          "shortlisted": "مختارة",
+          "awarded": "مُرسى عليها",
+          "deals": "الصفقات",
+          "completed": "مكتملة",
+          "quotations": "عروض الأسعار",
+          "viewed": "تمت المشاهدة",
+          "accepted": "مقبولة",
+          "projects": "المشاريع",
+          "rfqs": "طلبات الأسعار",
+          "bidsReceived": "العروض المستلمة"
+        },
         "roleSpecific": "تحليل النشاط",
-        "noData": "لا توجد بيانات لهذه الفترة"
+        "noData": "لا توجد بيانات لهذه الفترة",
+        "trendUp": "ارتفاع بنسبة {value}٪",
+        "trendDown": "انخفاض بنسبة {value}٪",
+        "total": "الإجمالي"
       },
       "status": {
         "active": "نشطة",
         "in_progress": "قيد التنفيذ",
         "completed": "مكتملة",
         "cancelled": "ملغية",
-        "disputed": "متنازع عليها"
+        "disputed": "متنازع عليها",
+        "draft": "مسودة",
+        "pending": "قيد الانتظار",
+        "published": "منشور",
+        "rejected": "مرفوض",
+        "awarded": "مُرسى عليه",
+        "expired": "منتهي",
+        "closed": "مغلق"
       },
       "bidStatus": {
         "pending": "قيد الانتظار",
@@ -1447,6 +1614,7 @@
       "backToDashboard": "العودة للوحة التحكم",
       "dashboard": "لوحة الإدارة",
       "users": "المستخدمون",
+      "registrations": "التسجيلات",
       "posts": "المنشورات",
       "deals": "الصفقات",
       "commissions": "العمولات",
@@ -1612,6 +1780,26 @@
       "subtitle": "عرض وإدارة حسابات المستخدمين",
       "noUsers": "لا يوجد مستخدمون",
       "noUsersDesc": "لم يتم العثور على مستخدمين بهذه المعايير"
+    },
+    "registrationsPage": {
+      "title": "التسجيلات المعلقة",
+      "subtitle": "مراجعة واعتماد تسجيلات المستخدمين الجدد",
+      "totalPending": "إجمالي المعلق",
+      "colTier": "الباقة",
+      "colDocuments": "المستندات",
+      "noRegistrations": "لا توجد تسجيلات معلقة",
+      "noRegistrationsDesc": "تمت معالجة جميع التسجيلات",
+      "docVatCertificate": "شهادة ضريبة القيمة المضافة",
+      "docCommercialLicense": "السجل التجاري",
+      "docPending": "قيد المراجعة",
+      "docApproved": "معتمد",
+      "docRejected": "مرفوض",
+      "viewDocs": "عرض المستندات",
+      "rejectReason": "سبب الرفض",
+      "rejectReasonAr": "السبب (عربي)",
+      "rejectReasonEn": "السبب (إنجليزي)",
+      "confirmReject": "تأكيد الرفض",
+      "cancel": "إلغاء"
     },
     "postsPage": {
       "title": "إدارة المنشورات",
@@ -1867,8 +2055,15 @@
       "title": "التحليلات",
       "subtitle": "إحصائيات وتحليلات المنصة",
       "userGrowth": "نمو المستخدمين",
+      "userGrowthDesc": "تسجيلات المستخدمين الجدد خلال الـ 30 يوماً الماضية",
       "usersByRole": "المستخدمون حسب الدور",
+      "usersByRoleDesc": "توزيع المستخدمين حسب أدوارهم في المنصة",
       "registrationFunnel": "قمع التسجيل",
+      "registrationFunnelDesc": "عدد المستخدمين في كل مرحلة تسجيل",
+      "revenueOverview": "نظرة على الإيرادات",
+      "revenueOverviewDesc": "تفصيل الإيرادات الشهرية بالريال السعودي",
+      "revenueByTier": "الإيرادات حسب الباقة",
+      "revenueByTierDesc": "توزيع الاشتراكات النشطة حسب الباقات",
       "signups": "تسجيل",
       "emailVerified": "تفعيل البريد",
       "paid": "الدفع",
@@ -1901,7 +2096,8 @@
       "bids": "العروض",
       "incompleteRegistrations": "تسجيلات غير مكتملة",
       "export": "تصدير CSV",
-      "noData": "لا توجد بيانات"
+      "noData": "لا توجد بيانات",
+      "users": "مستخدمين"
     },
     "contactsPage": {
       "title": "رسائل التواصل",
@@ -2722,9 +2918,38 @@
     }
   },
   "features": {
+    "commandSearch": {
+      "title": "بحث",
+      "description": "ابحث في صفقاتك ومشاريعك ومنتجاتك وعملائك والمزيد",
+      "placeholder": "بحث...",
+      "noResults": "لم يتم العثور على نتائج",
+      "typeToSearch": "اكتب حرفين على الأقل للبحث",
+      "deals": "الصفقات",
+      "projects": "المشاريع",
+      "products": "المنتجات",
+      "clients": "عملاء CRM",
+      "contracts": "العقود",
+      "conversations": "المحادثات",
+      "admin": "الإدارة"
+    },
+    "dashboardActivity": {
+      "title": "النشاط الأخير",
+      "noActivity": "لا يوجد نشاط حديث",
+      "viewAll": "عرض الكل",
+      "notification": "إشعار",
+      "deal": "صفقة"
+    },
+    "savedFilters": {
+      "save": "حفظ الفلتر",
+      "saveTitle": "حفظ الفلاتر الحالية",
+      "namePlaceholder": "اسم الفلتر…",
+      "cancel": "إلغاء",
+      "confirm": "حفظ"
+    },
     "onboarding": {
       "title": "قائمة البدء",
-      "dismiss": "إخفاء",
+      "dismiss": "إخفاء القائمة",
+      "progress": "{percent}% مكتمل",
       "steps": {
         "email": "تحقق من بريدك الإلكتروني",
         "profile": "أكمل ملفك الشخصي",
@@ -2917,6 +3142,7 @@
     },
     "adminUser": {
       "approve": "اعتماد",
+      "reject": "رفض",
       "restrict": "تقييد",
       "ban": "حظر",
       "unban": "إلغاء الحظر",
@@ -3194,7 +3420,7 @@
       },
       "contact": {
         "title": "التواصل معنا",
-        "description": "لأي استفسارات حول خصوصية بياناتك، يرجى التواصل عبر: privacy@muqawilhub.com"
+        "description": "لأي استفسارات حول خصوصية بياناتك، يرجى التواصل عبر: privacy@muhandeshub.com"
       },
       "seeAlso": "انظر أيضاً",
       "termsLink": "الشروط والأحكام",
@@ -3284,7 +3510,7 @@
       },
       "contact": {
         "title": "التواصل معنا",
-        "description": "لأي استفسارات حول ملفات تعريف الارتباط: privacy@muqawilhub.com"
+        "description": "لأي استفسارات حول ملفات تعريف الارتباط: privacy@muhandeshub.com"
       },
       "seeAlso": "انظر أيضاً",
       "privacyLink": "سياسة الخصوصية",
@@ -3297,6 +3523,10 @@
       "description": "منظومة رقمية متكاملة تربط أصحاب المشاريع والمقاولين والموردين والمشترين في قطاع الإنشاءات السعودي. ابدأ الآن مجاناً.",
       "ogTitle": "منصة مهندس — منصة قطاع الإنشاءات | Muhandes HUB",
       "ogDescription": "منظومة رقمية متكاملة لقطاع الإنشاءات — مشاريع، عقود، عروض أسعار، وإدارة صفقات."
+    },
+    "marketplace": {
+      "title": "سوق المنتجات — مواد ومستلزمات البناء | منصة مهندس",
+      "description": "تصفح منتجات الموردين المعتمدين في قطاع الإنشاءات السعودي — مواد بناء، معدات، وأدوات بأفضل الأسعار."
     },
     "default": {
       "title": "Muhandes HUB | منصة مهندس",
@@ -3394,7 +3624,9 @@
       "cannotAwardBidStatus": "لا يمكن ترسية عرض بهذه الحالة",
       "awardError": "حدث خطأ أثناء ترسية العرض",
       "dealCreationError": "حدث خطأ أثناء إنشاء الصفقة",
-      "cannotRejectBidStatus": "لا يمكن رفض عرض بهذه الحالة"
+      "cannotRejectBidStatus": "لا يمكن رفض عرض بهذه الحالة",
+      "contractorNotFound": "المقاول غير موجود",
+      "duplicateBidInvitation": "توجد دعوة مرسلة بالفعل لهذا المقاول على هذا المشروع"
     },
     "projects": {
       "mustLogin": "يجب تسجيل الدخول أولاً",
@@ -3626,7 +3858,11 @@
       "hireRequestNotFound": "طلب التعاقد غير موجود أو تمت معالجته بالفعل",
       "createQuotationError": "حدث خطأ أثناء إنشاء عرض السعر",
       "defaultSupplier": "مورد",
-      "requestIdRequired": "معرف الطلب مطلوب"
+      "requestIdRequired": "معرف الطلب مطلوب",
+      "cannotInviteSelf": "لا يمكنك دعوة نفسك",
+      "duplicateInvitation": "توجد دعوة مرسلة بالفعل لهذا المورد على هذا المشروع",
+      "submitInvitationError": "حدث خطأ أثناء إرسال الدعوة",
+      "projectNotAvailable": "المشروع غير متاح أو غير منشور"
     },
     "kanban": {
       "mustLogin": "يجب تسجيل الدخول",
@@ -3693,9 +3929,16 @@
       "editError": "فشل في تعديل التقييم"
     },
     "search": {
+      "mustLogin": "يجب تسجيل الدخول للبحث",
       "tooManyRequests": "طلبات بحث كثيرة. يرجى الانتظار",
       "invalidCollection": "مجموعة غير صالحة",
       "searchError": "فشل البحث"
+    },
+    "filters": {
+      "mustLogin": "يجب تسجيل الدخول",
+      "invalidInput": "بيانات الفلتر غير صالحة",
+      "saveError": "فشل حفظ الفلتر",
+      "deleteError": "فشل حذف الفلتر"
     },
     "uploads": {
       "mustLogin": "يجب تسجيل الدخول",

@@ -16,6 +16,7 @@ import { createProduct, updateProduct, removeProductImage, removeProductSpecShee
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { X, Star, FileText, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ActionResult } from '@/types';
 
 interface ExistingImage {
@@ -209,15 +210,15 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
             <label htmlFor="in_stock" className="mb-1.5 block text-sm font-medium text-foreground">
               {t('stockStatus')}
             </label>
-            <select
-              id="in_stock"
-              name="in_stock"
-              defaultValue={defaultValues?.in_stock === false ? 'false' : 'true'}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            >
-              <option value="true">{t('inStock')}</option>
-              <option value="false">{t('outOfStock')}</option>
-            </select>
+            <Select name="in_stock" defaultValue={defaultValues?.in_stock === false ? 'false' : 'true'}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">{t('inStock')}</SelectItem>
+                <SelectItem value="false">{t('outOfStock')}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <Input
             type="number"

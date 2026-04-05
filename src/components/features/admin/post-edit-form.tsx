@@ -6,6 +6,7 @@ import { useRouter } from '@/i18n/navigation';
 import { adminEditPost } from '@/actions/admin/moderation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -80,18 +81,18 @@ export function PostEditForm({ postId, postType, initialData }: PostEditFormProp
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <label className="text-sm font-medium">{t('descriptionAr')}</label>
-            <textarea
+            <Textarea
               dir="rtl"
-              className="w-full min-h-37.5 rounded-lg border border-border bg-background p-3 text-sm resize-y"
+              className="min-h-37.5 resize-y"
               value={descAr}
               onChange={(e) => setDescAr(e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">{t('descriptionEn')}</label>
-            <textarea
+            <Textarea
               dir="ltr"
-              className="w-full min-h-37.5 rounded-lg border border-border bg-background p-3 text-sm resize-y"
+              className="min-h-37.5 resize-y"
               value={descEn}
               onChange={(e) => setDescEn(e.target.value)}
             />

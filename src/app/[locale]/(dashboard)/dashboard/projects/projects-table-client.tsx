@@ -7,6 +7,7 @@ import { BulkActionBar, type BulkAction } from '@/components/features/bulk-actio
 import { PostStatusBadge } from '@/components/features/post-status-badge';
 import { EmptyState } from '@/components/features/empty-state';
 import { FolderKanban } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { formatSAR, formatDate, getLocaleField, getEntitySlug } from '@/lib/utils';
 import type { ProjectRow } from './page';
 
@@ -34,9 +35,7 @@ export function ProjectsTableClient({ items, locale, translations: t }: Props) {
           <div className="flex items-center gap-2">
             <span className="font-medium text-foreground">{title}</span>
             {row.source === 'subcontract' && (
-              <span className="rounded-full bg-secondary/50 px-2 py-0.5 text-xs font-medium text-secondary-foreground">
-                {t.subcontract}
-              </span>
+              <Badge variant="secondary">{t.subcontract}</Badge>
             )}
           </div>
         );

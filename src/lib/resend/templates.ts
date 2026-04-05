@@ -5,7 +5,7 @@
 
 import { sendEmail } from '@/lib/resend/client';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muqawilhub.com';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
 
 interface EmailNotificationParams {
   to: string;

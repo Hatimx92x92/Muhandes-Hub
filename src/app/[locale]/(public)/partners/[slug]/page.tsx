@@ -8,11 +8,11 @@ import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/features/empty-state';
 import { PartnerProfileTabs } from '@/components/features/partners/partner-profile-tabs';
 import { ReviewsDisplay } from '@/components/features/reviews/reviews-display';
-import { formatSAR, getLocaleField, isUUID, getEntitySlug } from '@/lib/utils';
+import { cn, formatSAR, getLocaleField, isUUID, getEntitySlug } from '@/lib/utils';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 import {
@@ -313,17 +313,17 @@ export default async function PartnerProfilePage({
             <h3 className="mb-3 text-sm font-semibold text-foreground">{t('socialLinks')}</h3>
             <div className="flex gap-3">
               {social.linkedin && (
-                <a href={social.linkedin} target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
+                <a href={social.linkedin} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'h-9 w-9 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary')}>
                   <Linkedin className="h-4 w-4" />
                 </a>
               )}
               {social.twitter && (
-                <a href={social.twitter} target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
+                <a href={social.twitter} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'h-9 w-9 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary')}>
                   <XIcon className="h-4 w-4" />
                 </a>
               )}
               {social.instagram && (
-                <a href={social.instagram} target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
+                <a href={social.instagram} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'h-9 w-9 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary')}>
                   <Instagram className="h-4 w-4" />
                 </a>
               )}

@@ -1,7 +1,8 @@
 'use client';
 
-import { type ReactNode, useState } from 'react';
+import { type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 interface Tab {
   key: string;
@@ -16,51 +17,26 @@ interface PartnerProfileTabsProps {
 }
 
 export function PartnerProfileTabs({ tabs, defaultTab }: PartnerProfileTabsProps) {
-  const [active, setActive] = useState(defaultTab || tabs[0]?.key);
-
   return (
-    <div>
-      {/* Tab triggers */}
-      <div className="flex gap-1 border-b border-border">
+    <Tabs defaultValue={defaultTab || tabs[0]?.key}>
+      <TabsList variant="line">
         {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setActive(tab.key)}
-            className={cn(
-              'relative px-4 py-2.5 text-sm font-medium transition-colors',
-              'hover:text-foreground focus-visible:outline-none',
-              active === tab.key
-                ? 'text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary'
-                : 'text-muted-foreground',
-            )}
-          >
+          <TabsTrigger key={tab.key} value={tab.key}>
             {tab.label}
             {tab.count !== undefined && tab.count > 0 && (
-              <span className={cn(
-                'ms-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium',
-                active === tab.key
-                  ? 'bg-primary/10 text-primary'
-                  : 'bg-muted text-muted-foreground',
-              )}>
+              <span className="ms-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary/10 px-1.5 text-xs font-medium text-primary">
                 {tab.count}
               </span>
             )}
-          </button>
+          </TabsTrigger>
         ))}
-      </div>
+      </TabsList>
 
-      {/* Tab panels */}
-      <div className="pt-6">
-        {tabs.map((tab) => (
-          <div
-            key={tab.key}
-            className={active === tab.key ? 'block' : 'hidden'}
-          >
-            {tab.content}
-          </div>
-        ))}
-      </div>
-    </div>
+      {tabs.map((tab) => (
+        <TabsContent key={tab.key} value={tab.key} className="pt-6">
+          {tab.content}
+        </TabsContent>
+      ))}
+    </Tabs>
   );
 }

@@ -82,9 +82,19 @@ export async function middleware(request: NextRequest) {
   if (strippedPath.startsWith('/dashboard') && user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('verification_status, role, is_admin, active_session_token')
+      .select('verification_status, role, is_admin, active_session_token, provider')
       .eq('id', user.id)
-      .single() as { data: { verification_status: string; role: string; is_admin: boolean; active_session_token: string | null } | null };
+      .single() as { data: { verification_status: string; role: string; is_admin: boolean; active_session_token: string | null; provider: string | null } | null };
+
+    // Incomplete Google user (trigger-created profile, never completed registration)
+    // → redirect to register wizard to finish role selection, phone, company info, etc.
+    if (
+      user.app_metadata?.provider === 'google' &&
+      profile?.provider !== 'google'
+    ) {
+      const email = user.email ?? '';
+      return localeRedirect('/register', { oauth: 'google', email });
+    }
 
     // Single-device enforcement: compare cookie token with DB token
     if (profile?.active_session_token) {
@@ -157,6 +167,19 @@ export async function middleware(request: NextRequest) {
     (strippedPath === '/login' || strippedPath === '/register' || strippedPath === '/forgot-password') &&
     user
   ) {
+    // Allow incomplete Google users to stay on /register to finish onboarding
+    if (strippedPath === '/register' && user.app_metadata?.provider === 'google') {
+      const { data: regProfile } = await supabase
+        .from('profiles')
+        .select('provider')
+        .eq('id', user.id)
+        .single() as { data: { provider: string | null } | null };
+
+      if (regProfile?.provider !== 'google') {
+        return intlResponse;
+      }
+    }
+
     // Check if admin — redirect to admin panel instead of dashboard
     const { data: authProfile } = await supabase
       .from('profiles')

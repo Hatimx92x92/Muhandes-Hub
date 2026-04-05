@@ -7,6 +7,7 @@ import { BulkActionBar, type BulkAction } from '@/components/features/bulk-actio
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/features/empty-state';
 import { Bell, CheckCheck, Trash2 } from 'lucide-react';
+import { markNotificationRead } from '@/actions/notifications';
 import { formatRelativeTime } from '@/lib/utils';
 
 // =============================================================================
@@ -150,6 +151,11 @@ export function NotificationsTableClient({
         selectable
         onSelectionChange={setSelectedIds}
         onRowClick={(row) => {
+          if (!row.is_read) {
+            startTransition(async () => {
+              await markNotificationRead(row.id);
+            });
+          }
           if (row.link) router.push(row.link);
         }}
       />

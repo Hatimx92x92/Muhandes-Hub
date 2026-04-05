@@ -897,13 +897,30 @@ export async function approveSkipMilestone(
     return { data: null, error: t('noPermission') };
   }
 
+  const now = new Date().toISOString();
+
   await db(supabase)
     .from('deal_skip_requests')
-    .update({ status: 'approved', responded_by: user.id, responded_at: new Date().toISOString() })
+    .update({ status: 'approved', responded_by: user.id, responded_at: now })
     .eq('id', requestId);
+
+  // Auto-complete the deal when skip-to-finish is approved
+  await db(supabase)
+    .from('deals')
+    .update({
+      status: 'completed',
+      completed_at: now,
+      seller_progress: 100,
+      buyer_progress: 100,
+    })
+    .eq('id', deal.id);
 
   await logActivity(supabase, deal.id, user.id, 'skip_milestone_approved', {
     request_id: requestId,
+  });
+
+  await logActivity(supabase, deal.id, user.id, 'deal_completed', {
+    method: 'skip_to_finish',
   });
 
   await notifySkipMilestoneResolved({

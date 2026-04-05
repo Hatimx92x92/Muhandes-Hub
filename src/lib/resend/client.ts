@@ -12,7 +12,7 @@ interface EmailParams {
   footer?: { ar: string; en: string };
 }
 
-const FROM_EMAIL = 'Muhandes HUB <noreply@muqawilhub.com>';
+const FROM_EMAIL = 'Muhandes HUB <noreply@muhandeshub.com>';
 const APP_NAME = 'Muhandes HUB | منصة مهندس';
 
 /**

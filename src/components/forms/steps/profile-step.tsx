@@ -145,7 +145,7 @@ export function ProfileStep({ data, updateData, fieldErrors, onNext, onBack }: P
         label={t('city')}
         name="city"
         value={data.city}
-        onChange={(e) => updateData({ city: e.target.value })}
+        onValueChange={(val) => updateData({ city: val ?? undefined })}
         placeholder="اختر المدينة"
         error={getError('city')}
       />

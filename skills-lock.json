@@ -71,6 +71,11 @@
       "sourceType": "github",
       "computedHash": "570eb5e85fec74e6a499522f515485564d827a065b898242d4f5f623c68e6c93"
     },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "computedHash": "77faba608ea949351d1757e29e6cb726f6ec5937f7595be0593038a7d2d76bb9"
+    },
     "supabase-postgres-best-practices": {
       "source": "supabase/agent-skills",
       "sourceType": "github",

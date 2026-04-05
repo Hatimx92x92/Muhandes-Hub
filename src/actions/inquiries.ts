@@ -7,7 +7,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { getTranslations } from 'next-intl/server';
-import { ProductInquirySchema, DirectHireSchema } from '@/schemas/inquiry';
+import { ProductInquirySchema, InviteToQuoteSchema } from '@/schemas/inquiry';
 import type { ActionResult } from '@/types';
 import { VAT_RATE } from '@/types';
 import {
@@ -108,9 +108,9 @@ export async function sendProductInquiry(
 }
 
 // ---------------------------------------------------------------------------
-// SEND DIRECT HIRE REQUEST
+// SEND QUOTE INVITATION (project owner invites supplier to quote)
 // ---------------------------------------------------------------------------
-export async function sendDirectHireRequest(
+export async function sendQuoteInvitation(
   _prevState: ActionResult<{ id: string }> | null,
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
@@ -119,28 +119,41 @@ export async function sendDirectHireRequest(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: null, error: t('mustLogin') };
 
-  // Check user role — PO, Contractor, Buyer can hire suppliers
+  // Only project owners can invite suppliers to quote
   const { data: profile } = await db(supabase)
     .from('profiles')
-    .select('role')
+    .select('role, company_name_ar')
     .eq('id', user.id)
     .single();
 
-  if (!profile || !['project_owner', 'contractor', 'buyer'].includes(profile.role)) {
+  if (!profile || profile.role !== 'project_owner') {
     return { data: null, error: t('actionNotAllowed') };
   }
 
   const raw = {
     supplier_id: formData.get('supplier_id'),
+    project_id: formData.get('project_id'),
     description_ar: formData.get('description_ar'),
     description_en: formData.get('description_en') || undefined,
-    budget: formData.get('budget') || undefined,
-    project_id: formData.get('project_id') || undefined,
   };
 
-  const parsed = DirectHireSchema.safeParse(raw);
+  const parsed = InviteToQuoteSchema.safeParse(raw);
   if (!parsed.success) {
     return { data: null, error: t('invalidData'), fieldErrors: toFieldErrors(parsed.error.issues) };
+  }
+
+  // Verify project is published and owned by the current user
+  const { data: project } = await db(supabase)
+    .from('projects')
+    .select('id, owner_id, status')
+    .eq('id', parsed.data.project_id)
+    .single();
+
+  if (!project || project.status !== 'published') {
+    return { data: null, error: t('projectNotAvailable') };
+  }
+  if (project.owner_id !== user.id) {
+    return { data: null, error: t('actionNotAllowed') };
   }
 
   // Verify supplier exists
@@ -153,12 +166,26 @@ export async function sendDirectHireRequest(
 
   if (!supplier) return { data: null, error: t('supplierNotFound') };
 
-  // Can't hire yourself
+  // Can't invite yourself
   if (supplier.id === user.id) {
-    return { data: null, error: t('cannotHireSelf') };
+    return { data: null, error: t('cannotInviteSelf') };
   }
 
-  // Insert hire request
+  // Check for duplicate invitation
+  const { data: existing } = await db(supabase)
+    .from('hire_requests')
+    .select('id')
+    .eq('requester_id', user.id)
+    .eq('supplier_id', parsed.data.supplier_id)
+    .eq('project_id', parsed.data.project_id)
+    .eq('status', 'pending')
+    .single();
+
+  if (existing) {
+    return { data: null, error: t('duplicateInvitation') };
+  }
+
+  // Insert quote invitation (reuse hire_requests table)
   const { data: request, error } = await db(supabase)
     .from('hire_requests')
     .insert({
@@ -166,32 +193,34 @@ export async function sendDirectHireRequest(
       supplier_id: parsed.data.supplier_id,
       description_ar: parsed.data.description_ar,
       description_en: parsed.data.description_en || null,
-      budget: parsed.data.budget || null,
-      project_id: parsed.data.project_id || null,
+      project_id: parsed.data.project_id,
       status: 'pending',
     })
     .select('id')
     .single();
 
   if (error || !request) {
-    return { data: null, error: t('submitHireError') };
+    return { data: null, error: t('submitInvitationError') };
   }
 
   // Notify supplier
   notifySupplierHireRequestReceived({
     supplierId: parsed.data.supplier_id,
-    requesterName: profile?.role || t('defaultUser'),
+    requesterName: profile.company_name_ar || t('defaultUser'),
     requestId: request.id,
   }).catch(() => {});
 
-  revalidatePath(`/partners/${parsed.data.supplier_id}`);
+  revalidatePath('/dashboard/invitations');
   return { data: { id: request.id }, error: null };
 }
 
+// Keep backward compat alias
+export const sendDirectHireRequest = sendQuoteInvitation;
+
 // ---------------------------------------------------------------------------
-// ACCEPT HIRE REQUEST — supplier creates quotation for the requester
+// ACCEPT QUOTE INVITATION — supplier creates quotation for the project owner
 // ---------------------------------------------------------------------------
-export async function acceptHireRequest(
+export async function acceptQuoteInvitation(
   _prevState: ActionResult<{ quotationId: string }> | null,
   formData: FormData,
 ): Promise<ActionResult<{ quotationId: string }>> {
@@ -283,15 +312,18 @@ export async function acceptHireRequest(
     quotationId: quotation.id,
   }).catch(() => {});
 
-  revalidatePath('/dashboard/hire-requests');
+  revalidatePath('/dashboard/invitations');
   revalidatePath(`/dashboard/quotations/${quotation.id}`);
   return { data: { quotationId: quotation.id }, error: null };
 }
 
+// Keep backward compat alias
+export const acceptHireRequest = acceptQuoteInvitation;
+
 // ---------------------------------------------------------------------------
-// DECLINE HIRE REQUEST
+// DECLINE QUOTE INVITATION
 // ---------------------------------------------------------------------------
-export async function declineHireRequest(
+export async function declineQuoteInvitation(
   _prevState: ActionResult | null,
   formData: FormData,
 ): Promise<ActionResult> {
@@ -324,9 +356,12 @@ export async function declineHireRequest(
     .update({ status: 'declined', decline_reason: reason })
     .eq('id', requestId);
 
-  revalidatePath('/dashboard/hire-requests');
+  revalidatePath('/dashboard/invitations');
   return { data: undefined, error: null };
 }
+
+// Keep backward compat alias
+export const declineHireRequest = declineQuoteInvitation;
 
 // ---------------------------------------------------------------------------
 // BULK MARK INQUIRIES AS RESPONDED (supplier only)

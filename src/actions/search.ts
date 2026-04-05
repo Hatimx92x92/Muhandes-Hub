@@ -212,3 +212,166 @@ async function postgresSearch(
     error: null,
   };
 }
+
+// ---------------------------------------------------------------------------
+// GLOBAL SEARCH — Dashboard command palette (Cmd+K)
+// Searches across deals, projects, products, CRM clients, contracts, conversations
+// ---------------------------------------------------------------------------
+
+export interface GlobalSearchResult {
+  id: string;
+  type: 'deal' | 'project' | 'product' | 'crm_client' | 'contract' | 'conversation' | 'admin_user' | 'admin_post';
+  title: string;
+  subtitle?: string;
+  href: string;
+}
+
+export async function globalSearch(
+  query: string,
+  options?: { isAdmin?: boolean },
+): Promise<ActionResult<GlobalSearchResult[]>> {
+  const t = await getTranslations('actions.search');
+
+  if (!query || query.trim().length < 2) {
+    return { data: [], error: null };
+  }
+
+  // Auth check
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  // Rate limit
+  const hdrs = await headers();
+  const ip = hdrs.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1';
+  const rl = await checkRateLimit(searchLimiter(), `global:${ip}`);
+  if (!rl.success) return { data: null, error: t('tooManyRequests') };
+
+  const pattern = `%${query.replace(/[%_]/g, '')}%`;
+  const userId = user.id;
+
+  // Parallel searches across user's entities
+  const searches = [
+    // Deals
+    db(supabase)
+      .from('deals')
+      .select('id, title_slug, deal_type, status')
+      .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+      .or(`title_slug.ilike.${pattern}`)
+      .limit(5),
+
+    // Projects
+    db(supabase)
+      .from('projects')
+      .select('id, title_ar, title_en, status')
+      .eq('owner_id', userId)
+      .or(`title_ar.ilike.${pattern},title_en.ilike.${pattern}`)
+      .limit(5),
+
+    // Products
+    db(supabase)
+      .from('products')
+      .select('id, name_ar, name_en, status')
+      .eq('supplier_id', userId)
+      .or(`name_ar.ilike.${pattern},name_en.ilike.${pattern}`)
+      .limit(5),
+
+    // CRM Clients
+    db(supabase)
+      .from('crm_clients')
+      .select('id, name, company')
+      .eq('owner_id', userId)
+      .or(`name.ilike.${pattern},company.ilike.${pattern}`)
+      .limit(5),
+
+    // Contracts
+    db(supabase)
+      .from('contracts')
+      .select('id, deal_id, title_ar, title_en')
+      .or(`title_ar.ilike.${pattern},title_en.ilike.${pattern}`)
+      .limit(5),
+  ];
+
+  const [deals, projects, products, clients, contracts] = await Promise.all(searches);
+
+  const results: GlobalSearchResult[] = [];
+
+  // Map deals
+  for (const d of deals.data ?? []) {
+    results.push({
+      id: d.id,
+      type: 'deal',
+      title: d.title_slug ?? `Deal`,
+      subtitle: d.status,
+      href: `/dashboard/deals/${d.id}`,
+    });
+  }
+
+  // Map projects
+  for (const p of projects.data ?? []) {
+    results.push({
+      id: p.id,
+      type: 'project',
+      title: p.title_en || p.title_ar || 'Project',
+      subtitle: p.status,
+      href: `/dashboard/projects/${p.id}`,
+    });
+  }
+
+  // Map products
+  for (const p of products.data ?? []) {
+    results.push({
+      id: p.id,
+      type: 'product',
+      title: p.name_en || p.name_ar || 'Product',
+      subtitle: p.status,
+      href: `/dashboard/products/${p.id}`,
+    });
+  }
+
+  // Map CRM clients
+  for (const c of clients.data ?? []) {
+    results.push({
+      id: c.id,
+      type: 'crm_client',
+      title: c.name ?? 'Client',
+      subtitle: c.company,
+      href: `/dashboard/crm/${c.id}`,
+    });
+  }
+
+  // Map contracts
+  for (const c of contracts.data ?? []) {
+    results.push({
+      id: c.id,
+      type: 'contract',
+      title: c.title_en || c.title_ar || 'Contract',
+      href: `/dashboard/deals/${c.deal_id}/contract`,
+    });
+  }
+
+  // Admin-only searches
+  if (options?.isAdmin) {
+    const adminSearches = [
+      db(supabase)
+        .from('profiles')
+        .select('id, full_name, company_name_en, role')
+        .or(`full_name.ilike.${pattern},company_name_en.ilike.${pattern},company_name_ar.ilike.${pattern}`)
+        .limit(5),
+    ];
+
+    const [adminUsers] = await Promise.all(adminSearches);
+
+    for (const u of adminUsers.data ?? []) {
+      results.push({
+        id: u.id,
+        type: 'admin_user',
+        title: u.full_name ?? 'User',
+        subtitle: u.role,
+        href: `/admin/users/${u.id}`,
+      });
+    }
+  }
+
+  return { data: results, error: null };
+}

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { RegisterWizard } from '@/components/forms/register-wizard';
 import { Link } from '@/i18n/navigation';
 import { GoogleAuthButton } from '@/components/features/google-auth-button';
+import { createClient } from '@/lib/supabase/server';
 
 // =============================================================================
 // Register Page — multi-step wizard host
@@ -18,6 +19,14 @@ export default async function RegisterPage({ searchParams }: Props) {
   const isOAuthMode = params.oauth === 'google';
   const oauthEmail = params.email ?? '';
 
+  // For Google OAuth users, fetch their name from the authenticated session
+  let oauthName = '';
+  if (isOAuthMode) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    oauthName = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? '';
+  }
+
   return (
     <Card className="max-w-lg mx-auto shadow-xl border-border/60">
       <CardHeader className="text-center pb-2">
@@ -27,7 +36,7 @@ export default async function RegisterPage({ searchParams }: Props) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <RegisterWizard isOAuthMode={isOAuthMode} oauthEmail={oauthEmail} />
+        <RegisterWizard isOAuthMode={isOAuthMode} oauthEmail={oauthEmail} oauthName={oauthName} />
 
         {!isOAuthMode && (
           <>

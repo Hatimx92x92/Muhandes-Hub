@@ -8,7 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { localizeFieldErrors } from '@/lib/zod-i18n';
-import { BidSchema, UpdateBidSchema } from '@/schemas/bid';
+import { BidSchema, UpdateBidSchema, InviteToBidSchema } from '@/schemas/bid';
 import { bidLimiter, checkRateLimit } from '@/lib/rate-limit';
 import { notifyBidReceived, notifyBidAwarded, notifyBidRejected, notifyBidShortlisted, notifyDealCreated } from '@/actions/notification-triggers';
 import { autoLinkClient } from '@/actions/crm';
@@ -321,7 +321,7 @@ export async function awardBid(bidId: string): Promise<ActionResult<{ bidId: str
 
   const { data: project } = await db(supabase)
     .from('projects')
-    .select('id, owner_id, title_ar')
+    .select('id, owner_id, title_ar, title_en')
     .eq('id', bid.project_id)
     .single();
 
@@ -370,6 +370,8 @@ export async function awardBid(bidId: string): Promise<ActionResult<{ bidId: str
     .from('deals')
     .insert({
       title_slug: slugify(`deal-${project.title_ar?.slice(0, 30) || bid.project_id}`),
+      title_ar: project.title_ar || null,
+      title_en: project.title_en || null,
       deal_type: 'deal_project',
       trigger_source: 'bid_award',
       bid_id: bidId,
@@ -499,4 +501,115 @@ export async function rejectBid(
 
   revalidatePath(`/dashboard/projects/${bid.project_id}/bids`);
   return { data: { status: 'rejected' }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// SEND BID INVITATION (project owner invites contractor to bid)
+// ---------------------------------------------------------------------------
+export async function sendBidInvitation(
+  _prevState: ActionResult<{ id: string }> | null,
+  formData: FormData,
+): Promise<ActionResult<{ id: string }>> {
+  const t = await getTranslations('actions.bids');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  // Only project owners can invite contractors to bid
+  const { data: profile } = await db(supabase)
+    .from('profiles')
+    .select('role, company_name_ar')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile || profile.role !== 'project_owner') {
+    return { data: null, error: t('unauthorized') };
+  }
+
+  const raw = {
+    contractor_id: formData.get('contractor_id'),
+    project_id: formData.get('project_id'),
+    message_ar: formData.get('message_ar') || undefined,
+    message_en: formData.get('message_en') || undefined,
+  };
+
+  const parsed = InviteToBidSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { data: null, error: t('invalidData'), fieldErrors: await toFieldErrors(parsed.error.issues) };
+  }
+
+  // Verify project is published and owned by current user
+  const { data: project } = await db(supabase)
+    .from('projects')
+    .select('id, owner_id, status, title_ar, title_en')
+    .eq('id', parsed.data.project_id)
+    .single();
+
+  if (!project || project.status !== 'published') {
+    return { data: null, error: t('projectNotAvailable') };
+  }
+  if (project.owner_id !== user.id) {
+    return { data: null, error: t('unauthorized') };
+  }
+
+  // Verify target is a contractor
+  const { data: contractor } = await db(supabase)
+    .from('profiles')
+    .select('id, role')
+    .eq('id', parsed.data.contractor_id)
+    .eq('role', 'contractor')
+    .single();
+
+  if (!contractor) {
+    return { data: null, error: t('contractorNotFound') };
+  }
+
+  // Can't invite yourself
+  if (contractor.id === user.id) {
+    return { data: null, error: t('cannotBidOwnProject') };
+  }
+
+  // Check for duplicate invitation (reuse hire_requests with type discrimination)
+  const { data: existing } = await db(supabase)
+    .from('hire_requests')
+    .select('id')
+    .eq('requester_id', user.id)
+    .eq('supplier_id', parsed.data.contractor_id)
+    .eq('project_id', parsed.data.project_id)
+    .eq('status', 'pending')
+    .single();
+
+  if (existing) {
+    return { data: null, error: t('duplicateBidInvitation') };
+  }
+
+  // Insert bid invitation (reuse hire_requests table — supplier_id stores invitee)
+  const { data: invitation, error } = await db(supabase)
+    .from('hire_requests')
+    .insert({
+      requester_id: user.id,
+      supplier_id: parsed.data.contractor_id,
+      description_ar: parsed.data.message_ar || 'دعوة لتقديم عرض',
+      description_en: parsed.data.message_en || 'Invitation to bid',
+      project_id: parsed.data.project_id,
+      status: 'pending',
+    })
+    .select('id')
+    .single();
+
+  if (error || !invitation) {
+    return { data: null, error: t('submitError') };
+  }
+
+  // Notify contractor
+  notifyBidReceived({
+    ownerId: parsed.data.contractor_id,
+    projectTitle: { ar: project.title_ar || '', en: project.title_en || '' },
+    bidderName: profile.company_name_ar || '',
+    projectId: parsed.data.project_id,
+    bidId: invitation.id,
+  }).catch(() => {});
+
+  revalidatePath('/dashboard/invitations');
+  return { data: { id: invitation.id }, error: null };
 }

@@ -1,31 +1,18 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
-  type ChartConfig,
-} from '@/components/ui/chart';
-import {
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import type { ChartConfig } from '@/components/ui/chart';
 import type { AnalyticsCharts } from '@/actions/analytics';
-import { Activity, DollarSign, PieChart as PieIcon, Star, Target, Package, Receipt } from 'lucide-react';
+import { Activity, DollarSign, PieChart as PieIcon, Star, Target, Package, Receipt, TrendingUp, Users, Radar, Filter } from 'lucide-react';
+import {
+  AnalyticsAreaChart,
+  AnalyticsBarChart,
+  AnalyticsDonutChart,
+  AnalyticsLineChart,
+  AnalyticsRadarChart,
+  AnalyticsRadialChart,
+} from './charts';
 
 interface AnalyticsUserChartsProps {
   charts: AnalyticsCharts;
@@ -33,13 +20,9 @@ interface AnalyticsUserChartsProps {
   locale: string;
 }
 
-function EmptyChart({ message }: { message: string }) {
-  return (
-    <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">
-      {message}
-    </div>
-  );
-}
+// ---------------------------------------------------------------------------
+// Chart configs — one per data series, with named color tokens
+// ---------------------------------------------------------------------------
 
 const dealsChartConfig = {
   value: { label: 'Deals', color: 'var(--chart-1)' },
@@ -53,213 +36,230 @@ const ratingChartConfig = {
   value: { label: 'Rating', color: 'var(--chart-2)' },
 } satisfies ChartConfig;
 
-const winRateChartConfig = {
-  value: { label: 'Win Rate', color: 'var(--chart-4)' },
+const bidsRadarConfig = {
+  value: { label: 'Bids', color: 'var(--chart-4)' },
 } satisfies ChartConfig;
 
 const topProductsChartConfig = {
   value: { label: 'Views', color: 'var(--chart-1)' },
 } satisfies ChartConfig;
 
+const quotationsRadarConfig = {
+  value: { label: 'Quotations', color: 'var(--chart-5)' },
+} satisfies ChartConfig;
+
+const subRatingsConfig = {
+  value: { label: 'Rating', color: 'var(--chart-2)' },
+} satisfies ChartConfig;
+
+const topPartnersConfig = {
+  value: { label: 'Revenue', color: 'var(--chart-3)' },
+} satisfies ChartConfig;
+
+const funnelConfig = {
+  value: { label: 'Count', color: 'var(--chart-1)' },
+} satisfies ChartConfig;
+
+const projectsRadarConfig = {
+  value: { label: 'Projects', color: 'var(--chart-4)' },
+} satisfies ChartConfig;
+
+const bidsReceivedRadarConfig = {
+  value: { label: 'Bids', color: 'var(--chart-5)' },
+} satisfies ChartConfig;
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
+
 export function AnalyticsUserCharts({ charts, role, locale }: AnalyticsUserChartsProps) {
   const t = useTranslations('dashboard.analytics');
-  const isRTL = locale === 'ar';
 
-  const formatSAR = (value: number) =>
-    new Intl.NumberFormat(isRTL ? 'ar-SA' : 'en-SA', {
-      style: 'currency',
-      currency: 'SAR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
+  const formatK = (v: number) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v));
 
   return (
     <div className="space-y-6">
-      {/* Row 1: Deals over time + Revenue trend */}
+      {/* Row 1: Deals over time (Area) + Revenue trend (Bar) */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Deals Over Time — Area Chart */}
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Activity className="h-4 w-4 text-muted-foreground" />
               {t('charts.dealsOverTime')}
             </CardTitle>
+            <CardDescription>{t('charts.dealsOverTimeDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
-            {charts.dealsOverTime.length > 0 ? (
-              <ChartContainer config={dealsChartConfig} className="min-h-[280px] w-full">
-                <AreaChart data={charts.dealsOverTime}>
-                  <defs>
-                    <linearGradient id="dealsGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-value)" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="var(--color-value)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis
-                    dataKey="label"
-                    tick={{ fontSize: 11 }}
-                    reversed={isRTL}
-                  />
-                  <YAxis tick={{ fontSize: 11 }} orientation={isRTL ? 'right' : 'left'} allowDecimals={false} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    name={t('charts.deals')}
-                    stroke="var(--color-value)"
-                    strokeWidth={2}
-                    fill="url(#dealsGradient)"
-                  />
-                </AreaChart>
-              </ChartContainer>
-            ) : (
-              <EmptyChart message={t('charts.noData')} />
-            )}
+            <AnalyticsAreaChart
+              data={charts.dealsOverTime}
+              config={dealsChartConfig}
+              locale={locale}
+              emptyMessage={t('charts.noData')}
+              gradientId="dealsGrad"
+            />
           </CardContent>
+          {charts.dealsOverTime.length > 0 && (
+            <CardFooter className="gap-2 text-sm text-muted-foreground">
+              <TrendingUp className="h-4 w-4" />
+              {t('charts.deals')}
+            </CardFooter>
+          )}
         </Card>
 
-        {/* Revenue Trend — Bar Chart */}
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <DollarSign className="h-4 w-4 text-muted-foreground" />
               {t('charts.revenueTrend')}
             </CardTitle>
+            <CardDescription>{t('charts.revenueTrendDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
-            {charts.revenueOverTime.length > 0 ? (
-              <ChartContainer config={revenueChartConfig} className="min-h-[280px] w-full">
-                <BarChart data={charts.revenueOverTime}>
-                  <defs>
-                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-value)" stopOpacity={0.9} />
-                      <stop offset="95%" stopColor="var(--color-value)" stopOpacity={0.4} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="label" tick={{ fontSize: 11 }} reversed={isRTL} />
-                  <YAxis
-                    tick={{ fontSize: 11 }}
-                    orientation={isRTL ? 'right' : 'left'}
-                    tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
-                  />
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value) => formatSAR(value as number)}
-                      />
-                    }
-                  />
-                  <Bar
-                    dataKey="value"
-                    name={t('charts.revenue')}
-                    fill="url(#revenueGradient)"
-                    radius={[6, 6, 0, 0]}
-                  />
-                </BarChart>
-              </ChartContainer>
-            ) : (
-              <EmptyChart message={t('charts.noData')} />
-            )}
+            <AnalyticsBarChart
+              data={charts.revenueOverTime}
+              config={revenueChartConfig}
+              locale={locale}
+              emptyMessage={t('charts.noData')}
+              tickFormatter={formatK}
+            />
           </CardContent>
+          {charts.revenueOverTime.length > 0 && (
+            <CardFooter className="gap-2 text-sm text-muted-foreground">
+              <DollarSign className="h-4 w-4" />
+              {t('charts.revenue')}
+            </CardFooter>
+          )}
         </Card>
       </div>
 
-      {/* Row 2: Deals by Status + Role-specific chart */}
+      {/* Row 2: Deals by Status (Donut) + Role-specific chart */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Deals by Status — Donut */}
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <PieIcon className="h-4 w-4 text-muted-foreground" />
               {t('charts.dealsByStatus')}
             </CardTitle>
+            <CardDescription>{t('charts.dealsByStatusDesc')}</CardDescription>
           </CardHeader>
-          <CardContent>
-            {charts.dealsByStatus.length > 0 ? (
-              <ChartContainer
-                config={Object.fromEntries(
-                  charts.dealsByStatus.map((entry) => [
-                    entry.label,
-                    { label: t(`status.${entry.label}` as never), color: entry.color },
-                  ])
-                )}
-                className="min-h-[280px] w-full"
-              >
-                <PieChart>
-                  <Pie
-                    data={charts.dealsByStatus}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={3}
-                    dataKey="value"
-                    nameKey="label"
-                    label={({ name, value }) => `${t(`status.${name}` as never)}: ${value}`}
-                    labelLine={{ strokeWidth: 1 }}
-                  >
-                    {charts.dealsByStatus.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value, name) => (
-                          <span>{t(`status.${name}` as never)}: {value as number}</span>
-                        )}
-                      />
-                    }
-                  />
-                  <ChartLegend
-                    content={<ChartLegendContent />}
-                  />
-                </PieChart>
-              </ChartContainer>
-            ) : (
-              <EmptyChart message={t('charts.noData')} />
-            )}
+          <CardContent className="flex items-center justify-center">
+            <AnalyticsDonutChart
+              data={charts.dealsByStatus.map((entry) => ({
+                ...entry,
+                label: t(`status.${entry.label}` as never),
+              }))}
+              config={Object.fromEntries(
+                charts.dealsByStatus.map((entry) => [
+                  t(`status.${entry.label}` as never),
+                  { label: t(`status.${entry.label}` as never), color: entry.color },
+                ])
+              )}
+              emptyMessage={t('charts.noData')}
+              totalLabel={t('charts.total')}
+            />
           </CardContent>
         </Card>
 
-        {/* Role-specific chart */}
         <RoleSpecificChart charts={charts} role={role} locale={locale} />
       </div>
 
-      {/* Row 3: Rating over time */}
+      {/* Row 3: Sub-Rating Radar + Top Partners Bar */}
+      {(charts.subRatings.length > 0 || charts.topPartners.length > 0) && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          {charts.subRatings.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Radar className="h-4 w-4 text-muted-foreground" />
+                  {t('charts.subRatings')}
+                </CardTitle>
+                <CardDescription>{t('charts.subRatingsDesc')}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex items-center justify-center">
+                <AnalyticsRadarChart
+                  data={charts.subRatings.map((entry) => ({
+                    ...entry,
+                    label: t(`charts.ratingCategory.${entry.label}` as never),
+                  }))}
+                  config={subRatingsConfig}
+                  emptyMessage={t('charts.noData')}
+                />
+              </CardContent>
+            </Card>
+          )}
+          {charts.topPartners.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  {t('charts.topPartners')}
+                </CardTitle>
+                <CardDescription>{t('charts.topPartnersDesc')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AnalyticsBarChart
+                  data={charts.topPartners}
+                  config={topPartnersConfig}
+                  locale={locale}
+                  emptyMessage={t('charts.noData')}
+                  layout="vertical"
+                  tickFormatter={formatK}
+                />
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Row 4: Conversion Funnel — full width */}
+      {charts.conversionFunnel.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              {t('charts.conversionFunnel')}
+            </CardTitle>
+            <CardDescription>{t('charts.conversionFunnelDesc')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AnalyticsBarChart
+              data={charts.conversionFunnel.map((entry) => ({
+                ...entry,
+                label: t(`charts.funnelStage.${entry.label}` as never),
+              }))}
+              config={funnelConfig}
+              locale={locale}
+              emptyMessage={t('charts.noData')}
+              layout="vertical"
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Row 5: Rating over time (Line) — full width */}
       {charts.ratingOverTime.length > 0 && (
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Star className="h-4 w-4 text-muted-foreground" />
               {t('charts.ratingOverTime')}
             </CardTitle>
+            <CardDescription>{t('charts.ratingOverTimeDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={ratingChartConfig} className="min-h-[250px] w-full">
-              <LineChart data={charts.ratingOverTime}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="label" tick={{ fontSize: 11 }} reversed={isRTL} />
-                <YAxis
-                  tick={{ fontSize: 11 }}
-                  orientation={isRTL ? 'right' : 'left'}
-                  domain={[0, 5]}
-                  ticks={[1, 2, 3, 4, 5]}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  name={t('charts.rating')}
-                  stroke="var(--color-value)"
-                  strokeWidth={2.5}
-                  dot={{ r: 4, fill: '#eab308' }}
-                />
-              </LineChart>
-            </ChartContainer>
+            <AnalyticsLineChart
+              data={charts.ratingOverTime}
+              config={ratingChartConfig}
+              locale={locale}
+              emptyMessage={t('charts.noData')}
+              domain={[0, 5]}
+              ticks={[1, 2, 3, 4, 5]}
+            />
           </CardContent>
+          <CardFooter className="gap-2 text-sm text-muted-foreground">
+            <Star className="h-4 w-4 text-yellow-500" />
+            {t('charts.rating')}
+          </CardFooter>
         </Card>
       )}
     </div>
@@ -267,7 +267,7 @@ export function AnalyticsUserCharts({ charts, role, locale }: AnalyticsUserChart
 }
 
 // ---------------------------------------------------------------------------
-// Role-specific chart panel
+// Role-specific chart panel — uses Radar & Radial for variety
 // ---------------------------------------------------------------------------
 
 function RoleSpecificChart({
@@ -280,185 +280,181 @@ function RoleSpecificChart({
   locale: string;
 }) {
   const t = useTranslations('dashboard.analytics');
-  const isRTL = locale === 'ar';
 
+  // ── Contractor: Bids by Status → Radar chart ──────────────────────────
   if (role === 'contractor' && charts.bidsByStatus && charts.bidsByStatus.length > 0) {
+    const radarData = charts.bidsByStatus.map((entry) => ({
+      label: t(`bidStatus.${entry.label}` as never),
+      value: entry.value,
+    }));
+
     return (
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Target className="h-4 w-4 text-muted-foreground" />
             {t('charts.bidsByStatus')}
           </CardTitle>
+          <CardDescription>{t('charts.bidsByStatusDesc')}</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ChartContainer
-            config={Object.fromEntries(
-              charts.bidsByStatus.map((entry) => [
-                entry.label,
-                { label: t(`bidStatus.${entry.label}` as never), color: entry.color },
-              ])
-            )}
-            className="min-h-[280px] w-full"
-          >
-            <PieChart>
-              <Pie
-                data={charts.bidsByStatus}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={3}
-                dataKey="value"
-                nameKey="label"
-                label={({ name, value }) => `${t(`bidStatus.${name}` as never)}: ${value}`}
-                labelLine={{ strokeWidth: 1 }}
-              >
-                {charts.bidsByStatus.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Pie>
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    formatter={(value, name) => (
-                      <span>{t(`bidStatus.${name}` as never)}: {value as number}</span>
-                    )}
-                  />
-                }
-              />
-              <ChartLegend content={<ChartLegendContent />} />
-            </PieChart>
-          </ChartContainer>
+        <CardContent className="flex items-center justify-center">
+          <AnalyticsRadarChart
+            data={radarData}
+            config={bidsRadarConfig}
+            emptyMessage={t('charts.noData')}
+          />
         </CardContent>
       </Card>
     );
   }
 
+  // ── Contractor: Bid Win Rate → Radial gauge ───────────────────────────
   if (role === 'contractor' && charts.bidWinRateOverTime && charts.bidWinRateOverTime.length > 0) {
+    const latest = charts.bidWinRateOverTime[charts.bidWinRateOverTime.length - 1];
+
     return (
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Target className="h-4 w-4 text-muted-foreground" />
             {t('charts.bidWinRateTrend')}
           </CardTitle>
+          <CardDescription>{t('charts.bidWinRateTrendDesc')}</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ChartContainer config={winRateChartConfig} className="min-h-[280px] w-full">
-            <LineChart data={charts.bidWinRateOverTime}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis dataKey="label" tick={{ fontSize: 11 }} reversed={isRTL} />
-              <YAxis
-                tick={{ fontSize: 11 }}
-                orientation={isRTL ? 'right' : 'left'}
-                domain={[0, 100]}
-                tickFormatter={(v) => `${v}%`}
-              />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    formatter={(value) => `${value}%`}
-                  />
-                }
-              />
-              <Line
-                type="monotone"
-                dataKey="value"
-                name={t('charts.winRate')}
-                stroke="var(--color-value)"
-                strokeWidth={2.5}
-                dot={{ r: 4, fill: '#7c3aed' }}
-              />
-            </LineChart>
-          </ChartContainer>
+        <CardContent className="flex items-center justify-center">
+          <AnalyticsRadialChart
+            value={Math.round(latest.value)}
+            label={t('charts.winRate')}
+            color="var(--chart-4)"
+          />
         </CardContent>
+        <CardFooter className="gap-2 text-sm text-muted-foreground">
+          <Target className="h-4 w-4" />
+          {t('charts.winRate')}
+        </CardFooter>
       </Card>
     );
   }
 
+  // ── Supplier: Top Products → Horizontal bar ───────────────────────────
   if (role === 'supplier' && charts.topProducts && charts.topProducts.length > 0) {
     return (
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Package className="h-4 w-4 text-muted-foreground" />
             {t('charts.topProducts')}
           </CardTitle>
+          <CardDescription>{t('charts.topProductsDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={topProductsChartConfig} className="min-h-[280px] w-full">
-            <BarChart data={charts.topProducts} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-              <YAxis
-                dataKey="label"
-                type="category"
-                tick={{ fontSize: 11 }}
-                width={120}
-              />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="value" fill="var(--color-value)" radius={[0, 6, 6, 0]} />
-            </BarChart>
-          </ChartContainer>
+          <AnalyticsBarChart
+            data={charts.topProducts}
+            config={topProductsChartConfig}
+            locale={locale}
+            emptyMessage={t('charts.noData')}
+            layout="vertical"
+          />
         </CardContent>
       </Card>
     );
   }
 
+  // ── Supplier: Quotations by Status → Radar chart ──────────────────────
   if (role === 'supplier' && charts.quotationsByStatus && charts.quotationsByStatus.length > 0) {
+    const radarData = charts.quotationsByStatus.map((entry) => ({
+      label: entry.label,
+      value: entry.value,
+    }));
+
     return (
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Receipt className="h-4 w-4 text-muted-foreground" />
             {t('charts.quotationsByStatus')}
           </CardTitle>
+          <CardDescription>{t('charts.quotationsByStatusDesc')}</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ChartContainer
-            config={Object.fromEntries(
-              charts.quotationsByStatus.map((entry) => [
-                entry.label,
-                { label: entry.label, color: entry.color },
-              ])
-            )}
-            className="min-h-[280px] w-full"
-          >
-            <PieChart>
-              <Pie
-                data={charts.quotationsByStatus}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={3}
-                dataKey="value"
-                nameKey="label"
-                label={({ name, value }) => `${name}: ${value}`}
-                labelLine={{ strokeWidth: 1 }}
-              >
-                {charts.quotationsByStatus.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Pie>
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <ChartLegend content={<ChartLegendContent />} />
-            </PieChart>
-          </ChartContainer>
+        <CardContent className="flex items-center justify-center">
+          <AnalyticsRadarChart
+            data={radarData}
+            config={quotationsRadarConfig}
+            emptyMessage={t('charts.noData')}
+          />
         </CardContent>
       </Card>
     );
   }
 
-  // Fallback — empty card
+  // ── Project Owner: Projects by Status → Donut chart ───────────────────
+  if (role === 'project_owner' && charts.projectsByStatus && charts.projectsByStatus.length > 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <PieIcon className="h-4 w-4 text-muted-foreground" />
+            {t('charts.projectsByStatus')}
+          </CardTitle>
+          <CardDescription>{t('charts.projectsByStatusDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center">
+          <AnalyticsDonutChart
+            data={charts.projectsByStatus.map((entry) => ({
+              ...entry,
+              label: t(`status.${entry.label}` as never),
+            }))}
+            config={Object.fromEntries(
+              charts.projectsByStatus.map((entry) => [
+                t(`status.${entry.label}` as never),
+                { label: t(`status.${entry.label}` as never), color: entry.color },
+              ])
+            )}
+            emptyMessage={t('charts.noData')}
+            totalLabel={t('charts.total')}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // ── Project Owner fallback: Bids Received by Status → Radar chart ────
+  if (role === 'project_owner' && charts.bidsReceivedByStatus && charts.bidsReceivedByStatus.length > 0) {
+    const radarData = charts.bidsReceivedByStatus.map((entry) => ({
+      label: t(`bidStatus.${entry.label}` as never),
+      value: entry.value,
+    }));
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Target className="h-4 w-4 text-muted-foreground" />
+            {t('charts.bidsReceivedByStatus')}
+          </CardTitle>
+          <CardDescription>{t('charts.bidsReceivedByStatusDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center">
+          <AnalyticsRadarChart
+            data={radarData}
+            config={bidsReceivedRadarConfig}
+            emptyMessage={t('charts.noData')}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // ── Fallback ──────────────────────────────────────────────────────────
   return (
     <Card>
-      <CardHeader className="pb-2">
+      <CardHeader>
         <CardTitle className="text-base">{t('charts.roleSpecific')}</CardTitle>
       </CardHeader>
       <CardContent>
-        <EmptyChart message={t('charts.noData')} />
+        <div className="flex h-75 items-center justify-center text-sm text-muted-foreground">
+          {t('charts.noData')}
+        </div>
       </CardContent>
     </Card>
   );

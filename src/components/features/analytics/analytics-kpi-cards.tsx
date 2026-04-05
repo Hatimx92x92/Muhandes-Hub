@@ -10,6 +10,8 @@ import {
   DollarSign,
   Star,
   MessageSquare,
+  Calculator,
+  Clock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link } from '@/i18n/navigation';
@@ -64,7 +66,8 @@ export function AnalyticsKpiCards({ kpi, trends, locale, period }: AnalyticsKpiC
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {visibleKpis.map(({ key, icon: Icon, color, href }) => {
-        const value = kpi[key as keyof AnalyticsKpi];
+        const rawValue = kpi[key as keyof AnalyticsKpi];
+        const value = rawValue ?? 0;
         const trend = getTrend(key);
 
         const card = (
@@ -130,14 +133,24 @@ export function AnalyticsKpiCards({ kpi, trends, locale, period }: AnalyticsKpiC
 export function AnalyticsKpiSecondary({ kpi, locale }: { kpi: AnalyticsKpi; locale: string }) {
   const t = useTranslations('dashboard.analytics');
 
+  const formatSAR = (v: number) =>
+    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-SA', {
+      style: 'currency',
+      currency: 'SAR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(v);
+
   const items = [
+    { key: 'avgDealValue', icon: Calculator, color: 'bg-primary/10 text-primary', value: kpi.avgDealValue > 0 ? formatSAR(kpi.avgDealValue) : '—' },
+    { key: 'avgCompletionDays', icon: Clock, color: 'bg-info/10 text-info', value: kpi.avgCompletionDays !== null ? `${kpi.avgCompletionDays} ${t('kpi.days')}` : '—' },
     { key: 'avgRating', icon: Star, color: 'bg-warning/10 text-warning', value: kpi.avgRating > 0 ? kpi.avgRating.toFixed(1) : '—' },
     { key: 'totalReviews', icon: MessageSquare, color: 'bg-accent-purple/10 text-accent-purple-foreground', value: kpi.totalReviews.toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-SA') },
     { key: 'cancelledDeals', icon: XCircle, color: 'bg-destructive/10 text-destructive', value: kpi.cancelledDeals.toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-SA') },
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
       {items.map(({ key, icon: Icon, color, value }) => (
         <div key={key} className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-center gap-3">

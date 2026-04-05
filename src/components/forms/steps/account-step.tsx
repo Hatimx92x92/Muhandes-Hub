@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
 import { PhoneInput } from '@/components/forms/phone-input';
-import { RegisterStep2Schema } from '@/schemas/auth';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RegisterStep2Schema, OAuthAccountSchema } from '@/schemas/auth';
 import type { WizardData } from '../register-wizard';
 
 // =============================================================================
@@ -17,23 +18,30 @@ interface AccountStepProps {
   data: WizardData;
   updateData: (partial: Partial<WizardData>) => void;
   fieldErrors: Record<string, string[]>;
+  isOAuthMode?: boolean;
   onNext: () => void;
   onBack: () => void;
 }
 
-export function AccountStep({ data, updateData, fieldErrors, onNext, onBack }: AccountStepProps) {
+export function AccountStep({ data, updateData, fieldErrors, isOAuthMode = false, onNext, onBack }: AccountStepProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const t = useTranslations('auth.accountStep');
   const tc = useTranslations('common');
 
   const handleNext = () => {
-    const result = RegisterStep2Schema.safeParse({
-      full_name: data.full_name,
-      email: data.email,
-      password: data.password,
-      phone: data.phone,
-      pdpl_consent: data.pdpl_consent,
-    });
+    const result = isOAuthMode
+      ? OAuthAccountSchema.safeParse({
+          full_name: data.full_name,
+          phone: data.phone,
+          pdpl_consent: data.pdpl_consent,
+        })
+      : RegisterStep2Schema.safeParse({
+          full_name: data.full_name,
+          email: data.email,
+          password: data.password,
+          phone: data.phone,
+          pdpl_consent: data.pdpl_consent,
+        });
 
     if (!result.success) {
       const errs: Record<string, string> = {};
@@ -71,21 +79,25 @@ export function AccountStep({ data, updateData, fieldErrors, onNext, onBack }: A
         type="email"
         dir="ltr"
         value={data.email}
-        onChange={(e) => updateData({ email: e.target.value })}
+        onChange={(e) => !isOAuthMode && updateData({ email: e.target.value })}
         error={getError('email')}
         placeholder="email@example.com"
+        readOnly={isOAuthMode}
+        className={isOAuthMode ? 'opacity-60 cursor-not-allowed' : ''}
       />
 
-      <PasswordInput
-        label={t('password')}
-        name="password"
-        dir="ltr"
-        value={data.password}
-        onChange={(e) => updateData({ password: e.target.value })}
-        error={getError('password')}
-        placeholder="••••••••"
-        hint={t('passwordHint')}
-      />
+      {!isOAuthMode && (
+        <PasswordInput
+          label={t('password')}
+          name="password"
+          dir="ltr"
+          value={data.password}
+          onChange={(e) => updateData({ password: e.target.value })}
+          error={getError('password')}
+          placeholder="••••••••"
+          hint={t('passwordHint')}
+        />
+      )}
 
       <PhoneInput
         label={t('phone')}
@@ -97,11 +109,10 @@ export function AccountStep({ data, updateData, fieldErrors, onNext, onBack }: A
 
       {/* PDPL Consent */}
       <label className="flex items-start gap-3 cursor-pointer">
-        <input
-          type="checkbox"
+        <Checkbox
           checked={data.pdpl_consent}
-          onChange={(e) => updateData({ pdpl_consent: e.target.checked })}
-          className="mt-1 h-4 w-4 rounded border-input accent-primary"
+          onCheckedChange={(v) => updateData({ pdpl_consent: v })}
+          className="mt-1"
         />
         <span className="text-sm text-muted-foreground leading-relaxed">
           {t('pdplConsent')}{' '}

@@ -187,7 +187,7 @@ export default async function DealDetailPage({
 
   return (
     <>
-      <BreadcrumbOverride segment={displaySlug} label={`${t('dealPrefix')} #${id.slice(0, 8)}`} />
+      <BreadcrumbOverride segment={displaySlug} label={getLocaleField(deal, 'title', locale) || `${t('dealPrefix')} #${id.slice(0, 8)}`} />
       <DealWorkspace
         deal={deal}
         userRole={userRole as 'buyer' | 'seller'}

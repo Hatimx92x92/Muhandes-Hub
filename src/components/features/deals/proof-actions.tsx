@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl';
 import { confirmProof, rejectProof } from '@/actions/deals';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle, XCircle } from 'lucide-react';
 import type { ActionResult } from '@/types';
 
@@ -88,18 +89,18 @@ export function ProofActions({ proofId }: ProofActionsProps) {
       ) : (
         <form action={rejectAction} className="space-y-2">
           <input type="hidden" name="proof_id" value={proofId} />
-          <select
-            name="rejection_reason"
-            required
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-            defaultValue="poor_quality"
-          >
-            <option value="incomplete_work">Incomplete Work</option>
-            <option value="poor_quality">Poor Quality</option>
-            <option value="wrong_scope">Wrong Scope</option>
-            <option value="missing_documentation">Missing Documentation</option>
-            <option value="other">Other</option>
-          </select>
+          <Select name="rejection_reason" required defaultValue="poor_quality">
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="incomplete_work">Incomplete Work</SelectItem>
+              <SelectItem value="poor_quality">Poor Quality</SelectItem>
+              <SelectItem value="wrong_scope">Wrong Scope</SelectItem>
+              <SelectItem value="missing_documentation">Missing Documentation</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
           <Textarea
             name="rejection_text"
             placeholder={t('rejectionReasonPlaceholder')}

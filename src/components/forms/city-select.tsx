@@ -1,7 +1,12 @@
 'use client';
 
-import { forwardRef, type SelectHTMLAttributes } from 'react';
-import { cn } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 // =============================================================================
 // Saudi Cities — static list (matches DB seed data)
@@ -37,76 +42,83 @@ export const SAUDI_CITIES = [
 // Types
 // =============================================================================
 
-export interface CitySelectProps
-  extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'children'> {
+export interface CitySelectProps {
+  name?: string;
   label?: string;
   error?: string;
   hint?: string;
-  /** Current locale for display */
   locale?: 'ar' | 'en';
-  /** Placeholder text */
   placeholder?: string;
+  value?: string;
+  defaultValue?: string;
+  onValueChange?: (value: string | null) => void;
+  disabled?: boolean;
+  required?: boolean;
+  className?: string;
 }
 
 // =============================================================================
 // Component
 // =============================================================================
 
-const CitySelect = forwardRef<HTMLSelectElement, CitySelectProps>(
-  ({ className, label, error, hint, id, locale = 'ar', placeholder, ...props }, ref) => {
-    const selectId = id || props.name || 'city';
+function CitySelect({
+  className,
+  label,
+  error,
+  hint,
+  locale = 'ar',
+  placeholder,
+  name,
+  value,
+  defaultValue,
+  onValueChange,
+  disabled,
+  required,
+}: CitySelectProps) {
+  const selectId = name || 'city';
 
-    return (
-      <div className="w-full">
-        {label && (
-          <label
-            htmlFor={selectId}
-            className="mb-1.5 block text-sm font-medium text-foreground"
-          >
-            {label}
-          </label>
-        )}
-        <select
-          ref={ref}
-          id={selectId}
-          className={cn(
-            'flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm',
-            'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
-            'disabled:cursor-not-allowed disabled:opacity-50',
-            error && 'border-destructive focus-visible:outline-destructive',
-            className,
-          )}
-          aria-invalid={error ? 'true' : undefined}
-          aria-describedby={
-            error ? `${selectId}-error` : hint ? `${selectId}-hint` : undefined
-          }
-          {...props}
+  return (
+    <div className="w-full">
+      {label && (
+        <label
+          htmlFor={selectId}
+          className="mb-1.5 block text-sm font-medium text-foreground"
         >
-          {placeholder && (
-            <option value="" disabled>
-              {placeholder}
-            </option>
-          )}
+          {label}
+        </label>
+      )}
+      <Select
+        name={name}
+        value={value}
+        defaultValue={defaultValue}
+        onValueChange={onValueChange}
+        disabled={disabled}
+        required={required}
+      >
+        <SelectTrigger className={className}>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
           {SAUDI_CITIES.map((city) => (
-            <option key={city.value} value={city.value}>
+            <SelectItem key={city.value} value={city.value}>
               {locale === 'ar' ? city.label_ar : city.label_en}
-            </option>
+            </SelectItem>
           ))}
-        </select>
-        {error && (
-          <p id={`${selectId}-error`} className="mt-1 text-sm text-destructive">
-            {error}
-          </p>
-        )}
-        {!error && hint && (
-          <p id={`${selectId}-hint`} className="mt-1 text-sm text-muted-foreground">
-            {hint}
-          </p>
-        )}
-      </div>
-    );
-  },
-);
+        </SelectContent>
+      </Select>
+      {error && (
+        <p id={`${selectId}-error`} className="mt-1 text-sm text-destructive">
+          {error}
+        </p>
+      )}
+      {!error && hint && (
+        <p id={`${selectId}-hint`} className="mt-1 text-sm text-muted-foreground">
+          {hint}
+        </p>
+      )}
+    </div>
+  );
+}
 
 CitySelect.displayName = 'CitySelect';
 

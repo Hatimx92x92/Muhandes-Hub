@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
   Users,
+  UserPlus,
   FileText,
   Handshake,
   Banknote,
@@ -49,6 +50,7 @@ const ADMIN_GROUPS: NavGroup[] = [
     labelKey: 'groupContent',
     items: [
       { href: '/admin/users', labelKey: 'users', icon: Users },
+      { href: '/admin/registrations', labelKey: 'registrations', icon: UserPlus },
       { href: '/admin/posts', labelKey: 'posts', icon: FileText },
       { href: '/admin/reviews', labelKey: 'reviews', icon: Star },
     ],

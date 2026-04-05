@@ -36,3 +36,13 @@ export const RejectBidSchema = z.object({
   reason_ar: z.string().optional(),
   reason_en: z.string().optional(),
 });
+
+// -- Invite to Bid (project owner invites contractor) -------------------------
+export const InviteToBidSchema = z.object({
+  contractor_id: z.string().uuid(),
+  project_id: z.string().uuid(),
+  message_ar: z.string().optional(),
+  message_en: z.string().optional(),
+});
+
+export type InviteToBidInput = z.infer<typeof InviteToBidSchema>;

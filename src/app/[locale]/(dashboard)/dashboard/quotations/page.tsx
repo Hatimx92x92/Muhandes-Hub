@@ -6,6 +6,7 @@ import { Link } from '@/i18n/navigation';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Plus } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
 import { getTranslations } from 'next-intl/server';
 import {
   QuotationsTableClient,
@@ -124,7 +125,7 @@ export default async function QuotationsPage({
         {canCreate && (
           <Link
             href="/dashboard/quotations/new"
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            className={buttonVariants()}
           >
             <Plus className="h-4 w-4" />
             {t('new')}

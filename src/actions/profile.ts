@@ -306,3 +306,73 @@ export async function updateCompanyDocumentName(
 
   return { data: { updated: true }, error: null };
 }
+
+// =============================================================================
+// updateOnboardingStep — mark a single onboarding step as complete
+// =============================================================================
+
+export async function updateOnboardingStep(
+  step: string,
+): Promise<ActionResult<{ updated: boolean }>> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: 'Not authenticated' };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+
+  const { data: profile } = await db
+    .from('profiles')
+    .select('onboarding_progress')
+    .eq('id', user.id)
+    .single();
+
+  const progress = (profile?.onboarding_progress as Record<string, boolean>) || {};
+  progress[step] = true;
+
+  const { error } = await db
+    .from('profiles')
+    .update({ onboarding_progress: progress })
+    .eq('id', user.id);
+
+  if (error) return { data: null, error: 'Failed to update' };
+
+  const { revalidatePath } = await import('next/cache');
+  revalidatePath('/dashboard');
+
+  return { data: { updated: true }, error: null };
+}
+
+// =============================================================================
+// dismissOnboarding — hide the onboarding checklist
+// =============================================================================
+
+export async function dismissOnboarding(): Promise<ActionResult<{ dismissed: boolean }>> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: 'Not authenticated' };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+
+  const { data: profile } = await db
+    .from('profiles')
+    .select('onboarding_progress')
+    .eq('id', user.id)
+    .single();
+
+  const progress = (profile?.onboarding_progress as Record<string, boolean>) || {};
+  progress._dismissed = true;
+
+  const { error } = await db
+    .from('profiles')
+    .update({ onboarding_progress: progress })
+    .eq('id', user.id);
+
+  if (error) return { data: null, error: 'Failed to update' };
+
+  const { revalidatePath } = await import('next/cache');
+  revalidatePath('/dashboard');
+
+  return { data: { dismissed: true }, error: null };
+}

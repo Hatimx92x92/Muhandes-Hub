@@ -153,7 +153,7 @@
     8. Complete registration
   - **Expected**: Account created. Redirect to email verification (or direct to payment since Google email is pre-verified). Status progresses toward `pending_payment`.
 
-- [ ] **E2E-012** · Google OAuth with existing email conflict
+- [x] **E2E-012** · Google OAuth with existing email conflict
   - **Actor**: User trying Google sign-in with fahad.qahtani@gmail.com (already registered via email)
   - **Steps**:
     1. Open `/ar/register`
@@ -284,7 +284,7 @@
     2. Click "Logout" / "تسجيل الخروج"
   - **Expected**: Session cleared. Redirect to `/ar/login`. Navigating to `/dashboard` redirects back to login.
 
-- [ ] **E2E-027** · Forgot password flow
+- [x] **E2E-027** · Forgot password flow
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. Open `/ar/login` → click "Forgot password?" / "نسيت كلمة المرور؟"
@@ -517,7 +517,7 @@
 
 ### 2.3 Subscription Downgrade
 
-- [ ] **E2E-037** · Bunyan downgrades from Business to Pro
+- [x] **E2E-037** · Bunyan downgrades from Business to Pro
   - **Actor**: Bunyan (bunyan.dev@gmail.com)
   - **Steps**:
     1. Login → `/dashboard/subscription`
@@ -525,14 +525,14 @@
     3. Confirm downgrade
   - **Expected**: Message: "Downgrade will take effect at end of current billing period" / "سيتم تطبيق التخفيض في نهاية فترة الاشتراك الحالية". Business features remain active until period ends.
 
-- [ ] **E2E-038** · Verify content preserved after downgrade takes effect
+- [x] **E2E-038** · Verify content preserved after downgrade takes effect
   - **Actor**: Bunyan (after downgrade activates — now Pro again)
   - **Steps**:
     1. Navigate to `/dashboard/deals`
     2. Navigate to existing Kanban boards
   - **Expected**: All existing bids, deals, Kanban content remains visible. New bid creation limited to 50/mo (Pro limit). Full Kanban downgraded to checklist-only.
 
-- [ ] **E2E-039** · Al Shammari downgrades from Pro to Starter
+- [x] **E2E-039** · Al Shammari downgrades from Pro to Starter
   - **Actor**: Al Shammari Electrical (noura.shammari@gmail.com)
   - **Steps**:
     1. Login → `/dashboard/subscription`
@@ -540,7 +540,7 @@
     3. Confirm
   - **Expected**: Downgrade scheduled at period end. Current Pro features remain active until then. After downgrade: product limit back to 2 (existing products preserved but can't add new beyond limit).
 
-- [ ] **E2E-040** · Cancel pending downgrade
+- [x] **E2E-040** · Cancel pending downgrade
   - **Actor**: Al Shammari Electrical
   - **Steps**:
     1. Navigate to `/dashboard/subscription`
@@ -550,7 +550,7 @@
 
 ### 2.4 Coupon System
 
-- [ ] **E2E-041** · Apply valid coupon during renewal
+- [x] **E2E-041** · Apply valid coupon during renewal
   - **Actor**: Any paid-tier user during renewal
   - **Steps**:
     1. Navigate to subscription renewal page
@@ -558,21 +558,21 @@
     3. Click "Apply" / "تطبيق"
   - **Expected**: Discount calculated and displayed. Final price updated. Payment amount reflects discounted price.
 
-- [ ] **E2E-042** · Apply expired coupon
+- [x] **E2E-042** · Apply expired coupon
   - **Actor**: Any user
   - **Steps**:
     1. During subscription, enter an expired coupon code
     2. Click "Apply"
   - **Expected**: Error: "This coupon has expired" / "انتهت صلاحية هذا الكوبون".
 
-- [ ] **E2E-043** · Apply already-used coupon (per-user limit reached)
+- [x] **E2E-043** · Apply already-used coupon (per-user limit reached)
   - **Actor**: User who has already used this coupon
   - **Steps**:
     1. Enter same coupon code used previously
     2. Click "Apply"
   - **Expected**: Error: "You have already used this coupon" / "لقد استخدمت هذا الكوبون مسبقاً".
 
-- [ ] **E2E-044** · Apply coupon restricted to different tier
+- [x] **E2E-044** · Apply coupon restricted to different tier
   - **Actor**: Starter-tier user trying a Pro-only coupon
   - **Steps**:
     1. Enter coupon code that's restricted to Pro tier only
@@ -581,7 +581,7 @@
 
 ### 2.5 Subscription Renewal & Cancellation
 
-- [ ] **E2E-044A** · Renew expiring subscription before expiry
+- [x] **E2E-044A** · Renew expiring subscription before expiry
   - **Actor**: Bunyan (bunyan.dev@gmail.com — Pro tier)
   - **Steps**:
     1. Login → navigate to `/dashboard/subscription`
@@ -590,7 +590,7 @@
     4. Complete payment via bank transfer
   - **Expected**: Subscription extended. New `expires_at` = current expiry + 3 months. Duration discount applied. Invoice created (type: subscription).
 
-- [ ] **E2E-044B** · Renew expired subscription (grace period)
+- [x] **E2E-044B** · Renew expired subscription (grace period)
   - **Actor**: Any paid-tier user after subscription expires
   - **Steps**:
     1. Login → dashboard shows subscription expired banner
@@ -599,7 +599,7 @@
     4. Complete payment
   - **Expected**: Subscription reactivated. No late fee. Full features restored immediately.
 
-- [ ] **E2E-044C** · User cancels active subscription
+- [x] **E2E-044C** · User cancels active subscription
   - **Actor**: Any paid-tier user
   - **Steps**:
     1. Navigate to `/dashboard/subscription`
@@ -708,7 +708,7 @@
     2. Fill form and submit
   - **Expected**: Server action returns error: "Product limit reached for your tier" / "تم الوصول للحد الأقصى من المنتجات لخطتك". Product NOT created in database. Double enforcement working.
 
-- [ ] **E2E-055** · Product image size limit
+- [x] **E2E-055** · Product image size limit
   - **Actor**: Any supplier
   - **Steps**:
     1. During product creation, try uploading image >5MB
@@ -806,7 +806,7 @@
 
 ### 3.5 Product Editing & Project Cleanup
 
-- [ ] **E2E-066A** · Create product with variant-based pricing
+- [x] **E2E-066A** · Create product with variant-based pricing
   - **Actor**: First Materials (first.materials@gmail.com — Supplier Pro)
   - **Steps**:
     1. Navigate to `/dashboard/products/new`
@@ -816,7 +816,7 @@
     5. Submit for approval
   - **Expected**: Product created with 3 price variants. Each variant has its own price and optional SKU. Visible in supplier's product list.
 
-- [ ] **E2E-066B** · Edit draft product
+- [x] **E2E-066B** · Edit draft product
   - **Actor**: First Materials
   - **Steps**:
     1. Navigate to `/dashboard/products`
@@ -825,7 +825,7 @@
     4. Save changes
   - **Expected**: Product updated. Changes reflected in product detail. Status stays `draft` (can resubmit).
 
-- [ ] **E2E-066C** · Delete draft project with no bids
+- [x] **E2E-066C** · Delete draft project with no bids
   - **Actor**: Al Qahtani Group (fahad.qahtani@gmail.com)
   - **Steps**:
     1. Navigate to `/dashboard/projects`
@@ -1161,7 +1161,7 @@
 
 ### 5.4 Direct Hire / Supplier Hiring
 
-- [ ] **E2E-104A** · Project Owner sends direct hire request to supplier
+- [x] **E2E-104A** · Project Owner sends direct hire request to supplier
   - **Actor**: Al Qahtani Group (fahad.qahtani@gmail.com — Project Owner)
   - **Steps**:
     1. Login → navigate to `/products`
@@ -1171,7 +1171,7 @@
     5. Submit hire request
   - **Expected**: Hire request submitted. First Materials receives `supplier_hire_request_received` notification. Request visible in First Materials' inquiries/hire requests inbox.
 
-- [ ] **E2E-104B** · Supplier reviews hire request and submits quotation
+- [x] **E2E-104B** · Supplier reviews hire request and submits quotation
   - **Actor**: First Materials (first.materials@gmail.com — Supplier)
   - **Steps**:
     1. Login → navigate to `/dashboard/inquiries`
@@ -1181,14 +1181,14 @@
     5. Submit
   - **Expected**: Quotation created and linked to hire request. Al Qahtani receives `supplier_hire_quotation_received` notification.
 
-- [ ] **E2E-104C** · PO accepts hire quotation → deal created
+- [x] **E2E-104C** · PO accepts hire quotation → deal created
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. Login → view hire quotation from First Materials
     2. Click "Accept" / "قبول"
   - **Expected**: `DEAL-PRODUCT` created with `project_id` linked. Buyer = Al Qahtani, Seller = First Materials. Both notified. Deal visible in project's Supplier Procurement tab. CRM auto-tags source as "Direct Hire".
 
-- [ ] **E2E-104D** · Supplier declines hire request
+- [x] **E2E-104D** · Supplier declines hire request
   - **Actor**: First Materials
   - **Steps**:
     1. Login → navigate to `/dashboard/inquiries`
@@ -1219,7 +1219,7 @@
     1. Login → `/dashboard/deals` → open same deal
   - **Expected**: Same workspace from seller perspective. All sections accessible. Info card shows both parties' company names.
 
-- [ ] **E2E-107** · Al Qahtani creates 5 milestones
+- [x] **E2E-107** · Al Qahtani creates 5 milestones
   - **Actor**: Al Qahtani Group (buyer creates milestones)
   - **Steps**:
     1. In deal workspace → Milestones tab
@@ -1230,21 +1230,21 @@
     6. Create milestone 5: "Handover" / "التسليم", amount SAR 40,000, due +6 months
   - **Expected**: 5 milestones created. Total = SAR 420,000 (matches deal amount). All listed with due dates.
 
-- [ ] **E2E-108** · Reorder milestones
+- [x] **E2E-108** · Reorder milestones
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. In milestones list, drag "MEP" milestone before "Structure"
     2. Refresh page
   - **Expected**: New order persists after refresh. MEP now appears before Structure in the list.
 
-- [ ] **E2E-109** · Al Rajhi suggests milestone change
+- [x] **E2E-109** · Al Rajhi suggests milestone change
   - **Actor**: Al Rajhi Contracting (seller)
   - **Steps**:
     1. In milestones tab, click "Suggest Change" or "Add Milestone"
     2. Propose new milestone: "Site Preparation" / "تجهيز الموقع", SAR 20,000
   - **Expected**: Suggestion sent. Goes through approval flow (seller suggests, buyer approves). Al Qahtani receives notification about pending suggestion.
 
-- [ ] **E2E-110** · Al Qahtani approves milestone suggestion
+- [x] **E2E-110** · Al Qahtani approves milestone suggestion
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. View milestone suggestion notification → navigate to milestones
@@ -1252,14 +1252,14 @@
     3. Click "Approve" / "قبول"
   - **Expected**: New "Site Preparation" milestone added to the list. Activity logged.
 
-- [ ] **E2E-111** · Al Qahtani rejects another suggestion
+- [x] **E2E-111** · Al Qahtani rejects another suggestion
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. Al Rajhi submits another suggestion (e.g., increase Foundation amount)
     2. Al Qahtani reviews → click "Reject" → enter reason: "Budget is fixed per contract"
   - **Expected**: Suggestion rejected. Al Rajhi sees rejection with reason.
 
-- [ ] **E2E-112** · Milestone total cannot exceed deal value
+- [x] **E2E-112** · Milestone total cannot exceed deal value
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. Try creating a new milestone with amount SAR 50,000 (would push total over SAR 420K if already at limit)
@@ -1267,7 +1267,7 @@
 
 ### 6.2 Proof Submission & Review
 
-- [ ] **E2E-113** · Al Rajhi submits work proof for Foundation
+- [x] **E2E-113** · Al Rajhi submits work proof for Foundation
   - **Actor**: Al Rajhi Contracting (seller)
   - **Steps**:
     1. In deal workspace → Milestones tab → Foundation milestone
@@ -1279,7 +1279,7 @@
     7. Submit
   - **Expected**: Proof submitted. Al Qahtani receives `proof_submitted` notification. Proof visible in proofs tab.
 
-- [ ] **E2E-114** · Al Qahtani confirms Foundation proof
+- [x] **E2E-114** · Al Qahtani confirms Foundation proof
   - **Actor**: Al Qahtani Group (buyer)
   - **Steps**:
     1. Open proof notification or navigate to Proofs tab
@@ -1287,7 +1287,7 @@
     3. Click "Confirm" / "تأكيد"
   - **Expected**: Proof confirmed. Seller progress bar increments to ~20% (1 of 5 milestones complete). Milestone marked as completed.
 
-- [ ] **E2E-115** · Al Rajhi submits Structure proof — Al Qahtani rejects
+- [x] **E2E-115** · Al Rajhi submits Structure proof — Al Qahtani rejects
   - **Actor**: Al Rajhi Contracting → Al Qahtani Group
   - **Steps**:
     1. Al Rajhi submits work proof for Structure milestone: "Structure framing complete", 100%, 1 photo
@@ -1296,7 +1296,7 @@
     4. Enter reason: "Photos don't show rebar installation. Please provide additional evidence." / "الصور لا تظهر أعمال تركيب الحديد. يرجى تقديم دليل إضافي."
   - **Expected**: Proof rejected. Al Rajhi receives `proof_rejected` notification with the reason. Al Rajhi sees rejection reason in proofs tab.
 
-- [ ] **E2E-116** · Al Rajhi re-submits Structure proof
+- [x] **E2E-116** · Al Rajhi re-submits Structure proof
   - **Actor**: Al Rajhi Contracting
   - **Steps**:
     1. View rejection reason on proofs tab
@@ -1305,7 +1305,7 @@
     4. Al Qahtani reviews → confirms
   - **Expected**: New proof accepted. Progress bar updates (~40%). Structure milestone complete.
 
-- [ ] **E2E-117** · Al Qahtani submits payment proof
+- [x] **E2E-117** · Al Qahtani submits payment proof
   - **Actor**: Al Qahtani Group (buyer)
   - **Steps**:
     1. Navigate to Proofs tab → submit Payment Proof for Foundation
@@ -1314,7 +1314,7 @@
     4. Submit → Al Rajhi confirms
   - **Expected**: Buyer payment bar increments. Payment proof confirmed.
 
-- [ ] **E2E-118** · Complete remaining milestones (MEP + Finishing)
+- [x] **E2E-118** · Complete remaining milestones (MEP + Finishing)
   - **Actor**: Both parties
   - **Steps**:
     1. Al Rajhi submits work proof for MEP → Al Qahtani confirms
@@ -1323,7 +1323,7 @@
     4. Al Qahtani submits payment proofs for MEP + Finishing → Al Rajhi confirms
   - **Expected**: Progress bars incrementing with each confirmed proof. Seller at ~80%, Buyer payment at ~80%.
 
-- [ ] **E2E-119** · Final milestone — Handover
+- [x] **E2E-119** · Final milestone — Handover
   - **Actor**: Al Rajhi Contracting → Al Qahtani Group
   - **Steps**:
     1. Al Rajhi submits handover proof: "Project handover complete", keys, final inspection report attached
@@ -1331,7 +1331,7 @@
     3. Al Qahtani confirms handover proof
   - **Expected**: Seller completion = 100%.
 
-- [ ] **E2E-120** · Final payment → deal completed
+- [x] **E2E-120** · Final payment → deal completed
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. Al Qahtani submits final payment proof for Handover milestone
@@ -1340,13 +1340,13 @@
 
 ### 6.3 Kanban Board
 
-- [ ] **E2E-121** · Al Rajhi accesses Kanban board
+- [x] **E2E-121** · Al Rajhi accesses Kanban board
   - **Actor**: Al Rajhi Contracting (seller, Enterprise tier — full Kanban access)
   - **Steps**:
     1. In deal workspace → navigate to Kanban tab
   - **Expected**: Kanban board loads with default columns: To Do, In Progress, Review, Done.
 
-- [ ] **E2E-122** · Create task cards
+- [x] **E2E-122** · Create task cards
   - **Actor**: Al Rajhi Contracting
   - **Steps**:
     1. In "To Do" column, click "Add Card" / "إضافة بطاقة"
@@ -1355,14 +1355,14 @@
     4. Create card 3: "Rebar installation" / "تركيب الحديد", priority = High, due = 10 days
   - **Expected**: 3 cards created in "To Do" column. Each shows title, priority badge, due date.
 
-- [ ] **E2E-123** · Drag card to completion
+- [x] **E2E-123** · Drag card to completion
   - **Actor**: Al Rajhi Contracting
   - **Steps**:
     1. Drag "Excavation" card from "To Do" → "In Progress"
     2. Then drag from "In Progress" → "Done"
   - **Expected**: Card moves across columns via drag-and-drop. When moved to "Done", prompt appears to submit work proof linked to this task.
 
-- [ ] **E2E-124** · Al Qahtani views Kanban (read-only)
+- [x] **E2E-124** · Al Qahtani views Kanban (read-only)
   - **Actor**: Al Qahtani Group (buyer)
   - **Steps**:
     1. In deal workspace → Kanban tab
@@ -1371,7 +1371,7 @@
 
 ### 6.4 Daily Site Log
 
-- [ ] **E2E-125** · Al Rajhi creates daily site log entry
+- [x] **E2E-125** · Al Rajhi creates daily site log entry
   - **Actor**: Al Rajhi Contracting
   - **Steps**:
     1. In deal workspace → Daily Log tab
@@ -1384,7 +1384,7 @@
     8. Save
   - **Expected**: Entry saved with all structured fields. Appears in chronological log.
 
-- [ ] **E2E-126** · Al Qahtani views daily log
+- [x] **E2E-126** · Al Qahtani views daily log
   - **Actor**: Al Qahtani Group (buyer)
   - **Steps**:
     1. In deal workspace → Daily Log tab
@@ -1393,7 +1393,7 @@
 
 ### 6.5 In-Deal Messaging
 
-- [ ] **E2E-127** · Al Qahtani sends message
+- [x] **E2E-127** · Al Qahtani sends message
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. In deal workspace → Chat tab
@@ -1401,7 +1401,7 @@
     3. Click Send
   - **Expected**: Message appears in chat. Timestamp shown.
 
-- [ ] **E2E-128** · Real-time message delivery
+- [x] **E2E-128** · Real-time message delivery
   - **Actor**: Al Rajhi Contracting (has chat open in another browser/tab)
   - **Steps**:
     1. With chat tab open, observe incoming message from Al Qahtani
@@ -1409,7 +1409,7 @@
     3. Al Qahtani sees reply appear
   - **Expected**: Messages appear in real-time without page refresh. Both parties see each other's messages instantly.
 
-- [ ] **E2E-129** · Send file attachment in chat
+- [x] **E2E-129** · Send file attachment in chat
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. In chat, click attachment icon
@@ -1417,7 +1417,7 @@
     3. Send
   - **Expected**: File attached and sent. Al Rajhi can see and download the file from chat.
 
-- [ ] **E2E-130** · Chat file size limit
+- [x] **E2E-130** · Chat file size limit
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. Try to upload file >10MB in chat
@@ -1425,7 +1425,7 @@
 
 ### 6.6 Deal Cancellation
 
-- [ ] **E2E-131** · Cancellation request rejected
+- [x] **E2E-131** · Cancellation request rejected
   - **Actor**: Bunyan (on the Al Qahtani ↔ Bunyan deal from E2E-081)
   - **Steps**:
     1. Open deal workspace for Commercial Renovation deal
@@ -1435,7 +1435,7 @@
     5. Al Qahtani reviews cancellation request → clicks "Reject"
   - **Expected**: Cancellation rejected. Deal continues normally. Activity logged.
 
-- [ ] **E2E-132** · Cancellation approved
+- [x] **E2E-132** · Cancellation approved
   - **Actor**: Bunyan → Al Qahtani Group
   - **Steps**:
     1. Bunyan requests cancellation again with updated reason
@@ -1444,7 +1444,7 @@
 
 ### 6.7 Milestone Suggestions
 
-- [ ] **E2E-132A** · Seller suggests milestone change
+- [x] **E2E-132A** · Seller suggests milestone change
   - **Actor**: Al Rajhi Contracting (rajhi.contracting@gmail.com — Seller on Villa deal)
   - **Steps**:
     1. Open deal workspace → Milestones tab
@@ -1453,7 +1453,7 @@
     4. Submit suggestion
   - **Expected**: Suggestion created with `pending` status. Al Qahtani (buyer) receives notification about pending milestone change request. Original milestone unchanged until approved.
 
-- [ ] **E2E-132B** · Buyer approves milestone suggestion
+- [x] **E2E-132B** · Buyer approves milestone suggestion
   - **Actor**: Al Qahtani Group (buyer)
   - **Steps**:
     1. Open deal workspace → Milestones tab
@@ -1462,7 +1462,7 @@
     4. Click "Approve" / "موافقة"
   - **Expected**: Milestone updated with new value (30%) and description. Suggestion status → approved. Both parties see updated milestone. Activity logged.
 
-- [ ] **E2E-132C** · Buyer rejects milestone suggestion
+- [x] **E2E-132C** · Buyer rejects milestone suggestion
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. Al Rajhi submits another suggestion on a different milestone
@@ -1471,7 +1471,7 @@
 
 ### 6.8 Skip Milestone
 
-- [ ] **E2E-132D** · Request skip milestone
+- [x] **E2E-132D** · Request skip milestone
   - **Actor**: Al Rajhi Contracting (seller)
   - **Steps**:
     1. Open deal workspace → Milestones tab
@@ -1480,7 +1480,7 @@
     4. Submit
   - **Expected**: Skip request created. Buyer receives notification. Requires mutual agreement (both parties must approve).
 
-- [ ] **E2E-132E** · Counterparty approves skip milestone request
+- [x] **E2E-132E** · Counterparty approves skip milestone request
   - **Actor**: Al Qahtani Group (buyer)
   - **Steps**:
     1. Open deal workspace → see skip request notification
@@ -1490,7 +1490,7 @@
 
 ### 6.9 Document Vault
 
-- [ ] **E2E-132F** · Upload document to deal vault with category
+- [x] **E2E-132F** · Upload document to deal vault with category
   - **Actor**: Al Qahtani Group (buyer)
   - **Steps**:
     1. Open deal workspace → Documents tab
@@ -1500,7 +1500,7 @@
     5. Save
   - **Expected**: Document uploaded and categorized. Visible to both parties. Version tracked.
 
-- [ ] **E2E-132G** · View document vault organized by category
+- [x] **E2E-132G** · View document vault organized by category
   - **Actor**: Al Rajhi Contracting (seller)
   - **Steps**:
     1. Open deal workspace → Documents tab
@@ -1508,7 +1508,7 @@
     3. Open "Contracts" category
   - **Expected**: Documents organized by category. Each shows: name, upload date, uploader. Can download any document.
 
-- [ ] **E2E-132H** · Both parties upload documents independently
+- [x] **E2E-132H** · Both parties upload documents independently
   - **Actor**: Al Rajhi Contracting (seller)
   - **Steps**:
     1. Open Documents tab
@@ -1860,7 +1860,7 @@
 
 ### 8.6 CRM Extended Features
 
-- [ ] **E2E-173A** · Move client through pipeline stages via drag-and-drop
+- [x] **E2E-173A** · Move client through pipeline stages via drag-and-drop
   - **Actor**: Al Qahtani Group (fahad.qahtani@gmail.com — Business tier)
   - **Steps**:
     1. Navigate to `/dashboard/crm`
@@ -1869,7 +1869,7 @@
     4. Verify stage updated
   - **Expected**: Client's pipeline stage updates visually. Stage count updates in column headers. Stage history preserved.
 
-- [ ] **E2E-173B** · Create custom CRM tag with color
+- [x] **E2E-173B** · Create custom CRM tag with color
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. In CRM, click "Manage Tags" / "إدارة التصنيفات"
@@ -1877,7 +1877,7 @@
     3. Save
   - **Expected**: Tag created with custom color. Available in client tag assignment dropdown.
 
-- [ ] **E2E-173C** · Assign tag to client
+- [x] **E2E-173C** · Assign tag to client
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. Open a client's card
@@ -1885,7 +1885,7 @@
     3. Save
   - **Expected**: Tag badge appears on client card. Client filterable by this tag.
 
-- [ ] **E2E-173D** · Pin/unpin client note
+- [x] **E2E-173D** · Pin/unpin client note
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. Open client detail → notes section
@@ -1894,7 +1894,7 @@
     4. Click pin icon again to unpin
   - **Expected**: Pinned notes appear at top of notes list. Unpin moves note back to chronological position.
 
-- [ ] **E2E-173E** · Toggle client as favorite
+- [x] **E2E-173E** · Toggle client as favorite
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. In CRM list, click star icon on a client
@@ -1902,7 +1902,7 @@
     3. Click star again to unfavorite
   - **Expected**: Favorited clients appear in dedicated "Favorites" section at top. Star icon toggles. Favorites limit: Starter 3, Pro 10, Business+ 20.
 
-- [ ] **E2E-173F** · Archive client and verify hidden from list
+- [x] **E2E-173F** · Archive client and verify hidden from list
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. Open client detail → click "Archive" / "أرشفة"
@@ -1910,14 +1910,14 @@
     3. Return to CRM list
   - **Expected**: Client no longer visible in active list. "Show archived" toggle reveals archived clients with visual indicator.
 
-- [ ] **E2E-173G** · Restore archived client
+- [x] **E2E-173G** · Restore archived client
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. Enable "Show Archived" / "إظهار المؤرشفين" toggle
     2. Find archived client → click "Restore" / "استعادة"
   - **Expected**: Client returned to active list. All history, notes, and tags preserved.
 
-- [ ] **E2E-173H** · Auto-link deal counterparty as CRM client
+- [x] **E2E-173H** · Auto-link deal counterparty as CRM client
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. After awarding a bid or accepting a quotation (deal created)
@@ -1925,14 +1925,14 @@
     3. Check for counterparty auto-added
   - **Expected**: Deal counterparty automatically added as CRM client. Source tagged as "Bid Award" / "Direct Hire" / "Quotation". No manual action needed.
 
-- [ ] **E2E-173I** · Detect duplicate client on add
+- [x] **E2E-173I** · Detect duplicate client on add
   - **Actor**: Al Qahtani Group (Business+ tier)
   - **Steps**:
     1. Click "Add Client" → enter a phone/email that matches an existing client
     2. Submit
   - **Expected**: Duplicate detection alert shown. Options: "Merge with existing" or "Create anyway". Matches shown by phone, email, or company name. Pro+ tiers only.
 
-- [ ] **E2E-173J** · Merge duplicate clients
+- [x] **E2E-173J** · Merge duplicate clients
   - **Actor**: Al Qahtani Group (Business+ tier)
   - **Steps**:
     1. Select two duplicate clients
@@ -1941,7 +1941,7 @@
     4. Confirm merge
   - **Expected**: Single client record with combined activity timelines, notes, and tags. Most recent contact info retained. Pro+ tiers only.
 
-- [ ] **E2E-173K** · Bulk tag assignment (Business+ only)
+- [x] **E2E-173K** · Bulk tag assignment (Business+ only)
   - **Actor**: Al Qahtani Group (Business tier)
   - **Steps**:
     1. In CRM list view, select multiple clients via checkboxes
@@ -1949,7 +1949,7 @@
     3. Select tag → apply
   - **Expected**: Tag applied to all selected clients. Bulk action toolbar visible when multiple selected. Business+ tiers only.
 
-- [ ] **E2E-173L** · Bulk CSV export of clients (Business+ only)
+- [x] **E2E-173L** · Bulk CSV export of clients (Business+ only)
   - **Actor**: Al Qahtani Group (Business tier)
   - **Steps**:
     1. In CRM, select clients or click "Export All" / "تصدير الكل"
@@ -1959,7 +1959,7 @@
 
 ### 8.7 Messaging Extended
 
-- [ ] **E2E-173M** · Mark conversation as read
+- [x] **E2E-173M** · Mark conversation as read
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. Navigate to `/dashboard/messages`
@@ -1967,7 +1967,7 @@
     3. Open the conversation
   - **Expected**: Unread count resets for this conversation. Badge in topbar updates. `last_read_at` updated.
 
-- [ ] **E2E-173N** · Delete message (soft delete)
+- [x] **E2E-173N** · Delete message (soft delete)
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. Open a conversation thread
@@ -1975,7 +1975,7 @@
     3. Confirm deletion
   - **Expected**: Message hidden for sender. Other party can still see the message. Soft delete — not permanently removed.
 
-- [ ] **E2E-173O** · Save and use quick reply template
+- [x] **E2E-173O** · Save and use quick reply template
   - **Actor**: Al Qahtani Group
   - **Steps**:
     1. In messaging, click "Quick Replies" / "الردود السريعة"

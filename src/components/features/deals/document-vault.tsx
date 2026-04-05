@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { uploadDealDocument } from '@/actions/uploads';
 import {
   Upload, FileText, Image, File, Download, FolderOpen, X,
@@ -131,15 +132,16 @@ export function DocumentVault({ dealId, documents }: DocumentVaultProps) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">{t('docCategory')}</label>
-              <select
-                name="category"
-                className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
-                defaultValue="general"
-              >
-                {CATEGORIES.filter(c => c !== 'all').map(cat => (
-                  <option key={cat} value={cat}>{t(`docCat_${cat}`)}</option>
-                ))}
-              </select>
+              <Select name="category" defaultValue="general">
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.filter(c => c !== 'all').map(cat => (
+                    <SelectItem key={cat} value={cat}>{t(`docCat_${cat}`)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">{t('docNotes')}</label>

@@ -6,7 +6,9 @@ import { useRouter } from '@/i18n/navigation';
 import { changeUserSubscription, extendUserSubscription, cancelUserSubscription, approveSubscriptionPayment } from '@/actions/admin/subscriptions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Settings } from 'lucide-react';
 
 interface SubscriptionManagerButtonProps {
@@ -90,100 +92,100 @@ export function SubscriptionManagerButton({
     });
   };
 
-  if (!isOpen) {
-    return (
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setIsOpen(true);
-        }}
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger
+        render={
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          />
+        }
       >
         <Settings className="me-1 h-3 w-3" />
         {t('title')}
-      </Button>
-    );
-  }
-
-  return (
-    <div
-      className="rounded-lg border border-border bg-card p-4 shadow-lg space-y-3 min-w-70"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div className="flex items-center justify-between">
-        <h4 className="text-sm font-semibold">{t('title')}</h4>
-        <Button size="sm" variant="ghost" onClick={() => setIsOpen(false)}>
-          &times;
-        </Button>
-      </div>
-
-      <div className="text-xs text-muted-foreground">
-        {t('currentPlan')}: <Badge variant={currentTier as 'starter' | 'pro' | 'business' | 'enterprise'}>{currentTier}</Badge>
-      </div>
-
-      {/* Change Tier */}
-      <div className="space-y-2">
-        <label className="text-xs font-medium">{t('newTier')}</label>
-        <select
-          className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
-          value={newTier}
-          onChange={(e) => setNewTier(e.target.value)}
-        >
-          <option value="starter">{t('tierStarter')}</option>
-          <option value="pro">{t('tierPro')}</option>
-          <option value="business">{t('tierBusiness')}</option>
-          <option value="enterprise">{t('tierEnterprise')}</option>
-        </select>
-      </div>
-
-      {/* Extend Days */}
-      <div className="space-y-2">
-        <label className="text-xs font-medium">{t('extendDays')}</label>
-        <Input
-          type="number"
-          value={extendDays}
-          onChange={(e) => setExtendDays(e.target.value)}
-          min={1}
-          max={365}
-          className="h-9"
-        />
-      </div>
-
-      {/* Reason */}
-      <div className="space-y-2">
-        <label className="text-xs font-medium">{t('reason')}</label>
-        <Input
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          placeholder={t('reason')}
-          className="h-9"
-        />
-      </div>
-
-      {result && (
-        <p className={`text-xs ${result.type === 'error' ? 'text-destructive' : 'text-success'}`}>
-          {result.message}
-        </p>
-      )}
-
-      <div className="flex flex-wrap gap-2">
-        {paymentStatus === 'pending' && (
-          <Button size="sm" variant="primary" loading={isPending} onClick={handleApprovePayment}>
-            {t('approvePayment')}
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-80 space-y-3"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold">{t('title')}</h4>
+          <Button size="sm" variant="ghost" onClick={() => setIsOpen(false)}>
+            &times;
           </Button>
+        </div>
+
+        <div className="text-xs text-muted-foreground">
+          {t('currentPlan')}: <Badge variant={currentTier as 'starter' | 'pro' | 'business' | 'enterprise'}>{currentTier}</Badge>
+        </div>
+
+        {/* Change Tier */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium">{t('newTier')}</label>
+          <Select value={newTier} onValueChange={(v) => setNewTier(v ?? '')}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="starter">{t('tierStarter')}</SelectItem>
+              <SelectItem value="pro">{t('tierPro')}</SelectItem>
+              <SelectItem value="business">{t('tierBusiness')}</SelectItem>
+              <SelectItem value="enterprise">{t('tierEnterprise')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Extend Days */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium">{t('extendDays')}</label>
+          <Input
+            type="number"
+            value={extendDays}
+            onChange={(e) => setExtendDays(e.target.value)}
+            min={1}
+            max={365}
+            className="h-9"
+          />
+        </div>
+
+        {/* Reason */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium">{t('reason')}</label>
+          <Input
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder={t('reason')}
+            className="h-9"
+          />
+        </div>
+
+        {result && (
+          <p className={`text-xs ${result.type === 'error' ? 'text-destructive' : 'text-success'}`}>
+            {result.message}
+          </p>
         )}
-        <Button size="sm" variant={paymentStatus === 'pending' ? 'outline' : 'primary'} loading={isPending} onClick={handleChangePlan} disabled={newTier === currentTier}>
-          {t('changePlan')}
-        </Button>
-        <Button size="sm" variant="outline" loading={isPending} onClick={handleExtend}>
-          {t('extendSubscription')}
-        </Button>
-        <Button size="sm" variant="destructive" loading={isPending} onClick={handleCancel}>
-          {t('cancelSubscription')}
-        </Button>
-      </div>
-    </div>
+
+        <div className="flex flex-wrap gap-2">
+          {paymentStatus === 'pending' && (
+            <Button size="sm" variant="primary" loading={isPending} onClick={handleApprovePayment}>
+              {t('approvePayment')}
+            </Button>
+          )}
+          <Button size="sm" variant={paymentStatus === 'pending' ? 'outline' : 'primary'} loading={isPending} onClick={handleChangePlan} disabled={newTier === currentTier}>
+            {t('changePlan')}
+          </Button>
+          <Button size="sm" variant="outline" loading={isPending} onClick={handleExtend}>
+            {t('extendSubscription')}
+          </Button>
+          <Button size="sm" variant="destructive" loading={isPending} onClick={handleCancel}>
+            {t('cancelSubscription')}
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

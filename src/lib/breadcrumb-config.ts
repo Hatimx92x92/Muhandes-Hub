@@ -32,6 +32,7 @@ export const segmentConfig: Record<string, { key: string; namespace: 'nav' | 'br
   reviews: { key: 'reviews', namespace: 'nav' },
   analytics: { key: 'analytics', namespace: 'nav' },
   commissions: { key: 'commissions', namespace: 'nav' },
+  invitations: { key: 'invitations', namespace: 'nav' },
   settings: { key: 'settings', namespace: 'nav' },
   profile: { key: 'profile', namespace: 'nav' },
   subscription: { key: 'subscription', namespace: 'nav' },
@@ -49,6 +50,7 @@ export const segmentConfig: Record<string, { key: string; namespace: 'nav' | 'br
 
   // ── Admin segments ────────────────────────────────────────────
   users: { key: 'users', namespace: 'breadcrumb' },
+  registrations: { key: 'registrations', namespace: 'breadcrumb' },
   posts: { key: 'posts', namespace: 'breadcrumb' },
   subscriptions: { key: 'subscriptions', namespace: 'breadcrumb' },
   'audit-log': { key: 'auditLog', namespace: 'breadcrumb' },

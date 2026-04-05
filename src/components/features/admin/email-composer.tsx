@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { sendEmailToUser } from '@/actions/admin/contact';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Mail } from 'lucide-react';
 
 interface EmailComposerProps {
@@ -78,8 +79,8 @@ export function EmailComposer({ userEmail, userId, userName, onClose }: EmailCom
         placeholder={t('subject')}
       />
 
-      <textarea
-        className="w-full min-h-30 rounded-lg border border-border bg-background p-3 text-sm resize-y"
+      <Textarea
+        className="min-h-30 resize-y"
         value={body}
         onChange={(e) => setBody(e.target.value)}
         placeholder={t('body')}

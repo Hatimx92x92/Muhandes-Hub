@@ -39,6 +39,7 @@ import { CancelRequestForm } from '@/components/forms/cancel-request-form';
 import { SkipToFinishForm } from '@/components/forms/skip-milestone-form';
 import { DealRealtimeWrapper } from '@/components/features/deals/deal-realtime-wrapper';
 import { DealChat } from '@/components/features/deals/deal-chat';
+import { DealGuide } from '@/components/features/deals/deal-guide';
 import {
   Handshake, User, Calendar, Banknote, TrendingUp, FileText,
   ListChecks, ShieldCheck, FolderOpen, Activity, MessageSquare,
@@ -237,6 +238,13 @@ export function DealWorkspace({
   const confirmedProofs = proofs.filter(p => p.status === 'confirmed');
   const rejectedProofs = proofs.filter(p => p.status === 'rejected');
 
+  // Pending items the current user needs to act on
+  const pendingProofsForUser = pendingProofs.filter(p => p.submitter_id !== userId).length;
+  const pendingSuggestionsForUser = suggestions.length; // buyer sees all
+  const cancelIsFromCounterparty = !!(pendingCancelRequest && pendingCancelRequest.requester_id !== userId);
+  const skipIsFromCounterparty = pendingSkipRequests.some(s => s.requester_id !== userId);
+
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [showCancelForm, setShowCancelForm] = useState(false);
   const [showSkipToFinishForm, setShowSkipToFinishForm] = useState(false);
   const hasPendingSkip = pendingSkipRequests.length > 0;
@@ -252,7 +260,7 @@ export function DealWorkspace({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-bold text-foreground truncate">
-                  {(deal.title_slug as string) || `${t('dealPrefix')} #${dealId.slice(0, 8)}`}
+                  {getLocaleField(deal, 'title', locale) || (deal.title_slug as string) || `${t('dealPrefix')} #${dealId.slice(0, 8)}`}
                 </h1>
                 <Badge variant={STATUS_BADGE[status] ?? 'secondary'}>
                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -268,7 +276,8 @@ export function DealWorkspace({
             {/* Action buttons */}
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline" className="text-xs">
-                {userRole === 'buyer' ? t('youAreBuyer') : t('youAreSeller')}
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {t(getDealRoleKey(deal.deal_type as string, userRole) as any)}
               </Badge>
               {isProject && (
                 <>
@@ -447,9 +456,29 @@ export function DealWorkspace({
         </FadeIn>
 
         {/* ============================================================== */}
+        {/* DEAL GUIDE — Next Action Panel                                 */}
+        {/* ============================================================== */}
+        <DealGuide
+          dealStatus={status}
+          dealType={deal.deal_type as string}
+          userRole={userRole}
+          displaySlug={displaySlug}
+          milestoneCount={milestones.length}
+          pendingProofsForUser={pendingProofsForUser}
+          pendingSuggestionsForUser={pendingSuggestionsForUser}
+          hasPendingCancel={!!pendingCancelRequest}
+          cancelRequestIsFromCounterparty={cancelIsFromCounterparty}
+          hasPendingSkip={hasPendingSkip}
+          skipRequestIsFromCounterparty={skipIsFromCounterparty}
+          hasReviewed={hasReviewed}
+          canReview={canReview}
+          onSwitchTab={setActiveTab}
+        />
+
+        {/* ============================================================== */}
         {/* TABS                                                           */}
         {/* ============================================================== */}
-        <Tabs defaultValue={initialTab}>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as string)}>
           <TabsList className="w-full overflow-x-auto" variant="default">
             <TabsTrigger value="overview">
               <Handshake className="h-4 w-4" />

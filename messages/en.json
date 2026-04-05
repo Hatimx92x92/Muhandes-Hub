@@ -56,6 +56,7 @@
     "milestones": "Milestones",
     "proofs": "Proofs",
     "users": "Users",
+    "registrations": "Registrations",
     "posts": "Posts",
     "subscriptions": "Subscriptions",
     "auditLog": "Audit Log",
@@ -94,15 +95,19 @@
     "cookies": "Cookie Policy",
     "adminPanel": "Admin Panel",
     "groupOverview": "Overview",
+    "groupCore": "Core",
+    "groupCommerce": "Commerce",
     "groupProjectManagement": "Project Management",
     "groupProjectsBidding": "Projects & Bidding",
     "groupProductsSales": "Products & Sales",
     "groupProcurement": "Procurement",
     "groupCommunication": "Communication",
+    "groupTools": "Tools",
     "groupBusiness": "Business",
     "groupAccount": "Account",
     "viewPublicProfile": "View Public Profile",
-    "myBids": "My Bids"
+    "myBids": "My Bids",
+    "invitations": "Invitations"
   },
   "locale": {
     "switchToEn": "Switch to English",
@@ -707,6 +712,13 @@
       "docCat_invoices": "Invoices",
       "docCat_correspondence": "Correspondence",
       "docCat_general": "General",
+      "photoTimeline": "Photo Timeline",
+      "photoTimelineDesc": "Chronological view of all deal photos from daily logs and proofs",
+      "noPhotos": "No photos yet",
+      "noPhotosDesc": "Photos from daily site logs and proof submissions will appear here",
+      "photosCount": "{count} photos",
+      "fromDailyLog": "Daily Log",
+      "fromProof": "Proof",
       "dailyLogTitle": "Daily Site Log",
       "logRecords": "records",
       "todayLog": "Today's Log",
@@ -764,7 +776,33 @@
       "roleBuyer": "Buyer",
       "accountRole": "Account Role",
       "dealOrigin": "Deal Origin",
-      "linkedContracts": "Linked Contracts"
+      "linkedContracts": "Linked Contracts",
+      "untitledDeal": "Untitled Deal",
+      "guide": {
+        "nextStep": "Next Step",
+        "yourRole": "Your Role: {role}",
+        "createFirstMilestone": "Create the first milestone to start tracking progress and payments",
+        "createFirstMilestoneBtn": "Add First Milestone",
+        "waitingForMilestones": "Waiting for the buyer to create milestones. You'll be notified when they're ready.",
+        "submitProgress": "Submit a work progress update to show the buyer what's been completed",
+        "submitProgressBtn": "Submit Progress",
+        "submitPayment": "Submit a payment proof to confirm the transfer",
+        "submitPaymentBtn": "Submit Payment",
+        "reviewPendingProofs": "You have {count} pending proof(s) from the other party to review",
+        "reviewPendingProofsBtn": "Review Proofs",
+        "reviewCancellation": "The other party has requested to cancel this deal",
+        "reviewCancellationBtn": "Review Cancellation",
+        "reviewSkipRequest": "The other party has requested to skip to finish",
+        "reviewSkipRequestBtn": "Review Skip Request",
+        "reviewSuggestions": "The seller has suggested changes to {count} milestone(s)",
+        "reviewSuggestionsBtn": "Review Suggestions",
+        "writeReview": "This deal is complete. Share your experience working with your partner",
+        "writeReviewBtn": "Write Review",
+        "dealComplete": "This deal has been completed successfully",
+        "dealCompleteReviewed": "Deal completed — thank you for your review!",
+        "dealCancelled": "This deal has been cancelled",
+        "dealDisputed": "This deal is under dispute and being reviewed by admin"
+      }
     },
     "products": {
       "title": "Products",
@@ -841,6 +879,86 @@
         "responded": "Responded",
         "closed": "Closed"
       }
+    },
+    "invitations": {
+      "title": "Invitations",
+      "tabSendQuote": "Invite to Quote",
+      "tabSendBid": "Invite to Bid",
+      "tabSent": "Sent Invitations",
+      "tabReceived": "Received Invitations",
+      "inviteToQuoteTitle": "Invite Supplier to Quote",
+      "inviteToQuoteDesc": "Select a published project and invite a supplier to submit a quotation.",
+      "inviteToBidTitle": "Invite Contractor to Bid",
+      "inviteToBidDesc": "Select a published project and invite a contractor to submit a bid.",
+      "selectProject": "Project",
+      "selectProjectPlaceholder": "Select a project...",
+      "selectSupplier": "Supplier",
+      "selectSupplierPlaceholder": "Select a supplier...",
+      "selectContractor": "Contractor",
+      "selectContractorPlaceholder": "Select a contractor...",
+      "descriptionAr": "Description (Arabic)",
+      "descriptionArPlaceholder": "Describe what you need from the supplier...",
+      "descriptionEn": "Description (English)",
+      "descriptionEnPlaceholder": "Optional English description...",
+      "messageAr": "Message (Arabic)",
+      "messageArPlaceholder": "Optional message to the contractor...",
+      "messageEn": "Message (English)",
+      "messageEnPlaceholder": "Optional English message...",
+      "sending": "Sending...",
+      "sendQuoteInvitation": "Send Quote Invitation",
+      "sendBidInvitation": "Send Bid Invitation",
+      "quoteInvitationSent": "Quote invitation sent successfully!",
+      "bidInvitationSent": "Bid invitation sent successfully!",
+      "noSentInvitations": "No Sent Invitations",
+      "noSentInvitationsDesc": "Invitations you send will appear here",
+      "noQuoteInvitations": "No Quote Invitations",
+      "noQuoteInvitationsDesc": "When a project owner invites you to quote, it will appear here",
+      "noBidInvitations": "No Bid Invitations",
+      "noBidInvitationsDesc": "When a project owner invites you to bid, it will appear here",
+      "from": "From",
+      "to": "To",
+      "typeQuote": "Quote",
+      "typeBid": "Bid",
+      "acceptAndQuote": "Accept & Quote",
+      "decline": "Decline",
+      "submitBid": "Submit Bid",
+      "quotationAmount": "Quotation Amount (SAR)",
+      "quotationDescAr": "Quotation Description (Arabic)",
+      "quotationDescArPlaceholder": "Describe your quotation...",
+      "quotationDescEn": "Quotation Description (English)",
+      "quotationDescEnPlaceholder": "Optional English description...",
+      "sendQuotation": "Send Quotation",
+      "quotationCreated": "Quotation created successfully!",
+      "invitationDeclined": "Invitation declined",
+      "declineReason": "Reason (optional)",
+      "declineReasonPlaceholder": "Briefly explain why you are declining...",
+      "confirmDecline": "Confirm Decline",
+      "cancel": "Cancel",
+      "status_pending": "Pending",
+      "status_accepted": "Accepted",
+      "status_declined": "Declined",
+      "status_cancelled": "Cancelled"
+    },
+    "bulkUpload": {
+      "title": "Bulk Product Upload",
+      "subtitle": "Upload multiple products at once using a CSV file",
+      "requiresBusiness": "Bulk upload requires a Business or Enterprise subscription",
+      "suppliersOnly": "Bulk upload is only available for suppliers",
+      "instructions": "Upload Instructions",
+      "step1": "Download the CSV template below",
+      "step2": "Fill in your product data (title_ar and price are required)",
+      "step3": "Upload the completed CSV file",
+      "downloadTemplate": "Download CSV Template",
+      "selectFile": "Select CSV File",
+      "maxSize": "Maximum file size: 5 MB",
+      "uploading": "Importing products...",
+      "importProducts": "Import Products",
+      "results": "Import Results",
+      "imported": "Products imported",
+      "skipped": "Products skipped",
+      "errors": "Errors",
+      "noFile": "Please select a CSV file",
+      "columns": "Required columns: title_ar, price. Optional: title_en, description_ar, description_en, category_id, unit, moq, sku"
     },
     "rfqs": {
       "title": "Request for Quotations",
@@ -1348,7 +1466,10 @@
         "cancelledDeals": "Cancelled",
         "totalRevenue": "Revenue",
         "avgRating": "Avg. Rating",
-        "totalReviews": "Reviews"
+        "totalReviews": "Reviews",
+        "avgDealValue": "Avg. Deal Value",
+        "avgCompletionDays": "Avg. Completion Time",
+        "days": "days"
       },
       "vsLastPeriod": "vs last period",
       "rolePerformance": "Role Performance",
@@ -1378,26 +1499,72 @@
       },
       "charts": {
         "dealsOverTime": "Deals Over Time",
+        "dealsOverTimeDesc": "Number of deals created within the selected period",
         "deals": "Deals",
         "revenueTrend": "Revenue Trend",
+        "revenueTrendDesc": "Revenue generated over time in SAR",
         "revenue": "Revenue",
         "dealsByStatus": "Deals by Status",
+        "dealsByStatusDesc": "Distribution of deals across different statuses",
         "ratingOverTime": "Rating Over Time",
+        "ratingOverTimeDesc": "Average rating trend over selected period",
         "rating": "Rating",
         "bidsByStatus": "Bids by Status",
+        "bidsByStatusDesc": "Breakdown of your bids by current status",
         "bidWinRateTrend": "Bid Win Rate Trend",
+        "bidWinRateTrendDesc": "Your bid win rate percentage over time",
         "winRate": "Win Rate",
         "topProducts": "Top Products",
+        "topProductsDesc": "Your most viewed and inquired products",
         "quotationsByStatus": "Quotations by Status",
+        "quotationsByStatusDesc": "Distribution of quotations across statuses",
+        "subRatings": "Rating Breakdown",
+        "subRatingsDesc": "Average scores across quality, timeliness, and communication",
+        "topPartners": "Top Partners",
+        "topPartnersDesc": "Your highest-value business partners by deal revenue",
+        "conversionFunnel": "Conversion Funnel",
+        "conversionFunnelDesc": "Pipeline progression from first contact to deal completion",
+        "projectsByStatus": "Projects by Status",
+        "projectsByStatusDesc": "Distribution of your projects across statuses",
+        "bidsReceivedByStatus": "Bids Received by Status",
+        "bidsReceivedByStatusDesc": "Breakdown of bids received across your projects",
+        "ratingCategory": {
+          "quality": "Quality",
+          "timeliness": "Timeliness",
+          "communication": "Communication"
+        },
+        "funnelStage": {
+          "bids": "Bids",
+          "shortlisted": "Shortlisted",
+          "awarded": "Awarded",
+          "deals": "Deals",
+          "completed": "Completed",
+          "quotations": "Quotations",
+          "viewed": "Viewed",
+          "accepted": "Accepted",
+          "projects": "Projects",
+          "rfqs": "RFQs",
+          "bidsReceived": "Bids Received"
+        },
         "roleSpecific": "Activity Breakdown",
-        "noData": "No data available for this period"
+        "noData": "No data available for this period",
+        "trendUp": "Trending up by {value}%",
+        "trendDown": "Trending down by {value}%",
+        "total": "Total"
       },
       "status": {
         "active": "Active",
         "in_progress": "In Progress",
         "completed": "Completed",
         "cancelled": "Cancelled",
-        "disputed": "Disputed"
+        "disputed": "Disputed",
+        "draft": "Draft",
+        "pending": "Pending",
+        "published": "Published",
+        "rejected": "Rejected",
+        "awarded": "Awarded",
+        "expired": "Expired",
+        "closed": "Closed"
       },
       "bidStatus": {
         "pending": "Pending",
@@ -1447,6 +1614,7 @@
       "backToDashboard": "Back to Dashboard",
       "dashboard": "Admin Dashboard",
       "users": "Users",
+      "registrations": "Registrations",
       "posts": "Posts",
       "deals": "Deals",
       "commissions": "Commissions",
@@ -1612,6 +1780,26 @@
       "subtitle": "View and manage user accounts",
       "noUsers": "No users found",
       "noUsersDesc": "No users matching these criteria"
+    },
+    "registrationsPage": {
+      "title": "Pending Registrations",
+      "subtitle": "Review and approve new user registrations",
+      "totalPending": "Total Pending",
+      "colTier": "Tier",
+      "colDocuments": "Documents",
+      "noRegistrations": "No pending registrations",
+      "noRegistrationsDesc": "All registrations have been processed",
+      "docVatCertificate": "VAT Certificate",
+      "docCommercialLicense": "Commercial License",
+      "docPending": "Pending",
+      "docApproved": "Approved",
+      "docRejected": "Rejected",
+      "viewDocs": "View Documents",
+      "rejectReason": "Rejection Reason",
+      "rejectReasonAr": "Reason (Arabic)",
+      "rejectReasonEn": "Reason (English)",
+      "confirmReject": "Confirm Rejection",
+      "cancel": "Cancel"
     },
     "postsPage": {
       "title": "Post Management",
@@ -1867,8 +2055,15 @@
       "title": "Analytics",
       "subtitle": "Platform statistics and analytics",
       "userGrowth": "User Growth",
+      "userGrowthDesc": "New user registrations over the last 30 days",
       "usersByRole": "Users by Role",
+      "usersByRoleDesc": "Distribution of users across platform roles",
       "registrationFunnel": "Registration Funnel",
+      "registrationFunnelDesc": "User count at each registration stage",
+      "revenueOverview": "Revenue Overview",
+      "revenueOverviewDesc": "Monthly revenue breakdown in SAR",
+      "revenueByTier": "Subscriptions by Tier",
+      "revenueByTierDesc": "Distribution of active subscriptions across tiers",
       "signups": "Signups",
       "emailVerified": "Email Verified",
       "paid": "Paid",
@@ -1901,7 +2096,8 @@
       "bids": "Bids",
       "incompleteRegistrations": "Incomplete Registrations",
       "export": "Export CSV",
-      "noData": "No data available"
+      "noData": "No data available",
+      "users": "users"
     },
     "contactsPage": {
       "title": "Contact Submissions",
@@ -2722,9 +2918,38 @@
     }
   },
   "features": {
+    "commandSearch": {
+      "title": "Search",
+      "description": "Search across your deals, projects, products, clients, and more",
+      "placeholder": "Search...",
+      "noResults": "No results found",
+      "typeToSearch": "Type at least 2 characters to search",
+      "deals": "Deals",
+      "projects": "Projects",
+      "products": "Products",
+      "clients": "CRM Clients",
+      "contracts": "Contracts",
+      "conversations": "Conversations",
+      "admin": "Admin"
+    },
+    "dashboardActivity": {
+      "title": "Recent Activity",
+      "noActivity": "No recent activity",
+      "viewAll": "View All",
+      "notification": "Notification",
+      "deal": "Deal"
+    },
+    "savedFilters": {
+      "save": "Save Filter",
+      "saveTitle": "Save current filters",
+      "namePlaceholder": "Filter name…",
+      "cancel": "Cancel",
+      "confirm": "Save"
+    },
     "onboarding": {
       "title": "Getting Started",
-      "dismiss": "Dismiss",
+      "dismiss": "Dismiss Checklist",
+      "progress": "{percent}% complete",
       "steps": {
         "email": "Verify your email",
         "profile": "Complete your profile",
@@ -2917,6 +3142,7 @@
     },
     "adminUser": {
       "approve": "Approve",
+      "reject": "Reject",
       "restrict": "Restrict",
       "ban": "Ban",
       "unban": "Unban",
@@ -3194,7 +3420,7 @@
       },
       "contact": {
         "title": "Contact Us",
-        "description": "For any inquiries about your data privacy, please contact: privacy@muqawilhub.com"
+        "description": "For any inquiries about your data privacy, please contact: privacy@muhandeshub.com"
       },
       "seeAlso": "See also",
       "termsLink": "Terms of Service",
@@ -3284,7 +3510,7 @@
       },
       "contact": {
         "title": "Contact Us",
-        "description": "For any inquiries about cookies: privacy@muqawilhub.com"
+        "description": "For any inquiries about cookies: privacy@muhandeshub.com"
       },
       "seeAlso": "See also",
       "privacyLink": "Privacy Policy",
@@ -3297,6 +3523,10 @@
       "description": "A comprehensive digital ecosystem connecting project owners, contractors, suppliers, and buyers in the Saudi construction industry. Get started for free.",
       "ogTitle": "Muhandes HUB — Construction Industry Platform",
       "ogDescription": "A comprehensive digital ecosystem for construction — projects, contracts, quotations, and deal management."
+    },
+    "marketplace": {
+      "title": "Product Marketplace — Construction Materials & Supplies | Muhandes HUB",
+      "description": "Browse products from verified suppliers in the Saudi construction industry — building materials, equipment, and tools at competitive prices."
     },
     "default": {
       "title": "Muhandes HUB",
@@ -3394,7 +3624,9 @@
       "cannotAwardBidStatus": "Cannot award a bid with this status",
       "awardError": "An error occurred while awarding the bid",
       "dealCreationError": "An error occurred while creating the deal",
-      "cannotRejectBidStatus": "Cannot reject a bid with this status"
+      "cannotRejectBidStatus": "Cannot reject a bid with this status",
+      "contractorNotFound": "Contractor not found",
+      "duplicateBidInvitation": "An invitation for this contractor on this project is already pending"
     },
     "projects": {
       "mustLogin": "You must be logged in first",
@@ -3626,7 +3858,11 @@
       "hireRequestNotFound": "Hire request not found or already processed",
       "createQuotationError": "An error occurred while creating the quotation",
       "defaultSupplier": "Supplier",
-      "requestIdRequired": "Request ID is required"
+      "requestIdRequired": "Request ID is required",
+      "cannotInviteSelf": "You cannot invite yourself",
+      "duplicateInvitation": "An invitation for this supplier on this project is already pending",
+      "submitInvitationError": "An error occurred while sending the invitation",
+      "projectNotAvailable": "Project is not available or not published"
     },
     "kanban": {
       "mustLogin": "You must be logged in",
@@ -3693,9 +3929,16 @@
       "editError": "Failed to edit review"
     },
     "search": {
+      "mustLogin": "You must be logged in to search",
       "tooManyRequests": "Too many search requests. Please wait",
       "invalidCollection": "Invalid collection",
       "searchError": "Search failed"
+    },
+    "filters": {
+      "mustLogin": "You must be logged in",
+      "invalidInput": "Invalid filter data",
+      "saveError": "Failed to save filter",
+      "deleteError": "Failed to delete filter"
     },
     "uploads": {
       "mustLogin": "You must be logged in",

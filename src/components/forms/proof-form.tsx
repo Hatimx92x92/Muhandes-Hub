@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { FormField } from '@/components/forms/form-field';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ActionResult } from '@/types';
 
 interface ProofFormProps {
@@ -44,17 +45,17 @@ export function ProofForm({ dealId, milestones, maxPercentage }: ProofFormProps)
           label={t('proofType')}
           error={state?.error ? state.fieldErrors?.proof_type?.[0] : undefined}
         >
-          <select
-            name="proof_type"
-            required
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          >
-            <option value="">{t('selectProofType')}</option>
-            <option value="work">{t('typeWork')}</option>
-            <option value="payment">{t('typePayment')}</option>
-            <option value="supply">{t('typeSupply')}</option>
-            <option value="handover">{t('typeHandover')}</option>
-          </select>
+          <Select name="proof_type" required defaultValue="">
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={t('selectProofType')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="work">{t('typeWork')}</SelectItem>
+              <SelectItem value="payment">{t('typePayment')}</SelectItem>
+              <SelectItem value="supply">{t('typeSupply')}</SelectItem>
+              <SelectItem value="handover">{t('typeHandover')}</SelectItem>
+            </SelectContent>
+          </Select>
         </FormField>
 
         {milestones.length > 0 && (
@@ -62,15 +63,17 @@ export function ProofForm({ dealId, milestones, maxPercentage }: ProofFormProps)
             label={t('milestone')}
             error={state?.error ? state.fieldErrors?.milestone_id?.[0] : undefined}
           >
-            <select
-              name="milestone_id"
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            >
-              <option value="">{t('noMilestone')}</option>
-              {milestones.map(m => (
-                <option key={m.id} value={m.id}>{m.title_ar}</option>
-              ))}
-            </select>
+            <Select name="milestone_id" defaultValue="">
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t('noMilestone')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">{t('noMilestone')}</SelectItem>
+                {milestones.map(m => (
+                  <SelectItem key={m.id} value={m.id}>{m.title_ar}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </FormField>
         )}
       </div>

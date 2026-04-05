@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileCheck, GripVertical } from 'lucide-react';
 import {
   DndContext,
@@ -38,7 +39,7 @@ import {
   moveKanbanCard,
   deleteKanbanCard,
 } from '@/actions/kanban';
-import { createClient as createBrowserClient } from '@/lib/supabase/client';
+import { useRealtime } from '@/hooks/use-realtime';
 import type { ActionResult } from '@/types';
 
 // ---------------------------------------------------------------------------
@@ -255,25 +256,17 @@ export function KanbanBoard({ dealId, columns: initialColumns, hasColumns, isRea
   const progressPercent = totalCards > 0 ? Math.round((doneCards / totalCards) * 100) : 0;
 
   // ---------- Realtime subscription ----------
-  useEffect(() => {
-    const supabase = createBrowserClient();
+  useRealtime({
+    channel: `kanban-cards:${dealId}`,
+    table: 'kanban_cards',
+    filter: `deal_id=eq.${dealId}`,
+  });
 
-    const channel = supabase
-      .channel(`kanban:${dealId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'kanban_cards', filter: `deal_id=eq.${dealId}` },
-        () => { window.location.reload(); },
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'kanban_columns', filter: `deal_id=eq.${dealId}` },
-        () => { window.location.reload(); },
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [dealId]);
+  useRealtime({
+    channel: `kanban-columns:${dealId}`,
+    table: 'kanban_columns',
+    filter: `deal_id=eq.${dealId}`,
+  });
 
   // ---------- Find which column a card belongs to ----------
   const findColumnByCardId = useCallback((cardId: string): KanbanColumn | undefined => {
@@ -472,16 +465,17 @@ export function KanbanBoard({ dealId, columns: initialColumns, hasColumns, isRea
                     <input type="hidden" name="column_id" value={col.id} />
                     <input type="hidden" name="deal_id" value={dealId} />
                     <Input name="title" placeholder={t('taskTitlePlaceholder')} autoFocus />
-                    <select
-                      name="priority"
-                      className="w-full rounded-md border border-border bg-card px-2 py-1 text-xs"
-                      defaultValue="medium"
-                    >
-                      <option value="low">{t('priority.low')}</option>
-                      <option value="medium">{t('priority.medium')}</option>
-                      <option value="high">{t('priority.high')}</option>
-                      <option value="urgent">{t('priority.urgent')}</option>
-                    </select>
+                    <Select name="priority" defaultValue="medium">
+                      <SelectTrigger className="w-full" size="sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">{t('priority.low')}</SelectItem>
+                        <SelectItem value="medium">{t('priority.medium')}</SelectItem>
+                        <SelectItem value="high">{t('priority.high')}</SelectItem>
+                        <SelectItem value="urgent">{t('priority.urgent')}</SelectItem>
+                      </SelectContent>
+                    </Select>
                     {addCardState?.error && (
                       <p className="text-xs text-destructive">{addCardState.error}</p>
                     )}

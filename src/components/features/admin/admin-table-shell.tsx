@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Search, Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Pagination } from '@/components/ui/pagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BulkActionBar, type BulkAction } from '@/components/features/bulk-action-bar';
 import { downloadCSV, toCSV } from '@/components/features/analytics/csv-export';
 
@@ -123,7 +124,7 @@ export function AdminTableShell({
   );
 
   const handleSortChange = useCallback(
-    (value: string) => {
+    (value: string | null) => {
       updateParams({ sort: value || null });
     },
     [updateParams],
@@ -172,18 +173,19 @@ export function AdminTableShell({
 
         {/* Sort */}
         {sortOptions && sortOptions.length > 0 && (
-          <select
-            value={currentSort}
-            onChange={(e) => handleSortChange(e.target.value)}
-            className="h-9 rounded-lg border border-border bg-background px-3 text-sm outline-none transition-colors focus:border-primary"
-          >
-            <option value="">{tc('sort')}</option>
-            {sortOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <Select value={currentSort} onValueChange={handleSortChange}>
+            <SelectTrigger size="sm">
+              <SelectValue placeholder={tc('sort')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">{tc('sort')}</SelectItem>
+              {sortOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )}
 
         {/* Export */}

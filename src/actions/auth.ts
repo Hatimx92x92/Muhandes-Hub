@@ -476,7 +476,8 @@ export async function completeGoogleRegistration(
   const paymentMethod = parsed.data.payment_method;
 
   // 4. Update the profile created by the trigger
-  const fullName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? '';
+  const formFullName = formData.get('full_name') as string | null;
+  const fullName = formFullName?.trim() || (user.user_metadata?.full_name ?? user.user_metadata?.name ?? '');
 
   // Generate slugs from company name or full name
   const gSlugSourceAr = parsed.data.company_name_ar || fullName;

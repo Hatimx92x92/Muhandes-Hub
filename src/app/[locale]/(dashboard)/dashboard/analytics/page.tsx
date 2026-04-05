@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { Badge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { TIER_LIMITS } from '@/types';
 import { getUserAnalytics } from '@/actions/analytics';
@@ -81,7 +82,7 @@ export default async function AnalyticsDashboardPage({ searchParams }: PageProps
             <a
               href="/api/analytics/export"
               download
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"
+              className={buttonVariants({ variant: 'outline', size: 'sm' })}
             >
               <Download className="h-3.5 w-3.5" />
               {t('exportCsv')}

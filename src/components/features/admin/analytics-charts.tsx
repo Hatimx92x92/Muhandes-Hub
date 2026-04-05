@@ -1,32 +1,45 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations, useLocale } from 'next-intl';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import type { ChartConfig } from '@/components/ui/chart';
+import { TrendingUp, Users, DollarSign, Layers, Filter } from 'lucide-react';
 import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
-  type ChartConfig,
-} from '@/components/ui/chart';
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from 'recharts';
+  AnalyticsAreaChart,
+  AnalyticsBarChart,
+  AnalyticsDonutChart,
+  AnalyticsRadarChart,
+  AnalyticsRadialChart,
+} from '../analytics/charts';
+
+// ---------------------------------------------------------------------------
+// Palette — consistent with chart CSS variables
+// ---------------------------------------------------------------------------
 
 const COLORS = [
   'var(--chart-1)', 'var(--chart-3)', 'var(--chart-2)', 'var(--chart-5)',
   'var(--chart-4)', 'var(--info)', 'var(--secondary-dark)', 'var(--success)',
 ];
+
+// ---------------------------------------------------------------------------
+// Chart configs
+// ---------------------------------------------------------------------------
+
+const signupChartConfig = {
+  value: { label: 'Signups', color: 'var(--chart-1)' },
+} satisfies ChartConfig;
+
+const revenueChartConfig = {
+  value: { label: 'Revenue', color: 'var(--chart-3)' },
+} satisfies ChartConfig;
+
+const roleRadarConfig = {
+  value: { label: 'Users', color: 'var(--chart-2)' },
+} satisfies ChartConfig;
+
+// ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
 
 interface AnalyticsChartsProps {
   usersByRole: Record<string, number>;
@@ -36,17 +49,9 @@ interface AnalyticsChartsProps {
   revenueByMonth: { month: string; amount: number }[];
 }
 
-const signupChartConfig = {
-  count: { label: 'Signups', color: 'var(--chart-1)' },
-} satisfies ChartConfig;
-
-const revenueChartConfig = {
-  amount: { label: 'Revenue', color: 'var(--chart-3)' },
-} satisfies ChartConfig;
-
-const funnelChartConfig = {
-  value: { label: 'Users', color: 'var(--chart-4)' },
-} satisfies ChartConfig;
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 export function AnalyticsCharts({
   usersByRole,
@@ -56,174 +61,158 @@ export function AnalyticsCharts({
   revenueByMonth,
 }: AnalyticsChartsProps) {
   const t = useTranslations('admin.analyticsPage');
+  const locale = useLocale();
+  const noData = t('noData');
 
-  const roleData = Object.entries(usersByRole).map(([name, value]) => ({ name, value }));
-  const statusData = Object.entries(usersByStatus).map(([name, value]) => ({ name, value }));
-  const tierData = Object.entries(subscriptionsByTier).map(([name, value]) => ({ name, value }));
+  // Transform data
+  const signupData = recentSignups.map((s) => ({ label: s.date, value: s.count }));
+  const revenueData = revenueByMonth.map((r) => ({ label: r.month, value: r.amount }));
 
-  const roleChartConfig = Object.fromEntries(
-    roleData.map((entry, i) => [
-      entry.name,
-      { label: entry.name, color: COLORS[i % COLORS.length] },
-    ])
-  ) satisfies ChartConfig;
+  const roleData = Object.entries(usersByRole).map(([name, value]) => ({
+    label: name,
+    value,
+  }));
 
+  const tierData = Object.entries(subscriptionsByTier).map(([name, value], i) => ({
+    label: name,
+    value,
+    color: COLORS[i % COLORS.length],
+  }));
   const tierChartConfig = Object.fromEntries(
-    tierData.map((entry, i) => [
-      entry.name,
-      { label: entry.name, color: COLORS[i % COLORS.length] },
-    ])
+    tierData.map((d) => [d.label, { label: d.label, color: d.color }])
   ) satisfies ChartConfig;
+
+  // Registration funnel — compute total for percentage-based radial bars
+  const statusEntries = Object.entries(usersByStatus);
+  const statusTotal = statusEntries.reduce((sum, [, v]) => sum + v, 0);
+
+  const formatSAR = (v: number) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v));
 
   return (
     <div className="space-y-6">
-      {/* Row 1: User Growth + Users by Role */}
+      {/* Row 1: User Growth (Area) + Users by Role (Radar) */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* User Growth Line Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t('userGrowth')}</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              {t('userGrowth')}
+            </CardTitle>
+            <CardDescription>{t('userGrowthDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
-            {recentSignups.length > 0 ? (
-              <ChartContainer config={signupChartConfig} className="min-h-[300px] w-full">
-                <LineChart data={recentSignups}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line
-                    type="monotone"
-                    dataKey="count"
-                    name={t('signups')}
-                    stroke="var(--color-count)"
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
-                  />
-                </LineChart>
-              </ChartContainer>
-            ) : (
-              <p className="py-12 text-center text-sm text-muted-foreground">{t('noData')}</p>
-            )}
+            <AnalyticsAreaChart
+              data={signupData}
+              config={signupChartConfig}
+              locale={locale}
+              emptyMessage={noData}
+              gradientId="adminSignupsGrad"
+            />
           </CardContent>
+          {signupData.length > 0 && (
+            <CardFooter className="gap-2 text-sm text-muted-foreground">
+              <TrendingUp className="h-4 w-4" />
+              {t('signups')}
+            </CardFooter>
+          )}
         </Card>
 
-        {/* Users by Role Pie */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t('usersByRole')}</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              {t('usersByRole')}
+            </CardTitle>
+            <CardDescription>{t('usersByRoleDesc')}</CardDescription>
           </CardHeader>
-          <CardContent>
-            {roleData.length > 0 ? (
-              <ChartContainer config={roleChartConfig} className="min-h-[300px] w-full">
-                <PieChart>
-                  <Pie
-                    data={roleData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={3}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}`}
-                  >
-                    {roleData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <ChartLegend content={<ChartLegendContent />} />
-                </PieChart>
-              </ChartContainer>
-            ) : (
-              <p className="py-12 text-center text-sm text-muted-foreground">{t('noData')}</p>
-            )}
+          <CardContent className="flex items-center justify-center">
+            <AnalyticsRadarChart
+              data={roleData}
+              config={roleRadarConfig}
+              emptyMessage={noData}
+            />
           </CardContent>
         </Card>
       </div>
 
-      {/* Row 2: Revenue + Subscriptions by Tier */}
+      {/* Row 2: Revenue (Bar) + Subscriptions by Tier (Donut) */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Revenue Bar Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t('revenueOverview')}</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              {t('revenueOverview')}
+            </CardTitle>
+            <CardDescription>{t('revenueOverviewDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
-            {revenueByMonth.length > 0 ? (
-              <ChartContainer config={revenueChartConfig} className="min-h-[300px] w-full">
-                <BarChart data={revenueByMonth}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value) => `${Number(value).toLocaleString()} SAR`}
-                      />
-                    }
-                  />
-                  <Bar dataKey="amount" name={t('totalRevenue')} fill="var(--color-amount)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ChartContainer>
-            ) : (
-              <p className="py-12 text-center text-sm text-muted-foreground">{t('noData')}</p>
-            )}
+            <AnalyticsBarChart
+              data={revenueData}
+              config={revenueChartConfig}
+              locale={locale}
+              emptyMessage={noData}
+              tickFormatter={formatSAR}
+            />
           </CardContent>
+          {revenueData.length > 0 && (
+            <CardFooter className="gap-2 text-sm text-muted-foreground">
+              <DollarSign className="h-4 w-4" />
+              {t('totalRevenue')}
+            </CardFooter>
+          )}
         </Card>
 
-        {/* Subscriptions by Tier */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t('revenueByTier')}</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Layers className="h-4 w-4 text-muted-foreground" />
+              {t('revenueByTier')}
+            </CardTitle>
+            <CardDescription>{t('revenueByTierDesc')}</CardDescription>
           </CardHeader>
-          <CardContent>
-            {tierData.length > 0 ? (
-              <ChartContainer config={tierChartConfig} className="min-h-[300px] w-full">
-                <PieChart>
-                  <Pie
-                    data={tierData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={3}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}`}
-                  >
-                    {tierData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <ChartLegend content={<ChartLegendContent />} />
-                </PieChart>
-              </ChartContainer>
-            ) : (
-              <p className="py-12 text-center text-sm text-muted-foreground">{t('noData')}</p>
-            )}
+          <CardContent className="flex items-center justify-center">
+            <AnalyticsDonutChart
+              data={tierData}
+              config={tierChartConfig}
+              emptyMessage={noData}
+              totalLabel={t('totalUsers')}
+            />
           </CardContent>
         </Card>
       </div>
 
-      {/* Row 3: Registration Funnel (bar chart from statuses) */}
+      {/* Row 3: Registration Funnel — Radial gauges in a grid */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t('registrationFunnel')}</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            {t('registrationFunnel')}
+          </CardTitle>
+          <CardDescription>{t('registrationFunnelDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
-          {statusData.length > 0 ? (
-            <ChartContainer config={funnelChartConfig} className="min-h-[300px] w-full">
-              <BarChart data={statusData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis type="number" tick={{ fontSize: 11 }} />
-                <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={120} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="value" fill="var(--color-value)" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ChartContainer>
+          {statusTotal > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {statusEntries.map(([status, count], i) => {
+                const pct = Math.round((count / statusTotal) * 100);
+                return (
+                  <div key={status} className="flex flex-col items-center gap-1">
+                    <AnalyticsRadialChart
+                      value={pct}
+                      label={status}
+                      color={COLORS[i % COLORS.length]}
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      {count.toLocaleString(locale)} {t('users')}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
-            <p className="py-12 text-center text-sm text-muted-foreground">{t('noData')}</p>
+            <div className="flex h-62.5 items-center justify-center text-sm text-muted-foreground">
+              {noData}
+            </div>
           )}
         </CardContent>
       </Card>

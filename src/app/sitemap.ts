@@ -10,12 +10,12 @@ function db(supabase: Awaited<ReturnType<typeof createClient>>): any {
   return supabase;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muqawilhub.com';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
 
-  // Static pages
+  // Static pages — both locales with hreflang alternates
   const staticPages = [
     '',
     '/pricing',
@@ -33,10 +33,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const page of staticPages) {
     entries.push({
-      url: `${BASE_URL}${page}`,
+      url: `${BASE_URL}/ar${page}`,
       lastModified: new Date(),
       changeFrequency: page === '' ? 'daily' : 'weekly',
       priority: page === '' ? 1.0 : 0.7,
+      alternates: {
+        languages: {
+          ar: `${BASE_URL}/ar${page}`,
+          en: `${BASE_URL}/en${page}`,
+        },
+      },
+    });
+    entries.push({
+      url: `${BASE_URL}/en${page}`,
+      lastModified: new Date(),
+      changeFrequency: page === '' ? 'daily' : 'weekly',
+      priority: page === '' ? 1.0 : 0.7,
+      alternates: {
+        languages: {
+          ar: `${BASE_URL}/ar${page}`,
+          en: `${BASE_URL}/en${page}`,
+        },
+      },
     });
   }
 
@@ -52,21 +70,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     if (projects) {
       for (const p of projects) {
-        const slug = p.slug_ar || p.slug_en || p.id;
+        const arSlug = p.slug_ar || p.slug_en || p.id;
+        const enSlug = p.slug_en || p.slug_ar || p.id;
+        const alternates = {
+          languages: {
+            ar: `${BASE_URL}/ar/projects/${arSlug}`,
+            en: `${BASE_URL}/en/projects/${enSlug}`,
+          },
+        };
         entries.push({
-          url: `${BASE_URL}/ar/projects/${slug}`,
+          url: `${BASE_URL}/ar/projects/${arSlug}`,
           lastModified: new Date(p.updated_at),
           changeFrequency: 'weekly',
           priority: 0.8,
+          alternates,
         });
-        if (p.slug_en) {
-          entries.push({
-            url: `${BASE_URL}/en/projects/${p.slug_en}`,
-            lastModified: new Date(p.updated_at),
-            changeFrequency: 'weekly',
-            priority: 0.8,
-          });
-        }
+        entries.push({
+          url: `${BASE_URL}/en/projects/${enSlug}`,
+          lastModified: new Date(p.updated_at),
+          changeFrequency: 'weekly',
+          priority: 0.8,
+          alternates,
+        });
       }
     }
 
@@ -80,21 +105,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     if (products) {
       for (const p of products) {
-        const slug = p.slug_ar || p.slug_en || p.id;
+        const arSlug = p.slug_ar || p.slug_en || p.id;
+        const enSlug = p.slug_en || p.slug_ar || p.id;
+        const alternates = {
+          languages: {
+            ar: `${BASE_URL}/ar/products/${arSlug}`,
+            en: `${BASE_URL}/en/products/${enSlug}`,
+          },
+        };
         entries.push({
-          url: `${BASE_URL}/ar/products/${slug}`,
+          url: `${BASE_URL}/ar/products/${arSlug}`,
           lastModified: new Date(p.updated_at),
           changeFrequency: 'weekly',
           priority: 0.7,
+          alternates,
         });
-        if (p.slug_en) {
-          entries.push({
-            url: `${BASE_URL}/en/products/${p.slug_en}`,
-            lastModified: new Date(p.updated_at),
-            changeFrequency: 'weekly',
-            priority: 0.7,
-          });
-        }
+        entries.push({
+          url: `${BASE_URL}/en/products/${enSlug}`,
+          lastModified: new Date(p.updated_at),
+          changeFrequency: 'weekly',
+          priority: 0.7,
+          alternates,
+        });
       }
     }
 
@@ -108,21 +140,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     if (rfqs) {
       for (const r of rfqs) {
-        const slug = r.slug_ar || r.slug_en || r.id;
+        const arSlug = r.slug_ar || r.slug_en || r.id;
+        const enSlug = r.slug_en || r.slug_ar || r.id;
+        const alternates = {
+          languages: {
+            ar: `${BASE_URL}/ar/rfqs/${arSlug}`,
+            en: `${BASE_URL}/en/rfqs/${enSlug}`,
+          },
+        };
         entries.push({
-          url: `${BASE_URL}/ar/rfqs/${slug}`,
+          url: `${BASE_URL}/ar/rfqs/${arSlug}`,
           lastModified: new Date(r.updated_at),
           changeFrequency: 'weekly',
           priority: 0.6,
+          alternates,
         });
-        if (r.slug_en) {
-          entries.push({
-            url: `${BASE_URL}/en/rfqs/${r.slug_en}`,
-            lastModified: new Date(r.updated_at),
-            changeFrequency: 'weekly',
-            priority: 0.6,
-          });
-        }
+        entries.push({
+          url: `${BASE_URL}/en/rfqs/${enSlug}`,
+          lastModified: new Date(r.updated_at),
+          changeFrequency: 'weekly',
+          priority: 0.6,
+          alternates,
+        });
       }
     }
   } catch {

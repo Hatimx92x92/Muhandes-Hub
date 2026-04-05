@@ -12,6 +12,7 @@ import { ProfileCompleteness } from '@/components/features/profile/profile-compl
 import { AvatarUpload } from '@/components/forms/avatar-upload';
 import { Button } from '@/components/ui/button';
 import { ExternalLink } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { getEntitySlug } from '@/lib/utils';
 import type { UserProfile } from '@/hooks/use-auth';
 
@@ -101,20 +102,14 @@ export default async function ProfilePage() {
 
       {/* Role + verification badges */}
       <div className="flex flex-wrap gap-3 mb-8">
-        <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+        <Badge variant={profile.role as 'project_owner' | 'contractor' | 'supplier' | 'buyer'}>
           {t(`roles.${profile.role}` as never) || profile.role}
-        </span>
-        <span
-          className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
-            profile.verification_status === 'active'
-              ? 'bg-status-active/10 text-status-active'
-              : profile.verification_status === 'banned'
-                ? 'bg-destructive/10 text-destructive'
-                : 'bg-status-pending/10 text-status-pending'
-          }`}
+        </Badge>
+        <Badge
+          variant={profile.verification_status === 'active' ? 'active' : profile.verification_status === 'banned' ? 'destructive' : 'pending'}
         >
           {t(`verification.${profile.verification_status}` as never) || profile.verification_status}
-        </span>
+        </Badge>
       </div>
 
       {/* Avatar + Logo upload */}

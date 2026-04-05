@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { manageCoupon } from '@/actions/admin/settings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ActionResult } from '@/types';
 
 type State = ActionResult<{ id: string }> | null;
@@ -17,14 +18,15 @@ export function CouponForm() {
     <form action={formAction} className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
         <Input name="code" placeholder={t('codePlaceholder')} required />
-        <select
-          name="discount_type"
-          className="h-10 rounded-lg border border-border bg-background px-3 text-sm"
-          required
-        >
-          <option value="percentage">{t('percentage')}</option>
-          <option value="fixed">{t('fixedAmount')}</option>
-        </select>
+        <Select name="discount_type" required defaultValue="percentage">
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="percentage">{t('percentage')}</SelectItem>
+            <SelectItem value="fixed">{t('fixedAmount')}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">

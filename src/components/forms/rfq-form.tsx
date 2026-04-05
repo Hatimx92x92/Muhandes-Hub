@@ -13,6 +13,7 @@ import { FormField } from '@/components/forms/form-field';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { CurrencyInput } from '@/components/forms/currency-input';
 import { FileUpload } from '@/components/forms/file-upload';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ProductSelector } from '@/components/forms/product-selector';
 import { createRFQ } from '@/actions/rfqs';
 import type { ActionResult } from '@/types';
@@ -101,21 +102,22 @@ export function RFQForm() {
           <Input type="date" name="deadline" />
         </FormField>
         <FormField label={t('city')}>
-          <select
-            suppressHydrationWarning
-            name="city"
-            className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
-          >
-            <option value="">{t('allCities')}</option>
-            <option value="riyadh">الرياض</option>
-            <option value="jeddah">جدة</option>
-            <option value="dammam">الدمام</option>
-            <option value="mecca">مكة المكرمة</option>
-            <option value="medina">المدينة المنورة</option>
-            <option value="khobar">الخبر</option>
-            <option value="tabuk">تبوك</option>
-            <option value="abha">أبها</option>
-          </select>
+          <Select name="city" defaultValue="">
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={t('allCities')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">{t('allCities')}</SelectItem>
+              <SelectItem value="riyadh">الرياض</SelectItem>
+              <SelectItem value="jeddah">جدة</SelectItem>
+              <SelectItem value="dammam">الدمام</SelectItem>
+              <SelectItem value="mecca">مكة المكرمة</SelectItem>
+              <SelectItem value="medina">المدينة المنورة</SelectItem>
+              <SelectItem value="khobar">الخبر</SelectItem>
+              <SelectItem value="tabuk">تبوك</SelectItem>
+              <SelectItem value="abha">أبها</SelectItem>
+            </SelectContent>
+          </Select>
         </FormField>
       </div>
 
@@ -131,18 +133,17 @@ export function RFQForm() {
           <label htmlFor="rfq_file_category" className="mb-1.5 block text-sm font-medium text-foreground">
             {tFiles('category')}
           </label>
-          <select
-            suppressHydrationWarning
-            id="rfq_file_category"
-            value={fileCategory}
-            onChange={(e) => setFileCategory(e.target.value)}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:w-auto"
-          >
-            <option value="general">{tFiles('general')}</option>
-            <option value="boq">{tFiles('boq')}</option>
-            <option value="drawings">{tFiles('drawings')}</option>
-            <option value="specs">{tFiles('specs')}</option>
-          </select>
+          <Select value={fileCategory} onValueChange={(v) => setFileCategory(v ?? '')}>
+            <SelectTrigger className="w-full sm:w-auto">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="general">{tFiles('general')}</SelectItem>
+              <SelectItem value="boq">{tFiles('boq')}</SelectItem>
+              <SelectItem value="drawings">{tFiles('drawings')}</SelectItem>
+              <SelectItem value="specs">{tFiles('specs')}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <FileUpload

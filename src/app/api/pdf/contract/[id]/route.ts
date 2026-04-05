@@ -64,7 +64,7 @@ export async function GET(
   let qrDataUrl: string | undefined;
   if (contract.qr_uuid) {
     qrDataUrl = await QRCode.toDataURL(
-      `https://muqawilhub.com/verify/contract/${contract.qr_uuid}`,
+      `https://muhandeshub.com/verify/contract/${contract.qr_uuid}`,
       { width: 120, margin: 1 },
     );
   }

@@ -517,7 +517,7 @@ export async function notifyRfqResponseRejected(params: {
 // SUPPLIER HIRE NOTIFICATIONS
 // ---------------------------------------------------------------------------
 
-/** Notify supplier when they receive a hire request */
+/** Notify supplier when they receive a quote invitation */
 export async function notifySupplierHireRequestReceived(params: {
   supplierId: string;
   requesterName: string;
@@ -526,15 +526,15 @@ export async function notifySupplierHireRequestReceived(params: {
   await createNotification({
     user_id: params.supplierId,
     type: 'supplier_hire_request_received',
-    title_ar: `طلب توظيف مباشر من ${params.requesterName}`,
-    title_en: `Direct hire request from ${params.requesterName}`,
-    link: `/dashboard/hire-requests/${params.requestId}`,
+    title_ar: `دعوة لتقديم عرض سعر من ${params.requesterName}`,
+    title_en: `Quote invitation from ${params.requesterName}`,
+    link: `/dashboard/invitations`,
     entity_type: 'hire_request',
     entity_id: params.requestId,
   });
 }
 
-/** Notify requester when supplier sends quotation for hire */
+/** Notify requester when supplier sends quotation for invitation */
 export async function notifySupplierHireQuotationReceived(params: {
   requesterId: string;
   supplierName: string;
@@ -543,8 +543,8 @@ export async function notifySupplierHireQuotationReceived(params: {
   await createNotification({
     user_id: params.requesterId,
     type: 'supplier_hire_quotation_received',
-    title_ar: `عرض سعر من ${params.supplierName} لطلب التوظيف المباشر`,
-    title_en: `Quotation from ${params.supplierName} for direct hire request`,
+    title_ar: `عرض سعر من ${params.supplierName} استجابة لدعوتك`,
+    title_en: `Quotation from ${params.supplierName} in response to your invitation`,
     link: `/dashboard/quotations/${params.quotationId}`,
     entity_type: 'quotation',
     entity_id: params.quotationId,

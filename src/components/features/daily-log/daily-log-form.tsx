@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { FormField } from '@/components/forms/form-field';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileUpload } from '@/components/forms/file-upload';
 import { createDailyLog } from '@/actions/kanban';
 import type { ActionResult } from '@/types';
@@ -45,18 +46,19 @@ export function DailyLogForm({ dealId }: { dealId: string }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <FormField label={t('weather')}>
-          <select
-            name="weather"
-            className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
-          >
-            <option value="">{t('weatherOptional')}</option>
-            <option value="sunny">{t('weatherSunny')}</option>
-            <option value="cloudy">{t('weatherCloudy')}</option>
-            <option value="rainy">{t('weatherRainy')}</option>
-            <option value="windy">{t('weatherWindy')}</option>
-            <option value="sandstorm">{t('weatherSandstorm')}</option>
-            <option value="hot">{t('weatherHot')}</option>
-          </select>
+          <Select name="weather" defaultValue="">
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={t('weatherOptional')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="sunny">{t('weatherSunny')}</SelectItem>
+              <SelectItem value="cloudy">{t('weatherCloudy')}</SelectItem>
+              <SelectItem value="rainy">{t('weatherRainy')}</SelectItem>
+              <SelectItem value="windy">{t('weatherWindy')}</SelectItem>
+              <SelectItem value="sandstorm">{t('weatherSandstorm')}</SelectItem>
+              <SelectItem value="hot">{t('weatherHot')}</SelectItem>
+            </SelectContent>
+          </Select>
         </FormField>
 
         <FormField label={t('workersOnSite')}>

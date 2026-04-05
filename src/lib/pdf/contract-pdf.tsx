@@ -297,7 +297,7 @@ export function ContractPdf({ data }: { data: ContractPdfData }) {
               Verify this contract at / تحقق من هذا العقد على:
             </Text>
             <Text style={{ fontSize: 8, color: colors.primary, marginTop: 2 }}>
-              muqawilhub.com/verify/{data.qr_uuid}
+              muhandeshub.com/verify/{data.qr_uuid}
             </Text>
           </View>
         )}

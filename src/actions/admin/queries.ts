@@ -114,6 +114,142 @@ export async function getAdminUsers(params: AdminQueryParams): Promise<Paginated
   };
 }
 
+// ------- Registrations (pending verification users) -------
+
+export interface AdminRegistrationRow {
+  id: string;
+  full_name: string | null;
+  company_name_ar: string | null;
+  company_name_en: string | null;
+  role: string;
+  verification_status: string;
+  subscription_tier: string;
+  created_at: string;
+  documents: {
+    id: string;
+    document_type: string;
+    file_url: string;
+    status: string;
+    created_at: string;
+  }[];
+}
+
+export async function getAdminRegistrations(params: AdminQueryParams): Promise<PaginatedResult<AdminRegistrationRow>> {
+  const supabase = await verifyAdmin();
+  const page = Math.max(1, params.page ?? 1);
+  const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
+  const offset = (page - 1) * pageSize;
+
+  const pendingStatuses = ['pending_payment', 'pending_documents', 'pending_approval'];
+
+  let query = db(supabase)
+    .from('profiles')
+    .select('id, full_name, company_name_ar, company_name_en, role, verification_status, subscription_tier, created_at', { count: 'exact' })
+    .in('verification_status', pendingStatuses);
+
+  // Filter by specific pending status
+  if (params.filters?.status && pendingStatuses.includes(params.filters.status)) {
+    query = db(supabase)
+      .from('profiles')
+      .select('id, full_name, company_name_ar, company_name_en, role, verification_status, subscription_tier, created_at', { count: 'exact' })
+      .eq('verification_status', params.filters.status);
+  }
+
+  if (params.filters?.role) {
+    query = query.eq('role', params.filters.role);
+  }
+
+  if (params.search) {
+    const s = params.search.replace(/[%_]/g, '');
+    query = query.or(`full_name.ilike.%${s}%,company_name_ar.ilike.%${s}%,company_name_en.ilike.%${s}%`);
+  }
+
+  const sort = parseSortParam(params.sort);
+  if (sort && ['full_name', 'created_at', 'verification_status'].includes(sort.column)) {
+    query = query.order(sort.column, { ascending: sort.ascending });
+  } else {
+    query = query.order('created_at', { ascending: false });
+  }
+
+  query = query.range(offset, offset + pageSize - 1);
+
+  const { data: profiles, count } = await query;
+
+  if (!profiles || profiles.length === 0) {
+    return { data: [], totalCount: count ?? 0, page, totalPages: Math.ceil((count ?? 0) / pageSize) };
+  }
+
+  // Fetch verification documents for these users
+  const userIds = profiles.map((p: { id: string }) => p.id);
+  const { data: allDocs } = await db(supabase)
+    .from('verification_documents')
+    .select('id, user_id, document_type, file_url, status, created_at')
+    .in('user_id', userIds)
+    .order('created_at', { ascending: false });
+
+  const docsByUser = new Map<string, typeof allDocs>();
+  for (const doc of allDocs ?? []) {
+    const existing = docsByUser.get(doc.user_id) ?? [];
+    existing.push(doc);
+    docsByUser.set(doc.user_id, existing);
+  }
+
+  const data: AdminRegistrationRow[] = profiles.map((p: Record<string, unknown>) => ({
+    id: p.id as string,
+    full_name: p.full_name as string | null,
+    company_name_ar: p.company_name_ar as string | null,
+    company_name_en: p.company_name_en as string | null,
+    role: p.role as string,
+    verification_status: p.verification_status as string,
+    subscription_tier: p.subscription_tier as string,
+    created_at: p.created_at as string,
+    documents: (docsByUser.get(p.id as string) ?? []).map((d: Record<string, unknown>) => ({
+      id: d.id as string,
+      document_type: d.document_type as string,
+      file_url: d.file_url as string,
+      status: d.status as string,
+      created_at: d.created_at as string,
+    })),
+  }));
+
+  const totalCount = count ?? 0;
+
+  return {
+    data,
+    totalCount,
+    page,
+    totalPages: Math.ceil(totalCount / pageSize),
+  };
+}
+
+// ------- Registration Stats -------
+
+export async function getRegistrationStats(): Promise<{
+  pendingPayment: number;
+  pendingDocuments: number;
+  pendingApproval: number;
+  total: number;
+}> {
+  const supabase = await verifyAdmin();
+
+  const [{ count: pp }, { count: pd }, { count: pa }] = await Promise.all([
+    db(supabase).from('profiles').select('id', { count: 'exact', head: true }).eq('verification_status', 'pending_payment'),
+    db(supabase).from('profiles').select('id', { count: 'exact', head: true }).eq('verification_status', 'pending_documents'),
+    db(supabase).from('profiles').select('id', { count: 'exact', head: true }).eq('verification_status', 'pending_approval'),
+  ]);
+
+  const pendingPayment = pp ?? 0;
+  const pendingDocuments = pd ?? 0;
+  const pendingApproval = pa ?? 0;
+
+  return {
+    pendingPayment,
+    pendingDocuments,
+    pendingApproval,
+    total: pendingPayment + pendingDocuments + pendingApproval,
+  };
+}
+
 // ------- Posts (merged from projects, products, rfqs) -------
 
 export interface AdminPostRow {

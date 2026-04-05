@@ -373,7 +373,7 @@
 - [x] PO: read-only view; Contractor: manage access
 - [x] Cards moved to "Done" → prompt work proof submission
 - [x] Progress sync: % Done cards feeds seller progress bar
-- [ ] Realtime updates
+- [x] Realtime updates
 
 ### 7.4 Daily Site Log
 

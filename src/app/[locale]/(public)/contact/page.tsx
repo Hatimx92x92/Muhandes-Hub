@@ -13,7 +13,7 @@ export default async function ContactPage() {
     {
       icon: Mail,
       label: t('email'),
-      value: 'support@muqawilhub.com',
+      value: 'support@muhandeshub.com',
       dir: 'ltr' as const,
     },
     {

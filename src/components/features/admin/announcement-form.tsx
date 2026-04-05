@@ -1,10 +1,11 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { savePlatformAnnouncement } from '@/actions/admin/settings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import type { ActionResult } from '@/types';
 
 type State = ActionResult | null;
@@ -20,6 +21,7 @@ interface AnnouncementFormProps {
 export function AnnouncementForm({ currentAnnouncement }: AnnouncementFormProps) {
   const [state, formAction, isPending] = useActionState<State, FormData>(savePlatformAnnouncement, null);
   const t = useTranslations('admin.settingsPage');
+  const [isActive, setIsActive] = useState(currentAnnouncement?.is_active ?? true);
 
   return (
     <form action={formAction} className="space-y-3">
@@ -45,12 +47,11 @@ export function AnnouncementForm({ currentAnnouncement }: AnnouncementFormProps)
       </div>
 
       <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
+        <Checkbox
           name="is_active"
           value="true"
-          defaultChecked={currentAnnouncement?.is_active ?? true}
-          className="h-4 w-4 rounded border-border"
+          checked={isActive}
+          onCheckedChange={setIsActive}
         />
         <label className="text-sm">{t('announcementActive')}</label>
       </div>

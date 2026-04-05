@@ -75,17 +75,12 @@ interface StepConfig {
   label: string;
 }
 
-function getSteps(role: string, tier: string, isOAuth: boolean, t: (key: string) => string): StepConfig[] {
+function getSteps(role: string, tier: string, _isOAuth: boolean, t: (key: string) => string): StepConfig[] {
   const base: StepConfig[] = [
     { key: 'role', label: t('role') },
+    { key: 'account', label: t('account') },
+    { key: 'profile', label: t('profileStep') },
   ];
-
-  // OAuth users skip the account (email/password) step
-  if (!isOAuth) {
-    base.push({ key: 'account', label: t('account') });
-  }
-
-  base.push({ key: 'profile', label: t('profileStep') });
 
   // Only contractors and suppliers choose a subscription tier
   if (role === 'contractor' || role === 'supplier') {
@@ -112,13 +107,17 @@ function getSteps(role: string, tier: string, isOAuth: boolean, t: (key: string)
 interface RegisterWizardProps {
   isOAuthMode?: boolean;
   oauthEmail?: string;
+  oauthName?: string;
 }
 
-export function RegisterWizard({ isOAuthMode = false }: RegisterWizardProps) {
+export function RegisterWizard({ isOAuthMode = false, oauthEmail = '', oauthName = '' }: RegisterWizardProps) {
   const router = useRouter();
   const t = useTranslations('auth.wizard');
   const [currentStep, setCurrentStep] = useState(0);
-  const [data, setData] = useState<WizardData>(initialData);
+  const [data, setData] = useState<WizardData>({
+    ...initialData,
+    ...(isOAuthMode ? { email: oauthEmail, full_name: oauthName } : {}),
+  });
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
@@ -140,6 +139,11 @@ export function RegisterWizard({ isOAuthMode = false }: RegisterWizardProps) {
     setServerError(null);
     setFieldErrors({});
   }, []);
+
+  const goToStep = useCallback((key: string) => {
+    const idx = steps.findIndex((s) => s.key === key);
+    if (idx >= 0) setCurrentStep(idx);
+  }, [steps]);
 
   const handleSubmit = useCallback(async () => {
     setSubmitting(true);
@@ -170,6 +174,7 @@ export function RegisterWizard({ isOAuthMode = false }: RegisterWizardProps) {
 
     if (isOAuthMode) {
       // Google OAuth: complete profile for existing auth user
+      if (data.full_name) formData.set('full_name', data.full_name);
       result = await completeGoogleRegistration(null, formData);
     } else {
       // Email registration: create new account
@@ -223,6 +228,7 @@ export function RegisterWizard({ isOAuthMode = false }: RegisterWizardProps) {
           data={data}
           updateData={updateData}
           fieldErrors={fieldErrors}
+          isOAuthMode={isOAuthMode}
           onNext={next}
           onBack={back}
         />
@@ -260,8 +266,10 @@ export function RegisterWizard({ isOAuthMode = false }: RegisterWizardProps) {
         <ConfirmStep
           data={data}
           submitting={submitting}
+          isOAuthMode={isOAuthMode}
           onSubmit={handleSubmit}
           onBack={back}
+          onGoToStep={goToStep}
         />
       )}
     </div>

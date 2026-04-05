@@ -8,7 +8,7 @@ import { useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { updateNotificationPreferences } from '@/actions/notifications';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
 
 interface NotificationPreferenceToggleProps {
   notificationType: string;
@@ -48,24 +48,12 @@ export function NotificationPreferenceToggle({
           </Badge>
         )}
       </div>
-      <button
-        type="button"
-        onClick={handleToggle}
+      <Switch
+        checked={emailEnabled}
+        onCheckedChange={handleToggle}
         disabled={isPending || isCritical}
-        className={cn(
-          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-          emailEnabled ? 'bg-primary' : 'bg-muted-foreground/30',
-          (isPending || isCritical) && 'opacity-50 cursor-not-allowed',
-        )}
-        title={isCritical ? t('cannotDisable') : undefined}
-      >
-        <span
-          className={cn(
-            'inline-block h-4 w-4 rounded-full bg-white transition-transform',
-            emailEnabled ? 'translate-x-1.5 rtl:-translate-x-1.5' : 'translate-x-6 rtl:-translate-x-6',
-          )}
-        />
-      </button>
+        aria-label={label}
+      />
     </div>
   );
 }

@@ -18,6 +18,10 @@ import {
   ArrowUpLeft,
 } from 'lucide-react';
 import type { UserRole } from '@/types';
+import { OnboardingChecklist } from '@/components/features/onboarding/onboarding-checklist';
+import { DashboardActivityFeed } from '@/components/features/dashboard-activity-feed';
+import { getDashboardActivity } from '@/actions/analytics';
+import { getLocale } from 'next-intl/server';
 
 // ---------------------------------------------------------------------------
 // Stat card component
@@ -173,7 +177,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await db
     .from('profiles')
-    .select('role, full_name, subscription_tier')
+    .select('role, full_name, subscription_tier, onboarding_progress')
     .eq('id', user.id)
     .single();
 
@@ -228,6 +232,9 @@ export default async function DashboardPage() {
   }
 
   const config = getDashboardConfig(role, tStats, tActions, counts);
+  const locale = await getLocale();
+  const activityResult = await getDashboardActivity();
+  const activities = activityResult.data ?? [];
   const greeting = profile?.full_name
     ? t('greeting', { name: profile.full_name })
     : t('greetingDefault');
@@ -240,6 +247,15 @@ export default async function DashboardPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           {t('overview')}
         </p>
+      </div>
+
+      {/* Onboarding Checklist */}
+      <div className="mb-8">
+        <OnboardingChecklist
+          role={role}
+          progress={(profile?.onboarding_progress as Record<string, boolean>) || {}}
+          emailVerified={!!user.email_confirmed_at}
+        />
       </div>
 
       {/* Stat cards */}
@@ -255,19 +271,22 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* Quick actions */}
-      <div>
-        <h2 className="text-lg font-bold text-foreground mb-4">{t('quickActions')}</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {config.quickActions.map((action) => (
-            <QuickAction
-              key={action.label}
-              label={action.label}
-              href={action.href}
-              icon={action.icon}
-            />
-          ))}
+      {/* Quick actions + Activity feed */}
+      <div className="grid gap-6 lg:grid-cols-2 mb-8">
+        <div>
+          <h2 className="text-lg font-bold text-foreground mb-4">{t('quickActions')}</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {config.quickActions.map((action) => (
+              <QuickAction
+                key={action.label}
+                label={action.label}
+                href={action.href}
+                icon={action.icon}
+              />
+            ))}
+          </div>
         </div>
+        <DashboardActivityFeed activities={activities} locale={locale} />
       </div>
 
       {/* Subscription tier badge */}

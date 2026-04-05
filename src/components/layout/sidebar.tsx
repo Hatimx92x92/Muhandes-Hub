@@ -18,6 +18,7 @@ import {
   Users,
   Settings,
   ChevronLeft,
+  ChevronDown,
   Receipt,
   ShoppingCart,
   ClipboardList,
@@ -25,6 +26,7 @@ import {
   Inbox,
   CreditCard,
   Gavel,
+  Send,
 } from 'lucide-react';
 import type { UserRole } from '@/types';
 
@@ -46,6 +48,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/bids', labelKey: 'myBids', icon: Gavel, roles: ['contractor'] },
   { href: '/dashboard/products', labelKey: 'products', icon: Package, roles: ['supplier'] },
   { href: '/dashboard/deals', labelKey: 'deals', icon: Handshake },
+  { href: '/dashboard/invitations', labelKey: 'invitations', icon: Send, roles: ['project_owner', 'supplier', 'contractor'] },
   { href: '/dashboard/quotations', labelKey: 'quotations', icon: Receipt, roles: ['contractor', 'supplier'] },
   { href: '/dashboard/rfqs', labelKey: 'rfqs', icon: ShoppingCart },
   { href: '/dashboard/contracts', labelKey: 'contracts', icon: FileText, roles: ['project_owner', 'contractor', 'supplier'] },
@@ -74,11 +77,12 @@ interface NavGroup {
 
 const ROLE_GROUPS: Record<UserRole, NavGroup[]> = {
   project_owner: [
-    { labelKey: 'groupOverview', items: [itemByHref('/dashboard')] },
+    { labelKey: 'groupCore', items: [itemByHref('/dashboard')] },
     {
-      labelKey: 'groupProjectManagement',
+      labelKey: 'groupCommerce',
       items: [
         itemByHref('/dashboard/projects'),
+        itemByHref('/dashboard/invitations'),
         itemByHref('/dashboard/deals'),
         itemByHref('/dashboard/rfqs'),
         itemByHref('/dashboard/contracts'),
@@ -86,7 +90,7 @@ const ROLE_GROUPS: Record<UserRole, NavGroup[]> = {
     },
     { labelKey: 'groupCommunication', items: [itemByHref('/dashboard/messages'), itemByHref('/dashboard/notifications')] },
     {
-      labelKey: 'groupBusiness',
+      labelKey: 'groupTools',
       items: [
         itemByHref('/dashboard/crm'),
         itemByHref('/dashboard/reviews'),
@@ -96,12 +100,13 @@ const ROLE_GROUPS: Record<UserRole, NavGroup[]> = {
     { labelKey: 'groupAccount', items: [itemByHref('/dashboard/payments'), itemByHref('/dashboard/settings')] },
   ],
   contractor: [
-    { labelKey: 'groupOverview', items: [itemByHref('/dashboard')] },
+    { labelKey: 'groupCore', items: [itemByHref('/dashboard')] },
     {
-      labelKey: 'groupProjectsBidding',
+      labelKey: 'groupCommerce',
       items: [
         itemByHref('/dashboard/projects'),
         itemByHref('/dashboard/bids'),
+        itemByHref('/dashboard/invitations'),
         itemByHref('/dashboard/deals'),
         itemByHref('/dashboard/quotations'),
         itemByHref('/dashboard/rfqs'),
@@ -110,7 +115,7 @@ const ROLE_GROUPS: Record<UserRole, NavGroup[]> = {
     },
     { labelKey: 'groupCommunication', items: [itemByHref('/dashboard/messages'), itemByHref('/dashboard/notifications')] },
     {
-      labelKey: 'groupBusiness',
+      labelKey: 'groupTools',
       items: [
         itemByHref('/dashboard/crm'),
         itemByHref('/dashboard/reviews'),
@@ -121,12 +126,13 @@ const ROLE_GROUPS: Record<UserRole, NavGroup[]> = {
     { labelKey: 'groupAccount', items: [itemByHref('/dashboard/payments'), itemByHref('/dashboard/settings')] },
   ],
   supplier: [
-    { labelKey: 'groupOverview', items: [itemByHref('/dashboard')] },
+    { labelKey: 'groupCore', items: [itemByHref('/dashboard')] },
     {
-      labelKey: 'groupProductsSales',
+      labelKey: 'groupCommerce',
       items: [
         itemByHref('/dashboard/products'),
         itemByHref('/dashboard/inquiries'),
+        itemByHref('/dashboard/invitations'),
         itemByHref('/dashboard/deals'),
         itemByHref('/dashboard/quotations'),
         itemByHref('/dashboard/rfqs'),
@@ -135,7 +141,7 @@ const ROLE_GROUPS: Record<UserRole, NavGroup[]> = {
     },
     { labelKey: 'groupCommunication', items: [itemByHref('/dashboard/messages'), itemByHref('/dashboard/notifications')] },
     {
-      labelKey: 'groupBusiness',
+      labelKey: 'groupTools',
       items: [
         itemByHref('/dashboard/crm'),
         itemByHref('/dashboard/reviews'),
@@ -146,9 +152,9 @@ const ROLE_GROUPS: Record<UserRole, NavGroup[]> = {
     { labelKey: 'groupAccount', items: [itemByHref('/dashboard/payments'), itemByHref('/dashboard/settings')] },
   ],
   buyer: [
-    { labelKey: 'groupOverview', items: [itemByHref('/dashboard')] },
+    { labelKey: 'groupCore', items: [itemByHref('/dashboard')] },
     {
-      labelKey: 'groupProcurement',
+      labelKey: 'groupCommerce',
       items: [
         itemByHref('/dashboard/deals'),
         itemByHref('/dashboard/rfqs'),
@@ -156,7 +162,7 @@ const ROLE_GROUPS: Record<UserRole, NavGroup[]> = {
     },
     { labelKey: 'groupCommunication', items: [itemByHref('/dashboard/messages'), itemByHref('/dashboard/notifications')] },
     {
-      labelKey: 'groupBusiness',
+      labelKey: 'groupTools',
       items: [itemByHref('/dashboard/reviews')],
     },
     { labelKey: 'groupAccount', items: [itemByHref('/dashboard/payments'), itemByHref('/dashboard/settings')] },
@@ -165,7 +171,7 @@ const ROLE_GROUPS: Record<UserRole, NavGroup[]> = {
 
 /** Fallback when role is unknown — flat list, all items */
 const DEFAULT_GROUPS: NavGroup[] = [
-  { labelKey: 'groupOverview', items: ALL_NAV_ITEMS },
+  { labelKey: 'groupCore', items: ALL_NAV_ITEMS },
 ];
 
 // =============================================================================
@@ -190,9 +196,14 @@ export function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const t = useTranslations('nav');
 
   const toggleCollapse = useCallback(() => setCollapsed((prev) => !prev), []);
+
+  const toggleGroup = useCallback((key: string) => {
+    setCollapsedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
+  }, []);
 
   // Build role-aware groups, filtering out items the user can't see
   const groups = useMemo(() => {
@@ -221,30 +232,57 @@ export function Sidebar({
     >
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-3">
-        <div className="flex flex-col gap-4">
-          {groups.map((group) => (
-            <div key={group.labelKey}>
-              {/* Group label — hidden when collapsed */}
-              {!collapsed && (
-                <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-                  {t(group.labelKey)}
-                </p>
-              )}
-              <ul className="flex flex-col gap-0.5">
-                {group.items.map((item) => (
-                  <SidebarItem
-                    key={item.href}
-                    item={item}
-                    pathname={pathname}
-                    collapsed={collapsed}
-                    messageCount={messageCount}
-                    notificationCount={notificationCount}
-                    t={t}
-                  />
-                ))}
-              </ul>
-            </div>
-          ))}
+        <div className="flex flex-col gap-2">
+          {groups.map((group) => {
+            const isGroupCollapsed = collapsedGroups[group.labelKey] ?? false;
+            const hasActiveItem = group.items.some(
+              (item) =>
+                pathname === item.href ||
+                (item.href !== '/dashboard' && pathname.startsWith(item.href)),
+            );
+
+            return (
+              <div key={group.labelKey}>
+                {/* Group label — clickable to collapse, hidden when sidebar collapsed */}
+                {!collapsed && (
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(group.labelKey)}
+                    className={cn(
+                      'flex w-full items-center justify-between px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider transition-colors rounded-md',
+                      hasActiveItem
+                        ? 'text-primary'
+                        : 'text-sidebar-foreground/50 hover:text-sidebar-foreground/80',
+                    )}
+                  >
+                    <span>{t(group.labelKey)}</span>
+                    <ChevronDown
+                      className={cn(
+                        'h-3 w-3 transition-transform duration-200',
+                        isGroupCollapsed && '-rotate-90 rtl:rotate-90',
+                      )}
+                    />
+                  </button>
+                )}
+
+                {(!isGroupCollapsed || collapsed) && (
+                  <ul className="flex flex-col gap-0.5 mt-0.5">
+                    {group.items.map((item) => (
+                      <SidebarItem
+                        key={item.href}
+                        item={item}
+                        pathname={pathname}
+                        collapsed={collapsed}
+                        messageCount={messageCount}
+                        notificationCount={notificationCount}
+                        t={t}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
         </div>
       </nav>
 

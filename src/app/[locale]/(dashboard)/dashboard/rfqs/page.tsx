@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/features/empty-state';
 import { ShoppingCart, Plus, Calendar, Banknote, MapPin, MessageSquare } from 'lucide-react';
 import { formatSAR, formatDate, getLocaleField, getEntitySlug } from '@/lib/utils';
@@ -102,7 +103,7 @@ export default async function RFQsPage({
         </div>
         <Link
           href="/dashboard/rfqs/new"
-          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          className={buttonVariants()}
         >
           <Plus className="h-4 w-4" />
           {t('new')}

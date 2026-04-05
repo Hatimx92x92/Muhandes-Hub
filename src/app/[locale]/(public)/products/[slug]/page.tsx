@@ -2,6 +2,7 @@
 // Public — Product Detail Page
 // =============================================================================
 
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound, redirect } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
@@ -9,17 +10,131 @@ import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { formatSAR, getLocaleField, isUUID, getEntitySlug } from '@/lib/utils';
+import { formatSAR, getLocaleField, isUUID, getEntitySlug, truncate } from '@/lib/utils';
 import { Package, Building2, Shield, ShoppingCart, Truck, Download, Pencil } from 'lucide-react';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 import { ProductInquiryButton } from '@/components/features/product-inquiry-button';
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
   return supabase;
 }
 
+// ---------------------------------------------------------------------------
+// Shared product fetch for both generateMetadata & page component
+// ---------------------------------------------------------------------------
+async function fetchProduct(slug: string, locale: string) {
+  const supabase = await createClient();
+  const slugCol = locale === 'ar' ? 'slug_ar' : 'slug_en';
+  let { data: product } = await db(supabase)
+    .from('products')
+    .select('*')
+    .eq(slugCol, slug)
+    .eq('status', 'published')
+    .single();
+
+  if (!product) {
+    const fallbackCol = locale === 'ar' ? 'slug_en' : 'slug_ar';
+    ({ data: product } = await db(supabase)
+      .from('products')
+      .select('*')
+      .eq(fallbackCol, slug)
+      .eq('status', 'published')
+      .single());
+  }
+
+  if (!product) return null;
+
+  const { data: supplier } = await db(supabase)
+    .from('profiles')
+    .select('id, full_name, company_name_ar, company_name_en, avatar_url, slug_ar, slug_en')
+    .eq('id', product.supplier_id)
+    .single();
+
+  const { data: productImages } = await db(supabase)
+    .from('product_images')
+    .select('id, image_url, display_order, is_primary')
+    .eq('product_id', product.id)
+    .order('display_order', { ascending: true });
+
+  const primaryImage = productImages?.find((img: { is_primary: boolean }) => img.is_primary) ?? productImages?.[0];
+
+  return { product, supplier, productImages, primaryImage };
+}
+
+// ---------------------------------------------------------------------------
+// SEO — generateMetadata
+// ---------------------------------------------------------------------------
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const locale = await getLocale();
+
+  if (isUUID(slug)) return {};
+
+  const result = await fetchProduct(slug, locale);
+  if (!result) return {};
+
+  const { product, supplier, primaryImage } = result;
+  const name = getLocaleField(product, 'name', locale);
+  const description = truncate(getLocaleField(product, 'description', locale), 160);
+  const supplierName = supplier
+    ? getLocaleField(supplier, 'company_name', locale) || supplier.full_name
+    : '';
+  const imageUrl = primaryImage?.image_url;
+
+  const arSlug = product.slug_ar || slug;
+  const enSlug = product.slug_en || slug;
+
+  return {
+    title: `${name} | Muhandes HUB`,
+    description,
+    openGraph: {
+      title: name,
+      description,
+      type: 'website',
+      locale: locale === 'ar' ? 'ar_SA' : 'en_US',
+      alternateLocale: locale === 'ar' ? 'en_US' : 'ar_SA',
+      siteName: 'Muhandes HUB',
+      ...(imageUrl && {
+        images: [{ url: imageUrl, alt: name }],
+      }),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: name,
+      description,
+      ...(imageUrl && { images: [imageUrl] }),
+    },
+    alternates: {
+      canonical: `${BASE_URL}/${locale}/products/${locale === 'ar' ? arSlug : enSlug}`,
+      languages: {
+        ar: `${BASE_URL}/ar/products/${arSlug}`,
+        en: `${BASE_URL}/en/products/${enSlug}`,
+      },
+    },
+    other: {
+      ...(product.pricing_model === 'fixed' && product.price
+        ? {
+            'product:price:amount': String(product.price),
+            'product:price:currency': 'SAR',
+          }
+        : {}),
+      ...(supplierName ? { 'product:brand': supplierName } : {}),
+      'product:availability': product.in_stock ? 'instock' : 'oos',
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Page Component
+// ---------------------------------------------------------------------------
 export default async function PublicProductDetailPage({
   params,
 }: {
@@ -125,8 +240,58 @@ export default async function PublicProductDetailPage({
 
   const primaryImage = productImages?.find((img: { is_primary: boolean }) => img.is_primary) ?? productImages?.[0];
 
+  // Build JSON-LD Product structured data for Google / Merchant Center
+  const productName = getLocaleField(product, 'name', locale);
+  const productDescription = getLocaleField(product, 'description', locale);
+  const supplierName = supplier
+    ? getLocaleField(supplier, 'company_name', locale) || supplier.full_name
+    : 'Muhandes HUB';
+  const imageUrls = (productImages ?? []).map((img: { image_url: string }) => img.image_url);
+  const productUrl = `${BASE_URL}/${locale}/products/${locale === 'ar' ? (product.slug_ar || slug) : (product.slug_en || slug)}`;
+
+  const offersJsonLd = product.pricing_model === 'variant' && variants.length > 0
+    ? variants.map((v) => ({
+        '@type': 'Offer',
+        url: productUrl,
+        priceCurrency: 'SAR',
+        price: v.price,
+        availability: product.in_stock
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+        seller: { '@type': 'Organization', name: supplierName },
+        ...(v.sku ? { sku: v.sku } : {}),
+        name: getLocaleField(v, 'name', locale),
+      }))
+    : [{
+        '@type': 'Offer',
+        url: productUrl,
+        priceCurrency: 'SAR',
+        price: product.price ?? 0,
+        availability: product.in_stock
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+        seller: { '@type': 'Organization', name: supplierName },
+      }];
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: productName,
+    description: productDescription,
+    image: imageUrls.length > 0 ? imageUrls : undefined,
+    sku: product.id,
+    brand: { '@type': 'Organization', name: supplierName },
+    offers: offersJsonLd.length === 1 ? offersJsonLd[0] : offersJsonLd,
+  };
+
   return (
     <div className="py-16">
+      {/* JSON-LD structured data for Google / Merchant Center */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <BreadcrumbOverride segment={slug} label={getLocaleField(product, 'name', locale)} />
 
       <div className="grid gap-8 lg:grid-cols-3">
@@ -134,21 +299,26 @@ export default async function PublicProductDetailPage({
           {/* Image Gallery */}
           {productImages && productImages.length > 0 ? (
             <div className="space-y-3">
-              <div className="overflow-hidden rounded-xl bg-muted">
-                <img
+              <div className="relative overflow-hidden rounded-xl bg-muted" style={{ height: 288 }}>
+                <Image
                   src={primaryImage?.image_url}
                   alt={getLocaleField(product, 'name', locale)}
-                  className="h-72 w-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 66vw"
+                  priority
                 />
               </div>
               {productImages.length > 1 && (
                 <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-6">
-                  {productImages.map((img: { id: string; image_url: string }) => (
-                    <div key={img.id} className="aspect-square overflow-hidden rounded-lg bg-muted">
-                      <img
+                  {productImages.map((img: { id: string; image_url: string }, idx: number) => (
+                    <div key={img.id} className="relative aspect-square overflow-hidden rounded-lg bg-muted">
+                      <Image
                         src={img.image_url}
-                        alt=""
-                        className="h-full w-full object-cover"
+                        alt={`${getLocaleField(product, 'name', locale)} ${idx + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 25vw, (max-width: 768px) 20vw, 16vw"
                       />
                     </div>
                   ))}

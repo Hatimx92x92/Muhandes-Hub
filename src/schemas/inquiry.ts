@@ -14,13 +14,16 @@ export const ProductInquirySchema = z.object({
 
 export type ProductInquiryInput = z.infer<typeof ProductInquirySchema>;
 
-// -- Direct Hire Request ------------------------------------------------------
-export const DirectHireSchema = z.object({
+// -- Invite to Quote (replaces Direct Hire) -----------------------------------
+export const InviteToQuoteSchema = z.object({
   supplier_id: z.string().uuid(),
+  project_id: z.string().uuid(),
   description_ar: z.string().min(10, 'Description must be at least 10 characters'),
   description_en: z.string().optional(),
-  budget: z.coerce.number().min(1, 'Budget is required').optional(),
-  project_id: z.string().uuid().optional(),
 });
 
-export type DirectHireInput = z.infer<typeof DirectHireSchema>;
+export type InviteToQuoteInput = z.infer<typeof InviteToQuoteSchema>;
+
+// Backward compat alias — remove after full migration
+export const DirectHireSchema = InviteToQuoteSchema;
+export type DirectHireInput = InviteToQuoteInput;

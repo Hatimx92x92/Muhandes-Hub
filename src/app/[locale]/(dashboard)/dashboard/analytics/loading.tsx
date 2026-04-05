@@ -46,8 +46,9 @@ export default function AnalyticsLoading() {
       <div className="grid gap-6 lg:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="rounded-xl border border-border bg-card p-6">
-            <Skeleton className="mb-4 h-5 w-36" />
-            <Skeleton className="h-[280px] w-full rounded-lg" />
+            <Skeleton className="mb-1 h-5 w-36" />
+            <Skeleton className="mb-4 h-3.5 w-52" />
+            <Skeleton className="h-[300px] w-full rounded-lg" />
           </div>
         ))}
       </div>

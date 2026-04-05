@@ -8,6 +8,7 @@ import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 import { formatSAR } from '@/lib/utils';
 import { VAT_RATE } from '@/types';
@@ -119,18 +120,18 @@ export function LineItemEditor({ name = 'line_items', defaultItems, onChange, er
               />
             </div>
 
-            {/* Unit */}
             <div className="sm:col-span-2">
               <label className="mb-1 block text-xs text-muted-foreground sm:hidden">{t('unit')}</label>
-              <select
-                value={item.unit}
-                onChange={(e) => updateField(index, 'unit', e.target.value)}
-                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
-              >
-                {unitKeys.map((key) => (
-                  <option key={key} value={key}>{t(key)}</option>
-                ))}
-              </select>
+              <Select value={item.unit} onValueChange={(val) => updateField(index, 'unit', val ?? '')}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {unitKeys.map((key) => (
+                    <SelectItem key={key} value={key}>{t(key)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Unit Price */}

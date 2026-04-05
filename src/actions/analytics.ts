@@ -27,6 +27,8 @@ export interface AnalyticsKpi {
   totalRevenue: number;
   avgRating: number;
   totalReviews: number;
+  avgDealValue: number;
+  avgCompletionDays: number | null;
 }
 
 export interface AnalyticsTrends {
@@ -85,12 +87,19 @@ export interface AnalyticsCharts {
   revenueOverTime: ChartDataPoint[];
   dealsByStatus: StatusBreakdown[];
   ratingOverTime: ChartDataPoint[];
+  // New: cross-role charts
+  subRatings: ChartDataPoint[];
+  topPartners: ChartDataPoint[];
+  conversionFunnel: ChartDataPoint[];
   // Contractor-specific
   bidsByStatus?: StatusBreakdown[];
   bidWinRateOverTime?: ChartDataPoint[];
   // Supplier-specific
   topProducts?: ChartDataPoint[];
   quotationsByStatus?: StatusBreakdown[];
+  // Project-owner-specific
+  projectsByStatus?: StatusBreakdown[];
+  bidsReceivedByStatus?: StatusBreakdown[];
 }
 
 export interface UserAnalyticsData {
@@ -261,13 +270,13 @@ export async function getUserAnalytics(
   ] = await Promise.all([
     // Current period deals
     db(supabase).from('deals')
-      .select('id, status, total_value, created_at')
+      .select('id, status, value, created_at')
       .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
       .gte('created_at', startISO)
       .lte('created_at', endISO),
     // Previous period deals
     db(supabase).from('deals')
-      .select('id, status, total_value, created_at')
+      .select('id, status, value, created_at')
       .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
       .gte('created_at', prevStartISO)
       .lte('created_at', prevEndISO),
@@ -301,7 +310,7 @@ export async function getUserAnalytics(
       .lte('created_at', prevEndISO),
   ]);
 
-  type DealRow = { id: string; status: string; total_value: number; created_at: string };
+  type DealRow = { id: string; status: string; value: number; created_at: string };
   type ReviewRow = { overall_rating: number; created_at: string };
 
   const curDeals = (currentDeals ?? []) as DealRow[];
@@ -310,8 +319,8 @@ export async function getUserAnalytics(
   const prvReviews = (previousReviews ?? []) as ReviewRow[];
 
   // Compute KPIs
-  const curRevenue = curDeals.reduce((s, d) => s + Number(d.total_value ?? 0), 0);
-  const prevRevenue = prvDeals.reduce((s, d) => s + Number(d.total_value ?? 0), 0);
+  const curRevenue = curDeals.reduce((s, d) => s + Number(d.value ?? 0), 0);
+  const prevRevenue = prvDeals.reduce((s, d) => s + Number(d.value ?? 0), 0);
   const totalRevenue = curRevenue; // for the current period
 
   const curAvgRating = curReviews.length > 0
@@ -321,6 +330,33 @@ export async function getUserAnalytics(
     ? prvReviews.reduce((s, r) => s + r.overall_rating, 0) / prvReviews.length
     : 0;
 
+  // Avg deal value
+  const avgDealValue = curDeals.length > 0 ? Math.round(curRevenue / curDeals.length) : 0;
+
+  // Avg completion days — from completed deals in current period
+  const completedInPeriod = curDeals.filter((d) => d.status === 'completed');
+  let avgCompletionDays: number | null = null;
+  if (completedInPeriod.length > 0) {
+    // Query completed deals with completed_at
+    const { data: completedDealRows } = await db(supabase)
+      .from('deals')
+      .select('created_at, completed_at')
+      .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+      .eq('status', 'completed')
+      .not('completed_at', 'is', null)
+      .gte('created_at', startISO)
+      .lte('created_at', endISO);
+
+    type CompletionRow = { created_at: string; completed_at: string };
+    const cRows = (completedDealRows ?? []) as CompletionRow[];
+    if (cRows.length > 0) {
+      const totalMs = cRows.reduce((sum, r) => {
+        return sum + (new Date(r.completed_at).getTime() - new Date(r.created_at).getTime());
+      }, 0);
+      avgCompletionDays = Math.round(totalMs / cRows.length / (1000 * 60 * 60 * 24));
+    }
+  }
+
   const kpi: AnalyticsKpi = {
     totalDeals: totalDeals ?? 0,
     completedDeals: completedDeals ?? 0,
@@ -329,6 +365,8 @@ export async function getUserAnalytics(
     totalRevenue,
     avgRating: Number(profile.average_rating ?? 0),
     totalReviews: Number(profile.total_reviews ?? 0),
+    avgDealValue,
+    avgCompletionDays,
   };
 
   const trends: AnalyticsTrends = {
@@ -427,19 +465,25 @@ async function fetchRoleStats(
   }
 
   if (role === 'project_owner') {
+    // First fetch project IDs, then use them for the bids count
     const [
-      { count: projects },
+      { count: projects, data: projectRows },
       { count: rfqs },
-      { count: totalBidsReceived },
     ] = await Promise.all([
-      db(supabase).from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', userId),
+      db(supabase).from('projects').select('id', { count: 'exact' }).eq('owner_id', userId),
       db(supabase).from('rfqs').select('*', { count: 'exact', head: true }).eq('poster_id', userId),
-      db(supabase).from('bids').select('*', { count: 'exact', head: true })
-        .in('project_id', db(supabase).from('projects').select('id').eq('owner_id', userId)),
     ]);
 
+    const projectIds = (projectRows ?? []).map((p: { id: string }) => p.id);
+    let bidsRcvd = 0;
+    if (projectIds.length > 0) {
+      const { count: totalBidsReceived } = await db(supabase)
+        .from('bids').select('*', { count: 'exact', head: true })
+        .in('project_id', projectIds);
+      bidsRcvd = totalBidsReceived ?? 0;
+    }
+
     const proj = projects ?? 0;
-    const bidsRcvd = totalBidsReceived ?? 0;
 
     return {
       role: 'project_owner',
@@ -466,7 +510,7 @@ async function fetchRoleStats(
 // Build charts (advanced tier)
 // ---------------------------------------------------------------------------
 
-type DealRow = { id: string; status: string; total_value: number; created_at: string };
+type DealRow = { id: string; status: string; value: number; created_at: string };
 type ReviewRow = { overall_rating: number; created_at: string };
 
 async function buildCharts(
@@ -485,7 +529,7 @@ async function buildCharts(
 
   // Revenue over time
   const revenueOverTime = groupByTimeBucket(
-    currentDeals.map((d) => ({ created_at: d.created_at, value: Number(d.total_value ?? 0) })),
+    currentDeals.map((d) => ({ created_at: d.created_at, value: Number(d.value ?? 0) })),
     period,
   );
 
@@ -523,7 +567,157 @@ async function buildCharts(
     revenueOverTime,
     dealsByStatus,
     ratingOverTime,
+    subRatings: [],
+    topPartners: [],
+    conversionFunnel: [],
   };
+
+  // ── Cross-role: Sub-ratings radar ────────────────────────────────────
+  const { data: subRatingRows } = await db(supabase)
+    .from('reviews')
+    .select('quality_rating, timeliness_rating, communication_rating')
+    .eq('reviewee_id', userId);
+
+  type SubRatingRow = { quality_rating: number | null; timeliness_rating: number | null; communication_rating: number | null };
+  const srRows = (subRatingRows ?? []) as SubRatingRow[];
+  if (srRows.length > 0) {
+    const sum = { quality: 0, timeliness: 0, communication: 0 };
+    const cnt = { quality: 0, timeliness: 0, communication: 0 };
+    for (const r of srRows) {
+      if (r.quality_rating != null) { sum.quality += r.quality_rating; cnt.quality++; }
+      if (r.timeliness_rating != null) { sum.timeliness += r.timeliness_rating; cnt.timeliness++; }
+      if (r.communication_rating != null) { sum.communication += r.communication_rating; cnt.communication++; }
+    }
+    charts.subRatings = [
+      { label: 'quality', value: cnt.quality > 0 ? Math.round((sum.quality / cnt.quality) * 10) / 10 : 0 },
+      { label: 'timeliness', value: cnt.timeliness > 0 ? Math.round((sum.timeliness / cnt.timeliness) * 10) / 10 : 0 },
+      { label: 'communication', value: cnt.communication > 0 ? Math.round((sum.communication / cnt.communication) * 10) / 10 : 0 },
+    ];
+  }
+
+  // ── Cross-role: Top partners by deal value ───────────────────────────
+  const { data: allDealsForPartners } = await db(supabase)
+    .from('deals')
+    .select('buyer_id, seller_id, value')
+    .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+    .in('status', ['completed', 'in_progress', 'active']);
+
+  type PartnerDealRow = { buyer_id: string; seller_id: string; value: number };
+  const partnerDeals = (allDealsForPartners ?? []) as PartnerDealRow[];
+  if (partnerDeals.length > 0) {
+    const partnerSums = new Map<string, number>();
+    for (const d of partnerDeals) {
+      const partnerId = d.buyer_id === userId ? d.seller_id : d.buyer_id;
+      partnerSums.set(partnerId, (partnerSums.get(partnerId) ?? 0) + Number(d.value ?? 0));
+    }
+    // Get top 5 partner IDs
+    const topPartnerEntries = Array.from(partnerSums.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+    const topPartnerIds = topPartnerEntries.map(([id]) => id);
+
+    if (topPartnerIds.length > 0) {
+      const { data: partnerProfiles } = await db(supabase)
+        .from('profiles')
+        .select('id, company_name_en, company_name_ar')
+        .in('id', topPartnerIds);
+
+      type ProfileRow = { id: string; company_name_en: string | null; company_name_ar: string | null };
+      const profileMap = new Map<string, string>();
+      for (const p of (partnerProfiles ?? []) as ProfileRow[]) {
+        profileMap.set(p.id, p.company_name_en || p.company_name_ar || 'Partner');
+      }
+
+      charts.topPartners = topPartnerEntries.map(([id, value]) => ({
+        label: profileMap.get(id) ?? 'Partner',
+        value,
+      }));
+    }
+  }
+
+  // ── Cross-role: Conversion funnel ────────────────────────────────────
+  if (role === 'contractor') {
+    const [
+      { count: totalBids },
+      { count: shortlistedBids },
+      { count: awardedBids },
+      { count: funnelDeals },
+      { count: funnelCompleted },
+    ] = await Promise.all([
+      db(supabase).from('bids').select('*', { count: 'exact', head: true }).eq('contractor_id', userId),
+      db(supabase).from('bids').select('*', { count: 'exact', head: true }).eq('contractor_id', userId).eq('status', 'shortlisted'),
+      db(supabase).from('bids').select('*', { count: 'exact', head: true }).eq('contractor_id', userId).eq('status', 'awarded'),
+      db(supabase).from('deals').select('*', { count: 'exact', head: true }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
+      db(supabase).from('deals').select('*', { count: 'exact', head: true }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`).eq('status', 'completed'),
+    ]);
+    charts.conversionFunnel = [
+      { label: 'bids', value: totalBids ?? 0 },
+      { label: 'shortlisted', value: shortlistedBids ?? 0 },
+      { label: 'awarded', value: awardedBids ?? 0 },
+      { label: 'deals', value: funnelDeals ?? 0 },
+      { label: 'completed', value: funnelCompleted ?? 0 },
+    ];
+  } else if (role === 'supplier') {
+    const [
+      { count: totalQuotations },
+      { count: viewedQuotations },
+      { count: acceptedQuotations },
+      { count: funnelDeals },
+      { count: funnelCompleted },
+    ] = await Promise.all([
+      db(supabase).from('quotations').select('*', { count: 'exact', head: true }).eq('sender_id', userId),
+      db(supabase).from('quotations').select('*', { count: 'exact', head: true }).eq('sender_id', userId).eq('status', 'viewed'),
+      db(supabase).from('quotations').select('*', { count: 'exact', head: true }).eq('sender_id', userId).eq('status', 'accepted'),
+      db(supabase).from('deals').select('*', { count: 'exact', head: true }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
+      db(supabase).from('deals').select('*', { count: 'exact', head: true }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`).eq('status', 'completed'),
+    ]);
+    charts.conversionFunnel = [
+      { label: 'quotations', value: totalQuotations ?? 0 },
+      { label: 'viewed', value: viewedQuotations ?? 0 },
+      { label: 'accepted', value: acceptedQuotations ?? 0 },
+      { label: 'deals', value: funnelDeals ?? 0 },
+      { label: 'completed', value: funnelCompleted ?? 0 },
+    ];
+  } else if (role === 'project_owner') {
+    const [
+      { count: totalProjects },
+      { count: totalRfqs },
+      { count: funnelBidsReceived },
+      { count: funnelDeals },
+      { count: funnelCompleted },
+    ] = await Promise.all([
+      db(supabase).from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', userId),
+      db(supabase).from('rfqs').select('*', { count: 'exact', head: true }).eq('poster_id', userId),
+      db(supabase).from('bids').select('*', { count: 'exact', head: true }).in('project_id',
+        (await db(supabase).from('projects').select('id').eq('owner_id', userId)).data?.map((p: { id: string }) => p.id) ?? []
+      ),
+      db(supabase).from('deals').select('*', { count: 'exact', head: true }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
+      db(supabase).from('deals').select('*', { count: 'exact', head: true }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`).eq('status', 'completed'),
+    ]);
+    charts.conversionFunnel = [
+      { label: 'projects', value: totalProjects ?? 0 },
+      { label: 'rfqs', value: totalRfqs ?? 0 },
+      { label: 'bidsReceived', value: funnelBidsReceived ?? 0 },
+      { label: 'deals', value: funnelDeals ?? 0 },
+      { label: 'completed', value: funnelCompleted ?? 0 },
+    ];
+  } else {
+    // buyer
+    const [
+      { count: totalRfqs },
+      { count: funnelDeals },
+      { count: funnelCompleted },
+    ] = await Promise.all([
+      db(supabase).from('rfqs').select('*', { count: 'exact', head: true }).eq('poster_id', userId),
+      db(supabase).from('deals').select('*', { count: 'exact', head: true }).eq('buyer_id', userId),
+      db(supabase).from('deals').select('*', { count: 'exact', head: true }).eq('buyer_id', userId).eq('status', 'completed'),
+    ]);
+    charts.conversionFunnel = [
+      { label: 'rfqs', value: totalRfqs ?? 0 },
+      { label: 'deals', value: funnelDeals ?? 0 },
+      { label: 'completed', value: funnelCompleted ?? 0 },
+    ];
+  }
 
   // Role-specific chart data
   if (role === 'contractor') {
@@ -594,5 +788,133 @@ async function buildCharts(
     }));
   }
 
+  // ── Project Owner: Projects by status + Bids received by status ──────
+  if (role === 'project_owner') {
+    const { data: ownerProjects } = await db(supabase)
+      .from('projects')
+      .select('id, status')
+      .eq('owner_id', userId);
+
+    type ProjRow = { id: string; status: string };
+    const projRows = (ownerProjects ?? []) as ProjRow[];
+    const projStatusCounts: Record<string, number> = {};
+    for (const p of projRows) {
+      projStatusCounts[p.status] = (projStatusCounts[p.status] ?? 0) + 1;
+    }
+    charts.projectsByStatus = Object.entries(projStatusCounts).map(([label, value]) => ({
+      label,
+      value,
+      color: STATUS_COLORS[label] ?? '#6b7280',
+    }));
+
+    // Bids received across all projects
+    const projIds = projRows.map((p) => p.id);
+    if (projIds.length > 0) {
+      const { data: recvBids } = await db(supabase)
+        .from('bids')
+        .select('status')
+        .in('project_id', projIds);
+
+      const bidRcvdCounts: Record<string, number> = {};
+      for (const b of (recvBids ?? []) as { status: string }[]) {
+        bidRcvdCounts[b.status] = (bidRcvdCounts[b.status] ?? 0) + 1;
+      }
+      charts.bidsReceivedByStatus = Object.entries(bidRcvdCounts).map(([label, value]) => ({
+        label,
+        value,
+        color: STATUS_COLORS[label] ?? '#6b7280',
+      }));
+    }
+  }
+
   return charts;
+}
+
+// ---------------------------------------------------------------------------
+// DASHBOARD ACTIVITY FEED — Recent events across user's deals + notifications
+// ---------------------------------------------------------------------------
+
+export interface DashboardActivityItem {
+  id: string;
+  type: 'deal_activity' | 'notification';
+  action: string;
+  title: string;
+  subtitle?: string;
+  href?: string;
+  created_at: string;
+  actor_name?: string;
+  actor_avatar?: string;
+}
+
+export async function getDashboardActivity(): Promise<ActionResult<DashboardActivityItem[]>> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: 'Must be logged in' };
+
+  const userId = user.id;
+
+  // Parallel queries: deal activity + recent notifications
+  const [activityResult, notificationsResult] = await Promise.all([
+    // Deal activity log — recent events for user's deals
+    db(supabase)
+      .from('deal_activity_log')
+      .select(`
+        id,
+        deal_id,
+        action,
+        details,
+        created_at,
+        actor:profiles!deal_activity_log_actor_id_fkey(full_name, avatar_url)
+      `)
+      .or(`deal_id.in.(${
+        // Sub-select: user's deal IDs
+        `select id from deals where buyer_id = '${userId}' or seller_id = '${userId}'`
+      })`)
+      .order('created_at', { ascending: false })
+      .limit(10),
+
+    // Recent notifications
+    db(supabase)
+      .from('notifications')
+      .select('id, type, title_ar, title_en, body_ar, body_en, link, is_read, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(10),
+  ]);
+
+  const items: DashboardActivityItem[] = [];
+
+  // Map deal activities
+  for (const a of activityResult.data ?? []) {
+    const actor = a.actor as Record<string, string> | null;
+    items.push({
+      id: `activity-${a.id}`,
+      type: 'deal_activity',
+      action: a.action,
+      title: a.action?.replace(/_/g, ' ') ?? 'Activity',
+      subtitle: (a.details as Record<string, unknown>)?.note as string | undefined,
+      href: `/dashboard/deals/${a.deal_id}`,
+      created_at: a.created_at,
+      actor_name: actor?.full_name,
+      actor_avatar: actor?.avatar_url,
+    });
+  }
+
+  // Map notifications
+  for (const n of notificationsResult.data ?? []) {
+    items.push({
+      id: `notif-${n.id}`,
+      type: 'notification',
+      action: n.type,
+      title: n.title_en || n.title_ar || 'Notification',
+      subtitle: n.body_en || n.body_ar || undefined,
+      href: n.link || undefined,
+      created_at: n.created_at,
+    });
+  }
+
+  // Sort by time descending, take top 10
+  items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  return { data: items.slice(0, 10), error: null };
 }

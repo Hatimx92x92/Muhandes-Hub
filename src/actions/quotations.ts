@@ -292,6 +292,8 @@ export async function acceptQuotation(quotationId: string): Promise<ActionResult
     .from('deals')
     .insert({
       title_slug: `deal-${quotation.number}`,
+      title_ar: `\u0639\u0631\u0636 \u0633\u0639\u0631 #${quotation.number}`,
+      title_en: `Quotation #${quotation.number}`,
       deal_type: 'deal_product',
       trigger_source: 'inquiry_quotation',
       quotation_id: quotationId,

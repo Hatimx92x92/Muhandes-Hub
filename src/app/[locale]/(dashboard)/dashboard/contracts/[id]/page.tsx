@@ -262,7 +262,7 @@ export default async function ContractDetailPage({
 
 // Server component to generate QR code
 async function QrVerification({ qrUuid, label }: { qrUuid: string; label: string }) {
-  const verifyUrl = `https://muqawilhub.com/verify/contract/${qrUuid}`;
+  const verifyUrl = `https://muhandeshub.com/verify/contract/${qrUuid}`;
   const qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 120, margin: 1 });
 
   return (

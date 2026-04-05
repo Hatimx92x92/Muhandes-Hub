@@ -2,7 +2,6 @@
 
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { useState, useCallback, useRef, useEffect } from 'react';
 import { logout } from '@/actions/auth';
 import {
   User,
@@ -12,6 +11,13 @@ import {
   LayoutDashboard,
   CreditCard,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 
 // =============================================================================
 // HeaderUserMenu — authenticated user dropdown for the main Header
@@ -27,30 +33,11 @@ export function HeaderUserMenu({
   userName,
   isAdmin = false,
 }: HeaderUserMenuProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
   const t = useTranslations('nav');
 
-  const toggleMenu = useCallback(() => setMenuOpen((prev) => !prev), []);
-
-  // Close menu on outside click
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   return (
-    <div ref={menuRef} className="relative">
-      <button
-        type="button"
-        onClick={toggleMenu}
-        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-muted transition-colors"
-      >
+    <DropdownMenu>
+      <DropdownMenuTrigger className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-muted transition-colors outline-none">
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
           <User className="h-4 w-4" />
         </div>
@@ -58,62 +45,34 @@ export function HeaderUserMenu({
           {userName}
         </span>
         <ChevronDown className="h-4 w-4 text-muted-foreground" />
-      </button>
+      </DropdownMenuTrigger>
 
-      {/* Dropdown */}
-      {menuOpen && (
-        <div className="absolute inset-e-0 top-full mt-1.5 w-48 rounded-xl border border-border bg-card shadow-xl z-50 animate-scale-in">
-          <div className="p-1.5">
-            <Link
-              href="/dashboard"
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              {t('dashboard')}
-            </Link>
-            {isAdmin && (
-              <Link
-                href="/admin"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
-              >
-                <Shield className="h-4 w-4" />
-                {t('adminPanel')}
-              </Link>
-            )}
-            <hr className="my-1 border-border" />
-            <Link
-              href="/dashboard/profile"
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
-            >
-              <User className="h-4 w-4" />
-              {t('profile')}
-            </Link>
-            <Link
-              href="/dashboard/subscription"
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
-            >
-              <CreditCard className="h-4 w-4" />
-              {t('subscription')}
-            </Link>
-            <hr className="my-1 border-border" />
-            <button
-              type="button"
-              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
-              onClick={() => {
-                setMenuOpen(false);
-                logout();
-              }}
-            >
-              <LogOut className="h-4 w-4" />
-              {t('logout')}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+      <DropdownMenuContent align="end" sideOffset={6} className="w-48">
+        <DropdownMenuItem render={<Link href="/dashboard" />}>
+          <LayoutDashboard className="h-4 w-4" />
+          {t('dashboard')}
+        </DropdownMenuItem>
+        {isAdmin && (
+          <DropdownMenuItem render={<Link href="/admin" />}>
+            <Shield className="h-4 w-4" />
+            {t('adminPanel')}
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem render={<Link href="/dashboard/profile" />}>
+          <User className="h-4 w-4" />
+          {t('profile')}
+        </DropdownMenuItem>
+        <DropdownMenuItem render={<Link href="/dashboard/subscription" />}>
+          <CreditCard className="h-4 w-4" />
+          {t('subscription')}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onClick={() => logout()}>
+          <LogOut className="h-4 w-4" />
+          {t('logout')}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

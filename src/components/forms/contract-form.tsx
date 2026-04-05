@@ -7,6 +7,8 @@
 import { useState, useActionState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Check, GripVertical } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import {
   DndContext,
   closestCenter,
@@ -140,15 +142,16 @@ export function ContractForm({ dealId, profile, dealInfo, clauses }: ContractFor
 
       {/* Template Type */}
       <FormField label={t('templateType')} required>
-        <select
-          name="template_type"
-          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
-          defaultValue="construction_agreement"
-        >
-          <option value="construction_agreement">{t('constructionAgreement')}</option>
-          <option value="supply_agreement">{t('supplyAgreement')}</option>
-          <option value="custom">{t('custom')}</option>
-        </select>
+        <Select name="template_type" defaultValue="construction_agreement">
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="construction_agreement">{t('constructionAgreement')}</SelectItem>
+            <SelectItem value="supply_agreement">{t('supplyAgreement')}</SelectItem>
+            <SelectItem value="custom">{t('custom')}</SelectItem>
+          </SelectContent>
+        </Select>
       </FormField>
 
       {/* Parties Preview */}
@@ -267,9 +270,9 @@ export function ContractForm({ dealId, profile, dealInfo, clauses }: ContractFor
                       <Check className="h-4 w-4 shrink-0 text-primary" />
                     )}
                   </div>
-                  <span className="mt-2 inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+                  <Badge variant="secondary" className="mt-2">
                     {clause.category as string}
-                  </span>
+                  </Badge>
                 </button>
               );
             })}
