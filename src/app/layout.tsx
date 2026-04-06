@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import { Inter, IBM_Plex_Sans_Arabic, Geist } from 'next/font/google';
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { getLocale } from 'next-intl/server';
@@ -21,6 +22,7 @@ const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: {
     default: 'Muhandes HUB | منصة مهندس',
     template: '%s | Muhandes HUB',
@@ -59,6 +61,18 @@ export default async function RootLayout({
       <body
         className={`${inter.variable} ${ibmPlexSansArabic.variable} antialiased`}
       >
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-BQC8J76G8Z"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-BQC8J76G8Z');
+          `}
+        </Script>
         <ThemeProvider>
           {children}
         </ThemeProvider>
