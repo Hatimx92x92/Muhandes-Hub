@@ -1,16 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/subscription-check",
-      "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/commission-check",
-      "schedule": "0 7 * * *"
-    },
-    {
-      "path": "/api/cron/reminder-check",
-      "schedule": "0 8 * * *"
+      "path": "/api/cron/daily",
+      "schedule": "0 20 * * *"
     }
   ]
 }

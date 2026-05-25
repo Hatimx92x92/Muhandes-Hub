@@ -11,6 +11,7 @@ import { KanbanBoard } from '@/components/features/kanban/kanban-board';
 import { getTranslations } from 'next-intl/server';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 import { TierGate } from '@/components/features/tier-gate';
+import { getEffectiveLimits } from '@/types';
 import { isUUID } from '@/lib/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,7 +22,9 @@ export default async function KanbanPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -72,7 +75,8 @@ export default async function KanbanPage({
     .single();
 
   const tier = (contractorSub?.tier as string) || 'starter';
-  if (tier === 'starter' && !isReadOnly) {
+  const kanbanLimits = getEffectiveLimits(profile?.role || 'contractor', tier);
+  if (kanbanLimits.hasKanban === false && !isReadOnly) {
     return (
       <TierGate
         isLocked

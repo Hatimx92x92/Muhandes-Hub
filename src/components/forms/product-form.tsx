@@ -13,9 +13,11 @@ import { CurrencyInput } from '@/components/forms/currency-input';
 import { VariantEditor, type VariantRow } from '@/components/forms/variant-editor';
 import { FileUpload } from '@/components/forms/file-upload';
 import { createProduct, updateProduct, removeProductImage, removeProductSpecSheet, setPrimaryImage } from '@/actions/products';
+import { adminUpdateProduct } from '@/actions/admin/moderation';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { X, Star, FileText, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getProxyUrl } from '@/lib/file-utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ActionResult } from '@/types';
 
@@ -34,7 +36,7 @@ interface ExistingSpec {
 }
 
 interface ProductFormProps {
-  mode: 'create' | 'edit';
+  mode: 'create' | 'edit' | 'admin';
   defaultValues?: {
     product_id?: string;
     name_ar?: string;
@@ -48,6 +50,7 @@ interface ProductFormProps {
     stock_quantity?: number;
     min_order_qty?: number;
     lead_time_days?: number;
+    status?: string;
     variants?: VariantRow[];
     existingImages?: ExistingImage[];
     existingSpecs?: ExistingSpec[];
@@ -57,7 +60,7 @@ interface ProductFormProps {
 export function ProductForm({ mode, defaultValues }: ProductFormProps) {
   const t = useTranslations('forms.product');
   const tMedia = useTranslations('forms.product.media');
-  const action = mode === 'create' ? createProduct : updateProduct;
+  const action = mode === 'admin' ? adminUpdateProduct : mode === 'create' ? createProduct : updateProduct;
   const [state, formAction, isPending] = useActionState<
     ActionResult<{ id: string; status?: string }> | null,
     FormData
@@ -70,6 +73,7 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
   const [images, setImages] = useState<ExistingImage[]>(defaultValues?.existingImages ?? []);
   const [specs, setSpecs] = useState<ExistingSpec[]>(defaultValues?.existingSpecs ?? []);
   const [isRemoving, startRemoveTransition] = useTransition();
+  const [imageError, setImageError] = useState<string | null>(null);
 
   const getError = (field: string) =>
     state?.error ? state.fieldErrors?.[field]?.[0] : undefined;
@@ -77,6 +81,13 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
   return (
     <form
       action={(formData) => {
+        // Require at least one image on create
+        if (mode === 'create' && imageFiles.length === 0 && images.length === 0) {
+          setImageError(tMedia('imageRequired'));
+          return;
+        }
+        setImageError(null);
+
         // Inject variants as JSON into FormData
         if (pricingModel === 'variant') {
           const variantsData = variants.map((v, i) => ({
@@ -100,8 +111,26 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
       className="space-y-8"
     >
       {/* Hidden fields */}
-      {mode === 'edit' && defaultValues?.product_id && (
+      {(mode === 'edit' || mode === 'admin') && defaultValues?.product_id && (
         <input type="hidden" name="product_id" value={defaultValues.product_id} />
+      )}
+
+      {/* Admin: Status control */}
+      {mode === 'admin' && (
+        <section>
+          <h2 className="mb-4 text-lg font-semibold text-foreground">{t('statusTitle')}</h2>
+          <Select name="status" defaultValue={defaultValues?.status || 'draft'}>
+            <SelectTrigger className="w-full sm:w-64">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">{t('statusDraft')}</SelectItem>
+              <SelectItem value="pending">{t('statusPending')}</SelectItem>
+              <SelectItem value="published">{t('statusPublished')}</SelectItem>
+              <SelectItem value="rejected">{t('statusRejected')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </section>
       )}
 
       {/* Global error */}
@@ -126,6 +155,7 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
           errorAr={getError('name_ar')}
           errorEn={getError('name_en')}
           required
+          showBothLanguages={mode === 'admin'}
         />
         <div className="mt-4">
           <BilingualFieldPair
@@ -139,6 +169,7 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
             errorAr={getError('description_ar')}
             errorEn={getError('description_en')}
             required
+            showBothLanguages={mode === 'admin'}
           />
         </div>
       </section>
@@ -185,6 +216,7 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
               label={t('price')}
               defaultValue={defaultValues?.price}
               error={getError('price')}
+              required
             />
             <Input
               type="number"
@@ -241,14 +273,14 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
       <section>
         <h2 className="mb-4 text-lg font-semibold text-foreground">{tMedia('imagesTitle')}</h2>
 
-        {/* Existing images (edit mode) */}
-        {mode === 'edit' && images.length > 0 && (
+        {/* Existing images (edit/admin mode) */}
+        {(mode === 'edit' || mode === 'admin') && images.length > 0 && (
           <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {images.map((img) => (
               <div key={img.id} className="group relative overflow-hidden rounded-lg border">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={img.image_url}
+                  src={getProxyUrl(img.image_url)}
                   alt=""
                   className="aspect-square w-full object-cover"
                 />
@@ -300,14 +332,17 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
           hint={tMedia('imageHint')}
           onUpload={setImageFiles}
         />
+        {imageError && (
+          <p className="mt-2 text-sm text-destructive">{imageError}</p>
+        )}
       </section>
 
       {/* Section: Spec Sheets / Catalogs */}
       <section>
         <h2 className="mb-4 text-lg font-semibold text-foreground">{tMedia('specsTitle')}</h2>
 
-        {/* Existing specs (edit mode) */}
-        {mode === 'edit' && specs.length > 0 && (
+        {/* Existing specs (edit/admin mode) */}
+        {(mode === 'edit' || mode === 'admin') && specs.length > 0 && (
           <ul className="mb-4 space-y-2">
             {specs.map((spec) => (
               <li
@@ -316,7 +351,7 @@ export function ProductForm({ mode, defaultValues }: ProductFormProps) {
               >
                 <FileText className="h-4 w-4 text-muted-foreground" />
                 <a
-                  href={spec.file_url}
+                  href={getProxyUrl(spec.file_url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 truncate text-primary underline-offset-2 hover:underline"

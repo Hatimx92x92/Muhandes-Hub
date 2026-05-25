@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Users,
@@ -15,9 +15,10 @@ import { getPlatformAnalytics } from '@/actions/admin/analytics';
 import { AnalyticsCharts } from '@/components/features/admin/analytics-charts';
 import { AdminStatValue } from '@/components/features/admin/admin-stat-value';
 
-export default async function AdminAnalyticsPage() {
+export default async function AdminAnalyticsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('admin.analyticsPage');
-  const locale = await getLocale();
 
   const { data, error } = await getPlatformAnalytics();
   if (error || !data) redirect('/admin');

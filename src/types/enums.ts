@@ -165,6 +165,7 @@ export const NotificationType = {
   SUBSCRIPTION_UPGRADED: 'subscription_upgraded',
   SUBSCRIPTION_RENEWED: 'subscription_renewed',
   SUBSCRIPTION_PAYMENT_APPROVED: 'subscription_payment_approved',
+  SUBSCRIPTION_PAYMENT_REJECTED: 'subscription_payment_rejected',
 } as const;
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
 

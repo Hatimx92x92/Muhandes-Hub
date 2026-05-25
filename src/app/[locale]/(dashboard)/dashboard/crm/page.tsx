@@ -1,16 +1,21 @@
 // =============================================================================
 // CRM Pipeline Page — Server Component
+// Project owners see Contractors & Suppliers view
+// Contractors/Suppliers see classic CRM pipeline
 // =============================================================================
 
 import { redirect } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { requireRole } from '@/lib/auth-guards';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
 import { CrmAddClientForm } from '@/components/features/crm/crm-add-client-form';
 import { PipelineBoard } from '@/components/features/crm/pipeline-board';
+import { ContractorsSuppliersView } from '@/components/features/crm/contractors-suppliers-view';
 import { TierLimitIndicator } from '@/components/features/tier-gate';
 import { TIER_LIMITS } from '@/types';
 
@@ -34,26 +39,31 @@ const STAGE_VARIANTS: Record<string, string> = {
 };
 
 export default async function CRMPage({
+  params: routeParams,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ stage?: string; q?: string; favorites?: string; archived?: string; view?: string }>;
 }) {
+  const { locale } = await routeParams;
+  setRequestLocale(locale);
   const sp = await searchParams;
   const t = await getTranslations('dashboard.crm');
   const tCommon = await getTranslations('dashboard.common');
-  const locale = await getLocale();
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
 
-  // Check role — buyer excluded from CRM
-  const { data: profile } = await db(supabase)
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
+  // Role guard — buyer excluded from CRM
+  const { user, profile, supabase } = await requireRole(['project_owner', 'contractor', 'supplier']);
 
-  if (profile?.role === 'buyer') redirect('/dashboard');
+  // =========================================================================
+  // PROJECT OWNER — Show Contractors & Suppliers view
+  // =========================================================================
+  if (profile.role === 'project_owner') {
+    return renderProjectOwnerView(user, supabase, locale);
+  }
+
+  // =========================================================================
+  // CONTRACTOR / SUPPLIER — Classic CRM pipeline (below)
+  // =========================================================================
 
   // Subscription tier for limit indicator
   const { data: subscription } = await db(supabase)
@@ -108,18 +118,17 @@ export default async function CRMPage({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">{t('title')}</h1>
-          <p className="text-sm text-muted-foreground">
+      <PageHeader
+        title={t('title')}
+        description={
+          <span>
             {t('clientCount', { count: totalClients })}
             {' · '}
             <TierLimitIndicator current={totalClients} max={maxClients} />
-          </p>
-        </div>
-        <CrmAddClientForm tags={tags || []} />
-      </div>
+          </span>
+        }
+        action={<CrmAddClientForm tags={tags || []} />}
+      />
 
       {/* Pipeline Overview */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -264,6 +273,170 @@ export default async function CRMPage({
       )}
         </>
       )}
+    </div>
+  );
+}
+
+// =============================================================================
+// Project Owner — Contractors & Suppliers view
+// Fetches "worked with" from completed deals + "saved" from CRM clients
+// =============================================================================
+async function renderProjectOwnerView(
+  user: { id: string },
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  locale: string,
+) {
+  // 1. Fetch completed deals where this user is the buyer
+  const { data: deals } = await db(supabase)
+    .from('deals')
+    .select(`
+      id,
+      value,
+      completed_at,
+      seller_id,
+      seller:profiles!deals_seller_id_fkey (
+        id, full_name, company_name_ar, company_name_en,
+        avatar_url, logo_url, role, average_rating, total_reviews,
+        slug_ar, slug_en,
+        saudi_cities ( name_ar, name_en )
+      )
+    `)
+    .eq('buyer_id', user.id)
+    .eq('status', 'completed')
+    .order('completed_at', { ascending: false });
+
+  // 2. Fetch reviews left by this user (to get "my rating")
+  const { data: myReviews } = await db(supabase)
+    .from('reviews')
+    .select('reviewee_id, overall_rating')
+    .eq('reviewer_id', user.id);
+
+  const myRatingMap = new Map<string, number>();
+  for (const r of myReviews || []) {
+    myRatingMap.set(r.reviewee_id, r.overall_rating);
+  }
+
+  // 3. Aggregate deals per seller
+  const sellerMap = new Map<string, {
+    seller: Record<string, unknown>;
+    deal_count: number;
+    total_value: number;
+    last_deal_date: string | null;
+  }>();
+
+  for (const deal of deals || []) {
+    if (!deal.seller) continue;
+    const sid = (deal.seller as Record<string, unknown>).id as string;
+    const existing = sellerMap.get(sid);
+    if (existing) {
+      existing.deal_count += 1;
+      existing.total_value += Number(deal.value || 0);
+      if (deal.completed_at && (!existing.last_deal_date || deal.completed_at > existing.last_deal_date)) {
+        existing.last_deal_date = deal.completed_at;
+      }
+    } else {
+      sellerMap.set(sid, {
+        seller: deal.seller as Record<string, unknown>,
+        deal_count: 1,
+        total_value: Number(deal.value || 0),
+        last_deal_date: deal.completed_at,
+      });
+    }
+  }
+
+  const workedWith = Array.from(sellerMap.values()).map(({ seller, deal_count, total_value, last_deal_date }) => {
+    const city = seller.saudi_cities as Record<string, string> | null;
+    return {
+      id: seller.id as string,
+      full_name: seller.full_name as string,
+      company_name_ar: seller.company_name_ar as string | null,
+      company_name_en: seller.company_name_en as string | null,
+      avatar_url: seller.avatar_url as string | null,
+      logo_url: seller.logo_url as string | null,
+      role: seller.role as string,
+      average_rating: Number(seller.average_rating || 0),
+      total_reviews: Number(seller.total_reviews || 0),
+      city_name_ar: city?.name_ar ?? null,
+      city_name_en: city?.name_en ?? null,
+      slug_ar: seller.slug_ar as string | null,
+      slug_en: seller.slug_en as string | null,
+      deal_count,
+      total_value,
+      last_deal_date,
+      my_rating: myRatingMap.get(seller.id as string) ?? null,
+    };
+  });
+
+  // 4. Fetch saved CRM clients (filtered to contractor/supplier linked users)
+  const { data: crmClients } = await db(supabase)
+    .from('crm_clients')
+    .select(`
+      id, name, company, email, phone, pipeline_stage, is_favorite, linked_user_id,
+      crm_client_tags ( tag_id, crm_tags ( id, name, color ) ),
+      linked_user:profiles!crm_clients_linked_user_id_fkey (
+        role, average_rating, total_deals, avatar_url, logo_url,
+        slug_ar, slug_en,
+        saudi_cities ( name_ar, name_en )
+      )
+    `)
+    .eq('owner_id', user.id)
+    .eq('is_archived', false)
+    .order('is_favorite', { ascending: false })
+    .order('last_interaction_at', { ascending: false });
+
+  const saved = (crmClients || [])
+    .filter((c: Record<string, unknown>) => {
+      // Show all saved clients, but enrich linked ones with role data
+      const linked = c.linked_user as Record<string, unknown> | null;
+      if (linked && !['contractor', 'supplier'].includes(linked.role as string)) return false;
+      return true;
+    })
+    .map((c: Record<string, unknown>) => {
+      const linked = c.linked_user as Record<string, unknown> | null;
+      const city = linked?.saudi_cities as Record<string, string> | null;
+      const clientTags = (c.crm_client_tags as Array<Record<string, unknown>> || [])
+        .map((ct) => ct.crm_tags as { id: string; name: string; color: string })
+        .filter(Boolean);
+
+      return {
+        id: c.id as string,
+        name: c.name as string,
+        company: c.company as string | null,
+        email: c.email as string | null,
+        phone: c.phone as string | null,
+        pipeline_stage: c.pipeline_stage as string,
+        is_favorite: c.is_favorite as boolean,
+        linked_user_id: c.linked_user_id as string | null,
+        linked_role: (linked?.role as string) ?? null,
+        linked_rating: linked ? Number(linked.average_rating || 0) : null,
+        linked_total_deals: linked ? Number(linked.total_deals || 0) : null,
+        linked_avatar_url: (linked?.avatar_url as string) ?? null,
+        linked_logo_url: (linked?.logo_url as string) ?? null,
+        linked_city_name_ar: city?.name_ar ?? null,
+        linked_city_name_en: city?.name_en ?? null,
+        linked_slug_ar: (linked?.slug_ar as string) ?? null,
+        linked_slug_en: (linked?.slug_en as string) ?? null,
+        tags: clientTags,
+      };
+    });
+
+  // 5. Fetch tags for the Add Client form
+  const { data: tags } = await db(supabase)
+    .from('crm_tags')
+    .select('*')
+    .eq('owner_id', user.id)
+    .order('name');
+
+  const t = await getTranslations('dashboard.crm');
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title={t('title')}
+        description={t('subtitle')}
+        action={<CrmAddClientForm tags={tags || []} />}
+      />
+      <ContractorsSuppliersView workedWith={workedWith} saved={saved} />
     </div>
   );
 }

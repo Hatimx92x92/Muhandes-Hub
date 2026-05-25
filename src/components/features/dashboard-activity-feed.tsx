@@ -3,9 +3,9 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { UserAvatar } from '@/components/features/user-avatar';
 import { formatRelativeTime } from '@/lib/utils';
 import type { DashboardActivityItem } from '@/actions/analytics';
 import {
@@ -101,13 +101,8 @@ export function DashboardActivityFeed({ activities, locale }: DashboardActivityF
             {/* Content */}
             <div className="min-w-0 flex-1 pb-1">
               <div className="flex items-center gap-2">
-                {item.actor_name && item.actor_avatar && (
-                  <Avatar className="h-5 w-5">
-                    <AvatarImage src={item.actor_avatar} alt={item.actor_name} />
-                    <AvatarFallback className="text-[10px]">
-                      {item.actor_name.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
+                {item.actor_name && (
+                  <UserAvatar src={item.actor_avatar} name={item.actor_name} size="xs" />
                 )}
                 <p className="truncate text-sm font-medium text-foreground">
                   {item.actor_name && <span className="font-semibold">{item.actor_name} </span>}

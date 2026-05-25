@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { Link } from '@/i18n/navigation';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Star, ThumbsUp, TrendingUp } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { StatCard } from '@/components/features/stat-card';
+import { PageHeader } from '@/components/ui/page-header';
+import { DirectionTabs } from '@/components/features/direction-tabs';
 import { EmptyState } from '@/components/features/empty-state';
 import { ReviewCard } from '@/components/features/reviews/review-card';
 
@@ -14,10 +14,14 @@ function db(supabase: any): any {
 }
 
 export default async function ReviewsPage({
+  params: routeParams,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ tab?: string }>;
 }) {
+  const { locale } = await routeParams;
+  setRequestLocale(locale);
   const { tab = 'received' } = await searchParams;
 
   const supabase = await createClient();
@@ -25,7 +29,6 @@ export default async function ReviewsPage({
   if (!user) redirect('/login');
 
   const t = await getTranslations('dashboard.reviews');
-  const locale = await getLocale();
 
   // Fetch reviews given and received
   const [
@@ -35,14 +38,15 @@ export default async function ReviewsPage({
   ] = await Promise.all([
     db(supabase)
       .from('reviews')
-      .select('*, reviewer:reviewer_id(company_name_ar, company_name_en), deal:deal_id(title_ar, title_en)')
+      .select('*, reviewer:reviewer_id(company_name_ar, company_name_en), deal:deal_id(title_slug)')
       .eq('reviewee_id', user.id)
       .eq('is_hidden', false)
       .order('created_at', { ascending: false }),
     db(supabase)
       .from('reviews')
-      .select('*, reviewee:reviewee_id(company_name_ar, company_name_en), deal:deal_id(title_ar, title_en)')
+      .select('*, reviewee:reviewee_id(company_name_ar, company_name_en), deal:deal_id(title_slug)')
       .eq('reviewer_id', user.id)
+      .eq('is_hidden', false)
       .order('created_at', { ascending: false }),
     db(supabase)
       .from('profiles')
@@ -76,72 +80,37 @@ export default async function ReviewsPage({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-muted-foreground">{t('subtitle')}</p>
-      </div>
+      <PageHeader title={t('title')} description={t('subtitle')} />
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warning/10">
-              <Star className="h-5 w-5 text-warning" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('overallRating')}</p>
-              <p className="text-xl font-bold">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-info/10">
-              <TrendingUp className="h-5 w-5 text-info" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('totalReviewsCount')}</p>
-              <p className="text-xl font-bold">{totalReviews}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10">
-              <ThumbsUp className="h-5 w-5 text-success" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('recommendRate')}</p>
-              <p className="text-xl font-bold">{received.length > 0 ? `${recommendRate}%` : '—'}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={<Star className="h-5 w-5 text-warning" />}
+          label={t('overallRating')}
+          value={avgRating > 0 ? avgRating.toFixed(1) : '—'}
+          color="yellow"
+        />
+        <StatCard
+          icon={<TrendingUp className="h-5 w-5 text-info" />}
+          label={t('totalReviewsCount')}
+          value={totalReviews}
+        />
+        <StatCard
+          icon={<ThumbsUp className="h-5 w-5 text-success" />}
+          label={t('recommendRate')}
+          value={received.length > 0 ? `${recommendRate}%` : '—'}
+          color="green"
+        />
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-border pb-1">
-        <Link
-          href="/dashboard/reviews?tab=received"
-          className={`rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${
-            activeTab === 'received'
-              ? 'border-b-2 border-primary text-primary'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          {t('receivedTab', { count: received.length })}
-        </Link>
-        <Link
-          href="/dashboard/reviews?tab=given"
-          className={`rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${
-            activeTab === 'given'
-              ? 'border-b-2 border-primary text-primary'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          {t('givenTab', { count: given.length })}
-        </Link>
-      </div>
+      <DirectionTabs
+        tabs={[
+          { key: 'received', label: t('receivedTab', { count: received.length }), count: received.length, href: '/dashboard/reviews?tab=received' },
+          { key: 'given', label: t('givenTab', { count: given.length }), count: given.length, href: '/dashboard/reviews?tab=given' },
+        ]}
+        activeTab={activeTab}
+      />
 
       {/* Review list */}
       {reviews.length === 0 ? (

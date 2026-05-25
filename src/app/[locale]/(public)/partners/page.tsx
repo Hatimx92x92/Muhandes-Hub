@@ -2,6 +2,7 @@
 // Partners Page — verified contractor/supplier directory
 // =============================================================================
 
+import type { Metadata } from 'next';
 import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
@@ -9,10 +10,50 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/features/empty-state';
+import { UserAvatar } from '@/components/features/user-avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Building2, Shield, Star, Search, Users, Briefcase, Package } from 'lucide-react';
 import { getLocaleField, getEntitySlug } from '@/lib/utils';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
+
+// ---------------------------------------------------------------------------
+// SEO — generateMetadata
+// ---------------------------------------------------------------------------
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ q?: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const sp = await searchParams;
+  setRequestLocale(locale);
+  const t = await getTranslations('metadata.partners');
+
+  return {
+    title: t('title'),
+    description: t('description'),
+    ...(sp.q ? { robots: { index: false, follow: true } } : {}),
+    openGraph: {
+      title: t('title'),
+      description: t('description'),
+      type: 'website',
+      locale: locale === 'ar' ? 'ar_SA' : 'en_US',
+      alternateLocale: locale === 'ar' ? 'en_US' : 'ar_SA',
+      siteName: 'Muhandes HUB',
+    },
+    alternates: {
+      canonical: `${BASE_URL}/${locale}/partners`,
+      languages: {
+        ar: `${BASE_URL}/ar/partners`,
+        en: `${BASE_URL}/en/partners`,
+      },
+    },
+  };
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -20,14 +61,17 @@ function db(supabase: any): any {
 }
 
 export default async function PartnersPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ q?: string; role?: string; city?: string }>;
 }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const filters = await searchParams;
   const supabase = await createClient();
   const t = await getTranslations('public.partners');
-  const locale = await getLocale();
 
   let query = db(supabase)
     .from('profiles')
@@ -122,17 +166,7 @@ export default async function PartnersPage({
               <Link key={partner.id} href={`/partners/${getEntitySlug(partner, locale)}`}>
                 <Card className="h-full p-5 transition-all hover:border-primary/30 hover:shadow-md">
                   <div className="flex items-start gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                      {imgUrl ? (
-                        <img
-                          src={imgUrl}
-                          alt=""
-                          className="h-12 w-12 rounded-full object-cover"
-                        />
-                      ) : (
-                        <Building2 className="h-6 w-6 text-primary" />
-                      )}
-                    </div>
+                    <UserAvatar src={imgUrl} name={locale === 'ar' ? partner.company_name_ar : partner.company_name_en} size="lg" />
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate font-semibold text-foreground">
                         {locale === 'ar' ? (partner.company_name_ar || partner.full_name) : (partner.company_name_en || partner.company_name_ar || partner.full_name)}

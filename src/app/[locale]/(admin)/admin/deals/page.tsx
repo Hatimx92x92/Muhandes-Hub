@@ -22,7 +22,7 @@ export default async function AdminDealsPage({
 
   const translations: Record<string, string> = {
     col_dealId: t('table.columns.dealId'),
-    col_type: t('table.columns.type'),
+    col_dealType: t('table.columns.type'),
     col_status: t('table.columns.status'),
     col_value: t('table.columns.value'),
     col_created: t('table.columns.created'),
@@ -35,8 +35,8 @@ export default async function AdminDealsPage({
     dealStatus_completed: t('dealStatus.completed'),
     dealStatus_cancelled: t('dealStatus.cancelled'),
     dealStatus_disputed: t('dealStatus.disputed'),
-    'dealType_DEAL-PROJECT': t('dealType.DEAL-PROJECT'),
-    'dealType_DEAL-PRODUCT': t('dealType.DEAL-PRODUCT'),
+    'dealType_deal_project': t('dealType.DEAL-PROJECT'),
+    'dealType_deal_product': t('dealType.DEAL-PRODUCT'),
     noDeals: t('dealsPage.noDeals'),
   };
 

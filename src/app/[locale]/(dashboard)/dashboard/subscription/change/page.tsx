@@ -5,7 +5,7 @@
 import { redirect } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ChevronLeft } from 'lucide-react';
 import {
   SUBSCRIPTION_PRICING,
@@ -29,10 +29,14 @@ const allTiers: SubscriptionTier[] = ['starter', 'pro', 'business', 'enterprise'
 // ---------------------------------------------------------------------------
 
 export default async function SubscriptionChangePage({
+  params: routeParams,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ tier?: string; mode?: string }>;
 }) {
+  const { locale } = await routeParams;
+  setRequestLocale(locale);
   const params = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -42,7 +46,6 @@ export default async function SubscriptionChangePage({
   const t = await getTranslations('dashboard.subscription.change');
   const tSub = await getTranslations('dashboard.subscription');
   const tp = await getTranslations('pricing');
-  const locale = await getLocale();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;

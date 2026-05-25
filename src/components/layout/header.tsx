@@ -9,7 +9,7 @@ import { getTranslations, getLocale } from 'next-intl/server';
 import type { Locale } from '@/i18n/routing';
 import { createClient } from '@/lib/supabase/server';
 import { getUnreadNotificationCount } from '@/actions/notifications';
-import { Bell } from 'lucide-react';
+import { NotificationBell } from './notification-bell';
 
 // =============================================================================
 // Header — auth-aware main navigation (corporate B2B)
@@ -44,6 +44,7 @@ export async function Header({ className }: { className?: string }) {
   let userName = '';
   let userAvatar: string | undefined;
   let isAdmin = false;
+  let userRole: string | undefined;
   let notificationCount = 0;
 
   if (user) {
@@ -51,13 +52,14 @@ export async function Header({ className }: { className?: string }) {
     const db = supabase as any;
     const { data: profile } = await db
       .from('profiles')
-      .select('full_name, avatar_url, is_admin')
+      .select('full_name, avatar_url, is_admin, role')
       .eq('id', user.id)
       .single();
 
     userName = profile?.full_name || user.email || '';
     userAvatar = profile?.avatar_url || undefined;
     isAdmin = !!profile?.is_admin;
+    userRole = profile?.role || undefined;
 
     notificationCount = await getUnreadNotificationCount();
   }
@@ -109,25 +111,15 @@ export async function Header({ className }: { className?: string }) {
 
           {isAuthenticated ? (
             <>
-              {/* Notifications */}
-              <Link
-                href="/dashboard/notifications"
-                className="relative inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                aria-label={t('notifications')}
-              >
-                <Bell className="h-5 w-5" />
-                {notificationCount > 0 && (
-                  <span className="absolute -top-0.5 -inset-e-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-                    {notificationCount > 99 ? '99+' : notificationCount}
-                  </span>
-                )}
-              </Link>
+              {/* Notifications — real-time inside dashboard, server count elsewhere */}
+              <NotificationBell userId={user!.id} initialCount={notificationCount} ariaLabel={t('notifications')} />
 
               {/* User dropdown */}
               <HeaderUserMenu
                 userName={userName}
                 userAvatar={userAvatar}
                 isAdmin={isAdmin}
+                userRole={userRole}
               />
             </>
           ) : (

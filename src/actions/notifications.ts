@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getTranslations } from 'next-intl/server';
 import { NotificationPreferenceSchema } from '@/schemas/message';
+import { sendNotificationEmail } from '@/lib/resend/templates';
 import type { ActionResult, NotificationType } from '@/types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,8 +78,33 @@ export async function createNotification(params: {
 
   if (error) return { data: null, error: t('createError') };
 
-  // TODO: Check user preferences and send email via Resend if enabled
-  // TODO: Check user preferences and send WhatsApp via Twilio if enabled
+  // Email dispatch — fire-and-forget, never blocks notification creation
+  const { data: pref } = await admin
+    .from('notification_preferences')
+    .select('email_enabled')
+    .eq('user_id', params.user_id)
+    .eq('notification_type', params.type)
+    .maybeSingle();
+
+  // No preference row = opt-out model default (enabled)
+  const emailEnabled = pref === null ? true : pref.email_enabled;
+
+  if (emailEnabled) {
+    const { data: authData } = await admin.auth.admin.getUserById(params.user_id);
+    const email = authData?.user?.email;
+    if (email) {
+      void sendNotificationEmail({
+        to: email,
+        type: params.type,
+        titleAr: params.title_ar,
+        titleEn: params.title_en,
+        bodyAr: params.body_ar ?? params.title_ar,
+        bodyEn: params.body_en ?? params.title_en,
+        link: params.link,
+        userId: params.user_id,
+      });
+    }
+  }
 
   return { data: { id: notification.id }, error: null };
 }
@@ -183,7 +209,7 @@ export async function getUnreadNotificationCount(): Promise<number> {
 
   const { count } = await db(supabase)
     .from('notifications')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'exact' })
     .eq('user_id', user.id)
     .eq('is_read', false);
 
@@ -254,4 +280,42 @@ export async function bulkDeleteNotifications(
 
   revalidatePath('/dashboard/notifications');
   return { data: { deleted: count ?? 0 }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// NOTIFICATION RECORD TYPE (used by dropdown + hook)
+// ---------------------------------------------------------------------------
+export interface NotificationRecord {
+  id: string;
+  type: string;
+  title_ar: string;
+  title_en: string;
+  body_ar: string | null;
+  body_en: string | null;
+  link: string | null;
+  entity_type: string | null;
+  entity_id: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// GET RECENT NOTIFICATIONS (for dropdown)
+// ---------------------------------------------------------------------------
+export async function getRecentNotifications(): Promise<ActionResult<NotificationRecord[]>> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: 'mustLogin' };
+
+  const { data, error } = await db(supabase)
+    .from('notifications')
+    .select(
+      'id, type, title_ar, title_en, body_ar, body_en, link, entity_type, entity_id, is_read, created_at',
+    )
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(15);
+
+  if (error) return { data: null, error: 'fetchError' };
+  return { data: data ?? [], error: null };
 }

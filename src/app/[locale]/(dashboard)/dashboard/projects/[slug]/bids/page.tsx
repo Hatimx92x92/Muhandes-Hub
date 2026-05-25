@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { formatSAR, isUUID, getEntitySlug } from '@/lib/utils';
 import { BidActions } from '@/components/features/bid-actions';
 import { Trophy, Clock, Banknote, Users, Star, Shield } from 'lucide-react';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getLocaleField } from '@/lib/utils';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 
@@ -31,13 +31,15 @@ const BID_STATUS_VARIANT: Record<string, string> = {
 export default async function BidComparisonPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug: rawSlug } = await params;
+  setRequestLocale(locale);
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
-  const locale = await getLocale();
 
   // Resolve project by slug or UUID
   let project;
@@ -120,6 +122,22 @@ export default async function BidComparisonPage({
           subscription_tier: subMap[p.id] || 'starter',
           classification: '',
         };
+      }
+    }
+  }
+
+  // Fetch deals linked to any awarded bids
+  const bidIds = (bids ?? []).map((b: { id: string }) => b.id);
+  let dealByBidId: Record<string, { id: string; title_slug: string | null; title_ar: string | null; title_en: string | null }> = {};
+  if (bidIds.length > 0) {
+    const { data: linkedDeals } = await db(supabase)
+      .from('deals')
+      .select('id, title_slug, title_ar, title_en, bid_id')
+      .in('bid_id', bidIds);
+    if (linkedDeals) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const d of linkedDeals as any[]) {
+        dealByBidId[d.bid_id] = d;
       }
     }
   }
@@ -260,6 +278,20 @@ export default async function BidComparisonPage({
                         {(bid.status === 'pending' || bid.status === 'shortlisted') && (
                           <BidActions bidId={bid.id} status={bid.status} />
                         )}
+                        {bid.status === 'awarded' && dealByBidId[bid.id] && (() => {
+                          const deal = dealByBidId[bid.id];
+                          const dealTitle = locale === 'ar'
+                            ? (deal.title_ar || deal.title_en)
+                            : (deal.title_en || deal.title_ar);
+                          return (
+                            <Link href={`/dashboard/deals/${deal.title_slug || deal.id}`}>
+                              <Button size="sm" variant="outline" className="gap-1.5">
+                                <Trophy className="h-3.5 w-3.5 text-status-completed" />
+                                {dealTitle || tBids('viewDeal')}
+                              </Button>
+                            </Link>
+                          );
+                        })()}
                       </td>
                     </tr>
                   );

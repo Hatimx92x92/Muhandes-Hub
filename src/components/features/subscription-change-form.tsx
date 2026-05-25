@@ -94,7 +94,7 @@ export function SubscriptionChangeForm({
 
   // Form state
   const [duration, setDuration] = useState<number>(1);
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'bank_transfer'>('card');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'bank_transfer'>('bank_transfer');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptError, setReceiptError] = useState('');
   const [copiedField, setCopiedField] = useState('');
@@ -263,9 +263,11 @@ export function SubscriptionChangeForm({
     }
   };
 
-  const bankName = process.env.NEXT_PUBLIC_BANK_NAME || 'Al Rajhi Bank';
-  const accountName = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME || 'Muhandes HUB Platform';
-  const iban = process.env.NEXT_PUBLIC_BANK_IBAN || 'SA0000000000000000000000';
+  const bankName = process.env.NEXT_PUBLIC_BANK_NAME || 'مصرف الراجحي - Al Rajhi Bank';
+  const accountName = locale === 'en'
+    ? (process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME_EN || 'Rimal Al Mas International Company')
+    : (process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME || 'شركة رمال الماس العالمية');
+  const iban = process.env.NEXT_PUBLIC_BANK_IBAN || 'SA3580000126608016356809';
 
   const ModeIcon = mode === 'upgrade' ? ArrowUp : mode === 'downgrade' ? ArrowDown : RefreshCw;
 
@@ -472,6 +474,26 @@ export function SubscriptionChangeForm({
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
+              onClick={() => setPaymentMethod('bank_transfer')}
+              className={cn(
+                'relative flex items-center gap-3 rounded-lg border-2 p-4 transition-colors',
+                paymentMethod === 'bank_transfer'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border hover:border-primary/50',
+              )}
+            >
+              <span className="absolute -top-2 start-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
+                {t('recommended')}
+              </span>
+              <Building className="h-5 w-5 text-primary" />
+              <div className="text-start">
+                <div className="text-sm font-medium">{t('bankTransfer')}</div>
+                <div className="text-xs text-muted-foreground">{t('bankDescription')}</div>
+              </div>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setPaymentMethod('card')}
               className={cn(
                 'flex items-center gap-3 rounded-lg border-2 p-4 transition-colors',
@@ -484,23 +506,6 @@ export function SubscriptionChangeForm({
               <div className="text-start">
                 <div className="text-sm font-medium">{t('cardPayment')}</div>
                 <div className="text-xs text-muted-foreground">{t('cardDescription')}</div>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setPaymentMethod('bank_transfer')}
-              className={cn(
-                'flex items-center gap-3 rounded-lg border-2 p-4 transition-colors',
-                paymentMethod === 'bank_transfer'
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50',
-              )}
-            >
-              <Building className="h-5 w-5 text-primary" />
-              <div className="text-start">
-                <div className="text-sm font-medium">{t('bankTransfer')}</div>
-                <div className="text-xs text-muted-foreground">{t('bankDescription')}</div>
               </div>
             </button>
           </div>

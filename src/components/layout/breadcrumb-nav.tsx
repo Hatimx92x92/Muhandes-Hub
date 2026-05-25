@@ -80,12 +80,17 @@ function buildBreadcrumbs(
     const segment = segments[i];
     hrefAccumulator += `/${segment}`;
 
-    const label = resolveLabel(segment, overrides, tNav, tBreadcrumb);
+    // Decode URI-encoded segments (e.g. Arabic slugs) so override keys match
+    let decodedSegment: string;
+    try { decodedSegment = decodeURIComponent(segment); } catch { decodedSegment = segment; }
+
+    const label = resolveLabel(decodedSegment, overrides, tNav, tBreadcrumb);
     const isLast = i === segments.length - 1;
+    const config = segmentConfig[decodedSegment];
 
     items.push({
       label,
-      href: isLast ? undefined : hrefAccumulator,
+      href: isLast ? undefined : (config?.hrefOverride ?? hrefAccumulator),
     });
   }
 

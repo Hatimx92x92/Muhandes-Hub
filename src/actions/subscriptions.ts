@@ -10,7 +10,7 @@ import {
   RenewSubscriptionSchema,
 } from '@/schemas/subscription';
 import type { ActionResult } from '@/types';
-import { SUBSCRIPTION_PRICING, DURATION_DISCOUNTS, VAT_RATE } from '@/types';
+import { SUBSCRIPTION_PRICING, DURATION_DISCOUNTS, VAT_RATE, isFreeRole } from '@/types';
 import { createPaymentSession } from '@/lib/moyasar';
 import { uploadFile } from '@/actions/uploads';
 
@@ -73,6 +73,16 @@ export async function subscribe(
 
   if (!user) {
     return { data: null, error: t('mustLogin') };
+  }
+
+  // Reject free roles — buyer & project_owner cannot subscribe
+  const { data: subProfile } = await db(supabase)
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+  if (isFreeRole(subProfile?.role ?? '')) {
+    return { data: null, error: t('freeRoleNoSubscription') };
   }
 
   // 2. Validate
@@ -265,6 +275,16 @@ export async function upgradeSubscription(
 
   if (!user) {
     return { data: null, error: t('mustLogin') };
+  }
+
+  // Reject free roles — buyer & project_owner cannot upgrade subscriptions
+  const { data: upgProfile } = await db(supabase)
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+  if (isFreeRole(upgProfile?.role ?? '')) {
+    return { data: null, error: t('freeRoleNoSubscription') };
   }
 
   // Validate input

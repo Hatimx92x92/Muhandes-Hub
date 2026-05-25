@@ -18,7 +18,9 @@ export default async function DocumentsPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');

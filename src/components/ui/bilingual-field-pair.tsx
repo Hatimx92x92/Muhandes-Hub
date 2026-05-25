@@ -2,12 +2,13 @@
 
 // =============================================================================
 // Muhandes HUB — BilingualFieldPair
-// Renders AR + EN inputs side-by-side with auto-translate wiring
+// Renders AR or EN input based on user locale. Admins can see both via
+// showBothLanguages prop. A "Add translation" toggle reveals the secondary field.
 // =============================================================================
 
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Languages } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
@@ -46,6 +47,8 @@ interface BilingualFieldPairProps {
   valueAr?: string;
   /** Controlled mode: value for English field */
   valueEn?: string;
+  /** Show both languages side-by-side (admin mode) */
+  showBothLanguages?: boolean;
 }
 
 export function BilingualFieldPair({
@@ -65,6 +68,7 @@ export function BilingualFieldPair({
   onChangeEn,
   valueAr,
   valueEn,
+  showBothLanguages = false,
 }: BilingualFieldPairProps) {
   const locale = useLocale() as 'ar' | 'en';
   const t = useTranslations('common');
@@ -73,8 +77,13 @@ export function BilingualFieldPair({
   const arRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const enRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
-  // Determine source → target based on user's locale
   const sourceIsAr = locale === 'ar';
+
+  // Whether the secondary (non-locale) field is expanded by the user
+  const [secondaryExpanded, setSecondaryExpanded] = useState(false);
+
+  // In both-languages mode we always show both; otherwise follow expand state
+  const showSecondary = showBothLanguages || secondaryExpanded;
 
   const arToEn = useAutoTranslate({ from: 'ar', to: 'en' });
   const enToAr = useAutoTranslate({ from: 'en', to: 'ar' });
@@ -98,35 +107,28 @@ export function BilingualFieldPair({
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const val = e.target.value;
       if (onChangeAr) onChangeAr(val);
-      arToEn.onSourceChange(val);
+      if (showSecondary) arToEn.onSourceChange(val);
     },
-    [onChangeAr, arToEn],
+    [onChangeAr, arToEn, showSecondary],
   );
 
   const handleEnChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const val = e.target.value;
       if (onChangeEn) onChangeEn(val);
-      enToAr.onSourceChange(val);
+      if (showSecondary) enToAr.onSourceChange(val);
     },
-    [onChangeEn, enToAr],
+    [onChangeEn, enToAr, showSecondary],
   );
 
   const handleArManualEdit = useCallback(() => {
-    // User is manually editing the AR field while it was auto-translated from EN
-    if (enToAr.isAutoTranslated) {
-      enToAr.onTargetManualEdit();
-    }
+    if (enToAr.isAutoTranslated) enToAr.onTargetManualEdit();
   }, [enToAr]);
 
   const handleEnManualEdit = useCallback(() => {
-    // User is manually editing the EN field while it was auto-translated from AR
-    if (arToEn.isAutoTranslated) {
-      arToEn.onTargetManualEdit();
-    }
+    if (arToEn.isAutoTranslated) arToEn.onTargetManualEdit();
   }, [arToEn]);
 
-  // Determine which field shows the auto-translate indicator
   const showArIndicator = enToAr.isAutoTranslated || enToAr.isTranslating;
   const showEnIndicator = arToEn.isAutoTranslated || arToEn.isTranslating;
 
@@ -142,61 +144,163 @@ export function BilingualFieldPair({
       );
     }
     if (isAutoTranslated) {
-      return (
-        <span className="text-xs text-muted-foreground">
-          {t('autoTranslated')}
-        </span>
-      );
+      return <span className="text-xs text-muted-foreground">{t('autoTranslated')}</span>;
     }
     return null;
   };
 
+  const secondaryLabel = sourceIsAr ? labelEn : labelAr;
+  const addTranslationLabel = sourceIsAr
+    ? t('addEnglishTranslation')
+    : t('addArabicTranslation');
+
+  if (showBothLanguages) {
+    // Admin / both-languages mode: original 2-column side-by-side layout
+    return (
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1">
+          <Component
+            ref={arRef as never}
+            name={`${baseName}_ar`}
+            label={labelAr}
+            defaultValue={!isControlled ? defaultValueAr : undefined}
+            value={isControlled ? valueAr : undefined}
+            error={errorAr}
+            placeholder={placeholderAr}
+            required={sourceIsAr ? required : undefined}
+            {...(type === 'textarea' ? { rows } : {})}
+            onChange={(e: React.ChangeEvent<HTMLInputElement & HTMLTextAreaElement>) => {
+              handleArChange(e);
+              if (!sourceIsAr) handleArManualEdit();
+            }}
+            className={cn(showArIndicator && 'border-primary/30')}
+          />
+          {showArIndicator && renderIndicator(enToAr.isTranslating, enToAr.isAutoTranslated)}
+        </div>
+        <div className="space-y-1">
+          <Component
+            ref={enRef as never}
+            name={`${baseName}_en`}
+            label={labelEn}
+            defaultValue={!isControlled ? defaultValueEn : undefined}
+            value={isControlled ? valueEn : undefined}
+            error={errorEn}
+            placeholder={placeholderEn}
+            required={!sourceIsAr ? required : undefined}
+            dir="ltr"
+            {...(type === 'textarea' ? { rows } : {})}
+            onChange={(e: React.ChangeEvent<HTMLInputElement & HTMLTextAreaElement>) => {
+              handleEnChange(e);
+              if (sourceIsAr) handleEnManualEdit();
+            }}
+            className={cn(showEnIndicator && 'border-primary/30')}
+          />
+          {showEnIndicator && renderIndicator(arToEn.isTranslating, arToEn.isAutoTranslated)}
+        </div>
+      </div>
+    );
+  }
+
+  // Single-locale mode: show only the user's locale field
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {/* Arabic field */}
+    <div className="space-y-2">
+      {/* Primary field — user's locale */}
       <div className="space-y-1">
-        <Component
-          ref={arRef as never}
-          name={`${baseName}_ar`}
-          label={labelAr}
-          defaultValue={!isControlled ? defaultValueAr : undefined}
-          value={isControlled ? valueAr : undefined}
-          error={errorAr}
-          placeholder={placeholderAr}
-          required={sourceIsAr ? required : undefined}
-          {...(type === 'textarea' ? { rows } : {})}
-          onChange={(e: React.ChangeEvent<HTMLInputElement & HTMLTextAreaElement>) => {
-            handleArChange(e);
-            // If this is the target field (user locale is EN), mark manual edit
-            if (!sourceIsAr) handleArManualEdit();
-          }}
-          className={cn(showArIndicator && 'border-primary/30')}
-        />
-        {showArIndicator && renderIndicator(enToAr.isTranslating, enToAr.isAutoTranslated)}
+        {sourceIsAr ? (
+          <>
+            <Component
+              ref={arRef as never}
+              name={`${baseName}_ar`}
+              label={labelAr}
+              defaultValue={!isControlled ? defaultValueAr : undefined}
+              value={isControlled ? valueAr : undefined}
+              error={errorAr}
+              placeholder={placeholderAr}
+              required={required}
+              {...(type === 'textarea' ? { rows } : {})}
+              onChange={(e: React.ChangeEvent<HTMLInputElement & HTMLTextAreaElement>) =>
+                handleArChange(e)
+              }
+            />
+            {errorAr && !secondaryExpanded && null}
+          </>
+        ) : (
+          <>
+            <Component
+              ref={enRef as never}
+              name={`${baseName}_en`}
+              label={labelEn}
+              defaultValue={!isControlled ? defaultValueEn : undefined}
+              value={isControlled ? valueEn : undefined}
+              error={errorEn}
+              placeholder={placeholderEn}
+              required={required}
+              dir="ltr"
+              {...(type === 'textarea' ? { rows } : {})}
+              onChange={(e: React.ChangeEvent<HTMLInputElement & HTMLTextAreaElement>) =>
+                handleEnChange(e)
+              }
+            />
+          </>
+        )}
       </div>
 
-      {/* English field */}
-      <div className="space-y-1">
-        <Component
-          ref={enRef as never}
-          name={`${baseName}_en`}
-          label={labelEn}
-          defaultValue={!isControlled ? defaultValueEn : undefined}
-          value={isControlled ? valueEn : undefined}
-          error={errorEn}
-          placeholder={placeholderEn}
-          required={!sourceIsAr ? required : undefined}
-          dir="ltr"
-          {...(type === 'textarea' ? { rows } : {})}
-          onChange={(e: React.ChangeEvent<HTMLInputElement & HTMLTextAreaElement>) => {
-            handleEnChange(e);
-            // If this is the target field (user locale is AR), mark manual edit
-            if (sourceIsAr) handleEnManualEdit();
-          }}
-          className={cn(showEnIndicator && 'border-primary/30')}
-        />
-        {showEnIndicator && renderIndicator(arToEn.isTranslating, arToEn.isAutoTranslated)}
-      </div>
+      {/* Secondary field — optional expansion */}
+      {secondaryExpanded && (
+        <div className="space-y-1 border-s-2 border-border ps-3">
+          <p className="text-xs text-muted-foreground">{secondaryLabel}</p>
+          {sourceIsAr ? (
+            <div className="space-y-1">
+              <Component
+                ref={enRef as never}
+                name={`${baseName}_en`}
+                label={labelEn}
+                defaultValue={!isControlled ? defaultValueEn : undefined}
+                value={isControlled ? valueEn : undefined}
+                error={errorEn}
+                placeholder={placeholderEn}
+                dir="ltr"
+                {...(type === 'textarea' ? { rows } : {})}
+                onChange={(e: React.ChangeEvent<HTMLInputElement & HTMLTextAreaElement>) => {
+                  handleEnChange(e);
+                  handleEnManualEdit();
+                }}
+                className={cn(showEnIndicator && 'border-primary/30')}
+              />
+              {showEnIndicator && renderIndicator(arToEn.isTranslating, arToEn.isAutoTranslated)}
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <Component
+                ref={arRef as never}
+                name={`${baseName}_ar`}
+                label={labelAr}
+                defaultValue={!isControlled ? defaultValueAr : undefined}
+                value={isControlled ? valueAr : undefined}
+                error={errorAr}
+                placeholder={placeholderAr}
+                {...(type === 'textarea' ? { rows } : {})}
+                onChange={(e: React.ChangeEvent<HTMLInputElement & HTMLTextAreaElement>) => {
+                  handleArChange(e);
+                  handleArManualEdit();
+                }}
+                className={cn(showArIndicator && 'border-primary/30')}
+              />
+              {showArIndicator && renderIndicator(enToAr.isTranslating, enToAr.isAutoTranslated)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Add/hide translation toggle */}
+      <button
+        type="button"
+        onClick={() => setSecondaryExpanded((prev) => !prev)}
+        className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <Languages className="h-3.5 w-3.5" />
+        {secondaryExpanded ? t('hideTranslation') : addTranslationLabel}
+      </button>
     </div>
   );
 }

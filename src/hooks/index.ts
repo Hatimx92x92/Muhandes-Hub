@@ -7,3 +7,6 @@ export type { UserProfile } from './use-auth';
 export { useLocale } from './use-locale';
 export { useRealtime, useDealRealtime } from './use-realtime';
 export { useRealtimeMessages } from './use-realtime-messages';
+export { useRealtimeCounts } from './use-realtime-counts';
+export { useNotifications } from './use-notifications';
+export type { NotificationRecord } from '@/actions/notifications';

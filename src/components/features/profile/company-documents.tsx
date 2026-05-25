@@ -6,8 +6,9 @@ import { useRouter } from '@/i18n/navigation';
 import { uploadCompanyDocument, deleteCompanyDocument, updateCompanyDocumentName } from '@/actions/profile';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { FileText, Upload, Trash2, Download, Pencil, Check, X, Loader2 } from 'lucide-react';
+import { FileText, Upload, Trash2, Pencil, Check, X, Loader2 } from 'lucide-react';
 import { AlertBanner } from '@/components/ui/alert-banner';
+import { FileActions } from '@/components/features/file-actions';
 
 // =============================================================================
 // Company Documents — upload, rename, delete (max 3 PDFs)
@@ -152,15 +153,7 @@ export function CompanyDocuments({ documents: initialDocs }: CompanyDocumentsPro
                 )}
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                <a
-                  href={doc.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download
-                  className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                >
-                  <Download className="h-4 w-4" />
-                </a>
+                <FileActions url={doc.file_url} fileName={doc.file_name} compact />
                 {editingId !== doc.id && (
                   <button
                     type="button"

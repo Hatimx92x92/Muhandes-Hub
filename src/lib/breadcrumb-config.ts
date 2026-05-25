@@ -14,14 +14,14 @@
  *  - `nav.*`        → reused from existing navigation translations
  *  - `breadcrumb.*` → new keys specific to breadcrumbs
  */
-export const segmentConfig: Record<string, { key: string; namespace: 'nav' | 'breadcrumb' }> = {
+export const segmentConfig: Record<string, { key: string; namespace: 'nav' | 'breadcrumb'; hrefOverride?: string }> = {
   // ── Root anchors ──────────────────────────────────────────────
   dashboard: { key: 'dashboard', namespace: 'nav' },
   admin: { key: 'admin', namespace: 'breadcrumb' },
 
   // ── Dashboard segments ────────────────────────────────────────
   projects: { key: 'projects', namespace: 'nav' },
-  products: { key: 'products', namespace: 'nav' },
+  products: { key: 'marketplace', namespace: 'nav', hrefOverride: '/marketplace' },
   deals: { key: 'deals', namespace: 'nav' },
   quotations: { key: 'quotations', namespace: 'nav' },
   rfqs: { key: 'rfqs', namespace: 'nav' },

@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { localizeFieldErrors } from '@/lib/zod-i18n';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { QuotationSchema } from '@/schemas/quotation';
 import { apiLimiter, checkRateLimit } from '@/lib/rate-limit';
 import type { ActionResult } from '@/types';
@@ -89,7 +90,7 @@ export async function createQuotation(
 
     const { count } = await db(supabase)
       .from('quotations')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .eq('sender_id', user.id)
       .gte('created_at', startOfMonth.toISOString());
 
@@ -143,7 +144,7 @@ export async function createQuotation(
   const year = new Date().getFullYear();
   const { count: existingCount } = await db(supabase)
     .from('quotations')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'exact' })
     .eq('sender_id', user.id)
     .gte('created_at', `${year}-01-01T00:00:00Z`);
 
@@ -188,6 +189,103 @@ export async function createQuotation(
 }
 
 // ---------------------------------------------------------------------------
+// UPDATE QUOTATION (owner edit — not allowed when accepted)
+// ---------------------------------------------------------------------------
+export async function updateQuotation(
+  _prevState: ActionResult<{ id: string; quotation_number: string }> | null,
+  formData: FormData,
+): Promise<ActionResult<{ id: string; quotation_number: string }>> {
+  const t = await getTranslations('actions.quotations');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  const quotationId = formData.get('quotation_id') as string;
+  if (!quotationId) return { data: null, error: t('invalidData') };
+
+  // Ownership and status check
+  const { data: existing } = await db(supabase)
+    .from('quotations')
+    .select('id, sender_id, status, number')
+    .eq('id', quotationId)
+    .single();
+
+  if (!existing || existing.sender_id !== user.id) {
+    return { data: null, error: t('quotationNotFound') };
+  }
+
+  // Cannot edit accepted quotations
+  if (existing.status === 'accepted') {
+    return { data: null, error: t('cannotEditAccepted') };
+  }
+
+  // Parse line items
+  let lineItems;
+  try {
+    lineItems = JSON.parse(formData.get('line_items') as string || '[]');
+  } catch {
+    return { data: null, error: t('invalidLineItems') };
+  }
+
+  const raw = {
+    mode: formData.get('mode') || 'standalone',
+    recipient_id: formData.get('recipient_id') || undefined,
+    inquiry_id: formData.get('inquiry_id') || undefined,
+    rfq_response_id: formData.get('rfq_response_id') || undefined,
+    hire_request_id: formData.get('hire_request_id') || undefined,
+    client_name: formData.get('client_name') || undefined,
+    project_ref: formData.get('project_ref') || undefined,
+    line_items: lineItems,
+    validity_days: formData.get('validity_days') || 2,
+    payment_terms_ar: formData.get('payment_terms_ar') || undefined,
+    payment_terms_en: formData.get('payment_terms_en') || undefined,
+    delivery_terms_ar: formData.get('delivery_terms_ar') || undefined,
+    delivery_terms_en: formData.get('delivery_terms_en') || undefined,
+    notes_ar: formData.get('notes_ar') || undefined,
+    notes_en: formData.get('notes_en') || undefined,
+  };
+
+  const parsed = QuotationSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { data: null, error: t('invalidData'), fieldErrors: await toFieldErrors(parsed.error.issues) };
+  }
+
+  // Recalculate totals
+  const items = parsed.data.line_items.map((item) => ({
+    ...item,
+    total: item.quantity * item.unit_price,
+  }));
+  const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+  const vatAmount = subtotal * VAT_RATE;
+  const total = subtotal + vatAmount;
+
+  // Update quotation
+  const { error } = await db(supabase)
+    .from('quotations')
+    .update({
+      client_name: parsed.data.client_name || null,
+      project_ref: parsed.data.project_ref || null,
+      line_items: items,
+      subtotal,
+      vat_amount: vatAmount,
+      total,
+      validity_days: parsed.data.validity_days,
+      payment_terms_ar: parsed.data.payment_terms_ar || null,
+      payment_terms_en: parsed.data.payment_terms_en || null,
+      delivery_terms_ar: parsed.data.delivery_terms_ar || null,
+      delivery_terms_en: parsed.data.delivery_terms_en || null,
+      notes_ar: parsed.data.notes_ar || null,
+      notes_en: parsed.data.notes_en || null,
+    })
+    .eq('id', quotationId);
+
+  if (error) return { data: null, error: t('updateError') };
+
+  revalidatePath('/dashboard/quotations');
+  return { data: { id: quotationId, quotation_number: existing.number }, error: null };
+}
+
+// ---------------------------------------------------------------------------
 // SEND QUOTATION
 // ---------------------------------------------------------------------------
 export async function sendQuotation(quotationId: string): Promise<ActionResult<{ sent: boolean }>> {
@@ -198,7 +296,7 @@ export async function sendQuotation(quotationId: string): Promise<ActionResult<{
 
   const { data: quotation } = await db(supabase)
     .from('quotations')
-    .select('id, sender_id, status, recipient_id')
+    .select('id, sender_id, status, recipient_id, inquiry_id')
     .eq('id', quotationId)
     .single();
 
@@ -216,6 +314,15 @@ export async function sendQuotation(quotationId: string): Promise<ActionResult<{
     .eq('id', quotationId);
 
   if (error) return { data: null, error: t('genericError') };
+
+  // Auto-advance the source inquiry to 'responded' when the first quotation is sent
+  if (quotation.inquiry_id) {
+    await db(supabase)
+      .from('inquiries')
+      .update({ status: 'responded' })
+      .eq('id', quotation.inquiry_id)
+      .eq('status', 'pending');
+  }
 
   // Notify recipient
   if (quotation.recipient_id) {
@@ -287,13 +394,12 @@ export async function acceptQuotation(quotationId: string): Promise<ActionResult
   const commissionAmount = quotation.total * commissionRate;
   const commissionVat = commissionAmount * VAT_RATE;
 
-  // Create DEAL-PRODUCT
-  const { data: deal, error: dealError } = await db(supabase)
+  // Create DEAL-PRODUCT (use admin client — no INSERT RLS policy on deals)
+  const admin = createAdminClient();
+  const { data: deal, error: dealError } = await db(admin)
     .from('deals')
     .insert({
       title_slug: `deal-${quotation.number}`,
-      title_ar: `\u0639\u0631\u0636 \u0633\u0639\u0631 #${quotation.number}`,
-      title_en: `Quotation #${quotation.number}`,
       deal_type: 'deal_product',
       trigger_source: 'inquiry_quotation',
       quotation_id: quotationId,
@@ -330,6 +436,7 @@ export async function acceptQuotation(quotationId: string): Promise<ActionResult
   autoLinkClient(deal.id).catch(() => {});
 
   revalidatePath('/dashboard/quotations');
+  revalidatePath(`/dashboard/quotations/${quotationId}`);
   revalidatePath('/dashboard/deals');
   return { data: { quotationId, dealId: deal.id }, error: null };
 }
@@ -410,7 +517,7 @@ export async function duplicateQuotation(
 
     const { count } = await db(supabase)
       .from('quotations')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .eq('sender_id', user.id)
       .gte('created_at', startOfMonth.toISOString());
 
@@ -423,7 +530,7 @@ export async function duplicateQuotation(
   const year = new Date().getFullYear();
   const { count: existingCount } = await db(supabase)
     .from('quotations')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'exact' })
     .eq('sender_id', user.id)
     .gte('created_at', `${year}-01-01T00:00:00Z`);
 

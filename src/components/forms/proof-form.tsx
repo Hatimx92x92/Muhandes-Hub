@@ -4,28 +4,39 @@
 
 'use client';
 
-import { useActionState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useActionState, useState, useEffect, useRef } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { submitProof } from '@/actions/deals';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { FormField } from '@/components/forms/form-field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { ActionResult } from '@/types';
+import { getLocaleField } from '@/lib/utils';
 
 interface ProofFormProps {
   dealId: string;
-  milestones: Array<{ id: string; title_ar: string }>;
+  milestones: Array<{ id: string; title_ar: string; title_en?: string | null }>;
   maxPercentage: number;
 }
 
 export function ProofForm({ dealId, milestones, maxPercentage }: ProofFormProps) {
   const t = useTranslations('forms.proof');
+  const locale = useLocale();
   const [state, formAction, isPending] = useActionState(submitProof, null);
+  const [submitKey, setSubmitKey] = useState(0);
+  const prevDataRef = useRef<unknown>(undefined);
+
+  useEffect(() => {
+    if (state?.data && state.data !== prevDataRef.current) {
+      prevDataRef.current = state.data;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSubmitKey(k => k + 1);
+    }
+  }, [state?.data]);
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form key={submitKey} action={formAction} className="space-y-6">
       <input type="hidden" name="deal_id" value={dealId} />
 
       {state?.error && !state.fieldErrors && (
@@ -70,7 +81,9 @@ export function ProofForm({ dealId, milestones, maxPercentage }: ProofFormProps)
               <SelectContent>
                 <SelectItem value="">{t('noMilestone')}</SelectItem>
                 {milestones.map(m => (
-                  <SelectItem key={m.id} value={m.id}>{m.title_ar}</SelectItem>
+                  <SelectItem key={m.id} value={m.id}>
+                    {getLocaleField(m, 'title', locale)}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

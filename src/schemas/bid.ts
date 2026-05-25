@@ -8,7 +8,8 @@ import { z } from 'zod/v4';
 export const BidSchema = z.object({
   project_id: z.string().uuid(),
   amount: z.coerce.number().min(1, 'Amount is required'),
-  timeline_days: z.coerce.number().int().min(1, 'Timeline is required'),
+  timeline_value: z.coerce.number().int().min(1, 'Timeline is required'),
+  timeline_unit: z.enum(['days', 'months', 'years']).default('days'),
   methodology_ar: z.string().min(10, 'Arabic methodology description required (min 10 characters)').optional().or(z.literal('')),
   methodology_en: z.string().min(10, 'Methodology in English required (min 10 chars)').optional().or(z.literal('')),
 });

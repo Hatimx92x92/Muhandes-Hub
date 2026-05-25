@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { sendBidInvitation } from '@/actions/bids';
 import { Button } from '@/components/ui/button';
@@ -14,14 +14,20 @@ interface InviteToBidFormProps {
   projects: { id: string; title: string }[];
   /** Available contractors for the selector */
   contractors: { id: string; companyName: string }[];
+  /** Called after successful submission (e.g. close modal) */
+  onSuccess?: () => void;
 }
 
-export function InviteToBidForm({ projects, contractors }: InviteToBidFormProps) {
+export function InviteToBidForm({ projects, contractors, onSuccess }: InviteToBidFormProps) {
   const t = useTranslations('dashboard.invitations');
   const [state, formAction, isPending] = useActionState<
     ActionResult<{ id: string }> | null,
     FormData
   >(sendBidInvitation, null);
+
+  useEffect(() => {
+    if (state?.data) onSuccess?.();
+  }, [state?.data, onSuccess]);
 
   return (
     <form action={formAction} className="space-y-6">

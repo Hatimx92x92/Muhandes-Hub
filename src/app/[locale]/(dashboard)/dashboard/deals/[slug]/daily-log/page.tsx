@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DailyLogForm } from '@/components/features/daily-log/daily-log-form';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 import { isUUID } from '@/lib/utils';
 
@@ -18,15 +18,17 @@ function db(supabase: any): any { return supabase; }
 export default async function DailyLogPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug: rawSlug } = await params;
+  setRequestLocale(locale);
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
   const t = await getTranslations('dashboard.deals');
-  const locale = await getLocale();
 
   // Resolve deal by UUID or title_slug
   let deal;

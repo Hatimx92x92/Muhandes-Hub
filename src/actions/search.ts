@@ -149,7 +149,7 @@ async function postgresSearch(
   if (!table) return { data: null, error: t('invalidCollection') };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let queryBuilder = db(supabase).from(table).select('*', { count: 'exact' });
+  let queryBuilder = db(supabase).from(table).select('id', { count: 'exact' });
 
   // Status filter
   if (collection !== 'partners') {

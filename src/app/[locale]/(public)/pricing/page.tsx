@@ -2,32 +2,53 @@
 // Pricing Page — subscription tier comparison with role-specific features
 // =============================================================================
 
-import { Fragment } from 'react';
+import type { Metadata } from 'next';
 import { Link } from '@/i18n/navigation';
-import { Check, X, Minus } from 'lucide-react';
 import { SUBSCRIPTION_PRICING, DURATION_DISCOUNTS, VAT_RATE } from '@/types';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { PricingBorderBeam } from '@/components/features/pricing-border-beam';
+import { PricingFeaturesTable } from '@/components/features/pricing-features-table';
+import type { TieredSection, FreeSection, TierInfo } from '@/components/features/pricing-features-table';
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
 
 // ---------------------------------------------------------------------------
-// Feature value cell
+// SEO — generateMetadata
 // ---------------------------------------------------------------------------
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('metadata.pricing');
 
-type FeatureValue = boolean | string;
-
-function FeatureCell({ value }: { value: FeatureValue }) {
-  if (value === true) return <Check className="h-5 w-5 text-primary mx-auto" />;
-  if (value === false) return <X className="h-5 w-5 text-muted-foreground/40 mx-auto" />;
-  return <span className="text-sm text-foreground">{value}</span>;
+  return {
+    title: t('title'),
+    description: t('description'),
+    openGraph: {
+      title: t('title'),
+      description: t('description'),
+      type: 'website',
+      locale: locale === 'ar' ? 'ar_SA' : 'en_US',
+      alternateLocale: locale === 'ar' ? 'en_US' : 'ar_SA',
+      siteName: 'Muhandes HUB',
+    },
+    alternates: {
+      canonical: `${BASE_URL}/${locale}/pricing`,
+      languages: {
+        ar: `${BASE_URL}/ar/pricing`,
+        en: `${BASE_URL}/en/pricing`,
+      },
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export default async function PricingPage() {
+export default async function PricingPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('pricing');
-  const locale = await getLocale();
 
   // ---------------------------------------------------------------------------
   // Tier data (translated)
@@ -50,34 +71,91 @@ export default async function PricingPage() {
 
   const fv = (key: string) => t(`featureValues.${key}`);
 
-  const featureSections: { title: string; features: { label: string; starter: FeatureValue; pro: FeatureValue; business: FeatureValue; enterprise: FeatureValue }[] }[] = [
+  // Contractor-specific + shared sections
+  const contractorSections: TieredSection[] = [
     {
       title: t('featureSections.contractor'),
       features: [
         { label: t('featureLabels.bidsMonth'), starter: '10', pro: '50', business: '100', enterprise: fv('unlimited') },
         { label: t('featureLabels.kanban'), starter: false, pro: fv('checklist'), business: fv('full'), enterprise: fv('full') },
-      ],
-    },
-    {
-      title: t('featureSections.supplier'),
-      features: [
-        { label: t('featureLabels.productListings'), starter: '2', pro: '10', business: '50', enterprise: fv('unlimited') },
-        { label: t('featureLabels.bulkCsv'), starter: false, pro: false, business: true, enterprise: true },
+        { label: t('featureLabels.dealWorkspace'), starter: true, pro: true, business: true, enterprise: true },
+        { label: t('featureLabels.dailySiteLog'), starter: true, pro: true, business: true, enterprise: true },
       ],
     },
     {
       title: t('featureSections.common'),
       features: [
-        { label: t('featureLabels.crmClients'), starter: '20', pro: '200', business: fv('unlimited'), enterprise: fv('unlimited') },
-        { label: t('featureLabels.quotationsMonth'), starter: '3', pro: '20', business: fv('unlimited'), enterprise: fv('unlimited') },
-        { label: t('featureLabels.contractsMonth'), starter: fv('basic'), pro: '10', business: fv('unlimited'), enterprise: fv('unlimited') },
-        { label: t('featureLabels.analyticsFeature'), starter: false, pro: fv('summary'), business: fv('full'), enterprise: fv('full') },
-        { label: t('featureLabels.clauseLibrary'), starter: false, pro: true, business: true, enterprise: true },
+        { label: t('featureLabels.contractGenerator'), starter: fv('basic'), pro: fv('allTemplates'), business: fv('allTemplates'), enterprise: fv('allTemplates') },
         { label: t('featureLabels.customContracts'), starter: false, pro: false, business: true, enterprise: true },
+        { label: t('featureLabels.clauseLibrary'), starter: false, pro: true, business: true, enterprise: true },
+        { label: t('featureLabels.crmClients'), starter: '20', pro: '200', business: fv('unlimited'), enterprise: fv('unlimited') },
+        { label: t('featureLabels.analyticsFeature'), starter: false, pro: fv('summary'), business: fv('full'), enterprise: fv('full') },
         { label: t('featureLabels.commission'), starter: '2%', pro: '1%', business: '0%', enterprise: '0%' },
       ],
     },
   ];
+
+  // Supplier-specific + shared sections
+  const supplierSections: TieredSection[] = [
+    {
+      title: t('featureSections.supplier'),
+      features: [
+        { label: t('featureLabels.productListings'), starter: '2', pro: '10', business: '50', enterprise: fv('unlimited') },
+        { label: t('featureLabels.bulkCsv'), starter: false, pro: false, business: true, enterprise: true },
+        { label: t('featureLabels.dealWorkspace'), starter: true, pro: true, business: true, enterprise: true },
+      ],
+    },
+    {
+      title: t('featureSections.common'),
+      features: [
+        { label: t('featureLabels.contractGenerator'), starter: fv('basic'), pro: fv('allTemplates'), business: fv('allTemplates'), enterprise: fv('allTemplates') },
+        { label: t('featureLabels.customContracts'), starter: false, pro: false, business: true, enterprise: true },
+        { label: t('featureLabels.clauseLibrary'), starter: false, pro: true, business: true, enterprise: true },
+        { label: t('featureLabels.crmClients'), starter: '20', pro: '200', business: fv('unlimited'), enterprise: fv('unlimited') },
+        { label: t('featureLabels.analyticsFeature'), starter: false, pro: fv('summary'), business: fv('full'), enterprise: fv('full') },
+        { label: t('featureLabels.commission'), starter: '2%', pro: '1%', business: '0%', enterprise: '0%' },
+      ],
+    },
+  ];
+
+  // Project Owner sections (free, unlimited)
+  const projectOwnerSections: FreeSection[] = [
+    {
+      title: t('featureSections.projectOwner'),
+      features: [
+        { label: t('featureLabels.projects'), value: fv('unlimited') },
+        { label: t('featureLabels.rfqs'), value: fv('unlimited') },
+        { label: t('featureLabels.hireRequests'), value: true },
+        { label: t('featureLabels.dealWorkspace'), value: true },
+      ],
+    },
+    {
+      title: t('featureSections.common'),
+      features: [
+        { label: t('featureLabels.contracts'), value: fv('allTemplates') },
+        { label: t('featureLabels.crm'), value: fv('unlimited') },
+        { label: t('featureLabels.analyticsFeature'), value: fv('full') },
+        { label: t('featureLabels.messages'), value: true },
+        { label: t('featureLabels.reviews'), value: true },
+      ],
+    },
+  ];
+
+  // Buyer sections (free, unlimited)
+  const buyerSections: FreeSection[] = [
+    {
+      title: t('featureSections.buyer'),
+      features: [
+        { label: t('featureLabels.rfqs'), value: fv('unlimited') },
+        { label: t('featureLabels.dealWorkspace'), value: true },
+        { label: t('featureLabels.messages'), value: true },
+        { label: t('featureLabels.reviews'), value: true },
+      ],
+    },
+  ];
+
+  // Tier info for the table header
+  const tierInfos: TierInfo[] = tiers.map(({ id, name, highlighted }) => ({ id, name, highlighted }));
 
   // ---------------------------------------------------------------------------
   // Duration discounts
@@ -104,8 +182,27 @@ export default async function PricingPage() {
     a: t(`faq.a${n}`),
   }));
 
+  // FAQPage JSON-LD for rich snippets
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.a,
+      },
+    })),
+  };
+
   return (
     <div className="py-20">
+      {/* FAQ structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       {/* Header */}
       <div className="text-center mb-14">
         <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl lg:text-5xl">
@@ -113,6 +210,13 @@ export default async function PricingPage() {
         </h1>
         <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
           {t('subtitle')}
+        </p>
+      </div>
+
+      {/* Free-role callout — Buyers & Project Owners are permanently free */}
+      <div className="mb-10 mx-auto max-w-2xl rounded-xl border border-primary/20 bg-primary/5 px-6 py-4 text-center">
+        <p className="text-sm font-medium text-foreground leading-relaxed">
+          {t('freeRoleCallout')}
         </p>
       </div>
 
@@ -184,67 +288,29 @@ export default async function PricingPage() {
         })}
       </div>
 
-      {/* Comparison table */}
-      <div className="mt-20">
-        <h2 className="text-2xl font-extrabold text-foreground mb-8 text-center">
-          {t('compare')}
-        </h2>
-        <div className="overflow-x-auto rounded-2xl border border-border">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="py-4 pe-4 ps-6 text-start text-foreground font-bold">{t('feature')}</th>
-                {tiers.map((tier) => (
-                  <th
-                    key={tier.id}
-                    className={`py-4 px-4 text-center font-bold ${
-                      tier.highlighted ? 'text-primary' : 'text-foreground'
-                    }`}
-                  >
-                    {tier.name}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {featureSections.map((section) => (
-                <Fragment key={section.title}>
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="pt-6 pb-2 ps-6 text-sm font-bold text-primary"
-                    >
-                      {section.title}
-                    </td>
-                  </tr>
-                  {section.features.map((feature) => (
-                    <tr
-                      key={feature.label}
-                      className="border-b border-border/50"
-                    >
-                      <td className="py-3 ps-6 pe-4 text-muted-foreground">
-                        {feature.label}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <FeatureCell value={feature.starter} />
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <FeatureCell value={feature.pro} />
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <FeatureCell value={feature.business} />
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <FeatureCell value={feature.enterprise} />
-                      </td>
-                    </tr>
-                  ))}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* Comparison table — role-filtered client component */}
+      <PricingFeaturesTable
+        tiers={tierInfos}
+        contractorSections={contractorSections}
+        supplierSections={supplierSections}
+        projectOwnerSections={projectOwnerSections}
+        buyerSections={buyerSections}
+        labels={{
+          roleSelector: t('roleSelector'),
+          freeForever: t('freeForever'),
+          roles: {
+            contractor: t('roles.contractor'),
+            supplier: t('roles.supplier'),
+            projectOwner: t('roles.projectOwner'),
+            buyer: t('roles.buyer'),
+          },
+          freeRoleTable: {
+            feature: t('freeRoleTable.feature'),
+            availability: t('freeRoleTable.availability'),
+          },
+          feature: t('compare'),
+        }}
+      />
 
       {/* FAQ section */}
       <div className="mt-20 max-w-3xl mx-auto">

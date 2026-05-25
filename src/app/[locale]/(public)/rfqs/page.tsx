@@ -2,6 +2,7 @@
 // Public RFQs Browse Page
 // =============================================================================
 
+import type { Metadata } from 'next';
 import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
@@ -11,11 +12,49 @@ import { EmptyState } from '@/components/features/empty-state';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShoppingCart, Search, Banknote, Calendar, MessageSquare } from 'lucide-react';
 import { formatSAR, formatDate, getLocaleField, getEntitySlug } from '@/lib/utils';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { BrowsePagination } from '@/components/features/browse-pagination';
 import { SavedFilters } from '@/components/features/saved-filters';
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
 const PAGE_SIZE = 24;
+
+// ---------------------------------------------------------------------------
+// SEO — generateMetadata
+// ---------------------------------------------------------------------------
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ q?: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const sp = await searchParams;
+  setRequestLocale(locale);
+  const t = await getTranslations('metadata.rfqs');
+
+  return {
+    title: t('title'),
+    description: t('description'),
+    ...(sp.q ? { robots: { index: false, follow: true } } : {}),
+    openGraph: {
+      title: t('title'),
+      description: t('description'),
+      type: 'website',
+      locale: locale === 'ar' ? 'ar_SA' : 'en_US',
+      alternateLocale: locale === 'ar' ? 'en_US' : 'ar_SA',
+      siteName: 'Muhandes HUB',
+    },
+    alternates: {
+      canonical: `${BASE_URL}/${locale}/rfqs`,
+      languages: {
+        ar: `${BASE_URL}/ar/rfqs`,
+        en: `${BASE_URL}/en/rfqs`,
+      },
+    },
+  };
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -23,15 +62,18 @@ function db(supabase: any): any {
 }
 
 export default async function PublicRFQsPage({
+  params: routeParams,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ q?: string; sort?: string; page?: string }>;
 }) {
+  const { locale } = await routeParams;
+  setRequestLocale(locale);
   const params = await searchParams;
   const supabase = await createClient();
   const t = await getTranslations('public.rfqs');
   const sf = await getTranslations('features.savedFilters');
-  const locale = await getLocale();
   const { data: { user } } = await supabase.auth.getUser();
   const currentPage = Math.max(1, parseInt(params.page || '1', 10) || 1);
   const from = (currentPage - 1) * PAGE_SIZE;

@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { Link } from '@/i18n/navigation';
 import { usePathname } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
+import { useRealtimeCounts } from '@/hooks';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -34,7 +35,7 @@ import type { UserRole } from '@/types';
 // Sidebar Navigation Items — role-based, grouped
 // =============================================================================
 
-interface NavItem {
+export interface NavItem {
   href: string;
   labelKey: string;
   icon: React.ElementType;
@@ -42,135 +43,207 @@ interface NavItem {
 }
 
 /** All possible nav items — role filtering applied at render time */
-const ALL_NAV_ITEMS: NavItem[] = [
+export const ALL_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', labelKey: 'dashboard', icon: LayoutDashboard },
   { href: '/dashboard/projects', labelKey: 'projects', icon: FolderKanban, roles: ['project_owner', 'contractor'] },
   { href: '/dashboard/bids', labelKey: 'myBids', icon: Gavel, roles: ['contractor'] },
+  { href: '/dashboard/bids', labelKey: 'receivedBids', icon: Gavel, roles: ['project_owner'] },
   { href: '/dashboard/products', labelKey: 'products', icon: Package, roles: ['supplier'] },
   { href: '/dashboard/deals', labelKey: 'deals', icon: Handshake },
   { href: '/dashboard/invitations', labelKey: 'invitations', icon: Send, roles: ['project_owner', 'supplier', 'contractor'] },
-  { href: '/dashboard/quotations', labelKey: 'quotations', icon: Receipt, roles: ['contractor', 'supplier'] },
+  { href: '/dashboard/quotations', labelKey: 'quotations', icon: Receipt, roles: ['contractor', 'supplier', 'project_owner', 'buyer'] },
   { href: '/dashboard/rfqs', labelKey: 'rfqs', icon: ShoppingCart },
   { href: '/dashboard/contracts', labelKey: 'contracts', icon: FileText, roles: ['project_owner', 'contractor', 'supplier'] },
-  { href: '/dashboard/inquiries', labelKey: 'inquiries', icon: Inbox, roles: ['supplier'] },
-  { href: '/dashboard/crm', labelKey: 'crm', icon: Users, roles: ['project_owner', 'contractor', 'supplier'] },
+  { href: '/dashboard/inquiries', labelKey: 'inquiries', icon: Inbox, roles: ['supplier', 'contractor', 'project_owner', 'buyer'] },
+  { href: '/dashboard/crm', labelKey: 'crm', icon: Users, roles: ['contractor', 'supplier'] },
+  { href: '/dashboard/crm', labelKey: 'contractorsSuppliers', icon: Users, roles: ['project_owner'] },
   { href: '/dashboard/messages', labelKey: 'messages', icon: MessageSquare },
   { href: '/dashboard/notifications', labelKey: 'notifications', icon: Bell },
   { href: '/dashboard/reviews', labelKey: 'reviews', icon: Star },
   { href: '/dashboard/analytics', labelKey: 'analytics', icon: BarChart3, roles: ['project_owner', 'contractor', 'supplier'] },
   { href: '/dashboard/commissions', labelKey: 'commissions', icon: ClipboardList, roles: ['contractor', 'supplier'] },
-  { href: '/dashboard/payments', labelKey: 'payments', icon: CreditCard },
+  { href: '/dashboard/payments', labelKey: 'payments', icon: CreditCard, roles: ['contractor', 'supplier'] },
   { href: '/dashboard/settings', labelKey: 'settings', icon: Settings },
 ];
 
 /** Lookup helper */
 const itemByHref = (href: string) => ALL_NAV_ITEMS.find((i) => i.href === href)!;
+const itemByLabel = (key: string) => ALL_NAV_ITEMS.find((i) => i.labelKey === key)!;
 
 // ---------------------------------------------------------------------------
 // Role-aware sidebar group definitions
 // Each role gets contextually labelled sections with relevant nav items.
 // ---------------------------------------------------------------------------
-interface NavGroup {
+export interface NavGroup {
   labelKey: string;          // translation key under "nav"
   items: NavItem[];
 }
 
-const ROLE_GROUPS: Record<UserRole, NavGroup[]> = {
-  project_owner: [
-    { labelKey: 'groupCore', items: [itemByHref('/dashboard')] },
-    {
-      labelKey: 'groupCommerce',
-      items: [
-        itemByHref('/dashboard/projects'),
-        itemByHref('/dashboard/invitations'),
-        itemByHref('/dashboard/deals'),
-        itemByHref('/dashboard/rfqs'),
-        itemByHref('/dashboard/contracts'),
-      ],
-    },
-    { labelKey: 'groupCommunication', items: [itemByHref('/dashboard/messages'), itemByHref('/dashboard/notifications')] },
-    {
-      labelKey: 'groupTools',
-      items: [
-        itemByHref('/dashboard/crm'),
-        itemByHref('/dashboard/reviews'),
-        itemByHref('/dashboard/analytics'),
-      ],
-    },
-    { labelKey: 'groupAccount', items: [itemByHref('/dashboard/payments'), itemByHref('/dashboard/settings')] },
-  ],
-  contractor: [
-    { labelKey: 'groupCore', items: [itemByHref('/dashboard')] },
-    {
-      labelKey: 'groupCommerce',
-      items: [
-        itemByHref('/dashboard/projects'),
-        itemByHref('/dashboard/bids'),
-        itemByHref('/dashboard/invitations'),
-        itemByHref('/dashboard/deals'),
-        itemByHref('/dashboard/quotations'),
-        itemByHref('/dashboard/rfqs'),
-        itemByHref('/dashboard/contracts'),
-      ],
-    },
-    { labelKey: 'groupCommunication', items: [itemByHref('/dashboard/messages'), itemByHref('/dashboard/notifications')] },
-    {
-      labelKey: 'groupTools',
-      items: [
-        itemByHref('/dashboard/crm'),
-        itemByHref('/dashboard/reviews'),
-        itemByHref('/dashboard/analytics'),
-        itemByHref('/dashboard/commissions'),
-      ],
-    },
-    { labelKey: 'groupAccount', items: [itemByHref('/dashboard/payments'), itemByHref('/dashboard/settings')] },
-  ],
-  supplier: [
-    { labelKey: 'groupCore', items: [itemByHref('/dashboard')] },
-    {
-      labelKey: 'groupCommerce',
-      items: [
-        itemByHref('/dashboard/products'),
-        itemByHref('/dashboard/inquiries'),
-        itemByHref('/dashboard/invitations'),
-        itemByHref('/dashboard/deals'),
-        itemByHref('/dashboard/quotations'),
-        itemByHref('/dashboard/rfqs'),
-        itemByHref('/dashboard/contracts'),
-      ],
-    },
-    { labelKey: 'groupCommunication', items: [itemByHref('/dashboard/messages'), itemByHref('/dashboard/notifications')] },
-    {
-      labelKey: 'groupTools',
-      items: [
-        itemByHref('/dashboard/crm'),
-        itemByHref('/dashboard/reviews'),
-        itemByHref('/dashboard/analytics'),
-        itemByHref('/dashboard/commissions'),
-      ],
-    },
-    { labelKey: 'groupAccount', items: [itemByHref('/dashboard/payments'), itemByHref('/dashboard/settings')] },
-  ],
+export const ROLE_GROUPS: Record<UserRole, NavGroup[]> = {
+  // -------------------------------------------------------------------------
+  // BUYER — free role, simplest sidebar
+  // Groups: Main → Commerce → Communication → Account
+  // -------------------------------------------------------------------------
   buyer: [
     { labelKey: 'groupCore', items: [itemByHref('/dashboard')] },
     {
       labelKey: 'groupCommerce',
       items: [
-        itemByHref('/dashboard/deals'),
         itemByHref('/dashboard/rfqs'),
+        itemByHref('/dashboard/quotations'),
+        itemByHref('/dashboard/deals'),
+        itemByHref('/dashboard/inquiries'),
       ],
     },
-    { labelKey: 'groupCommunication', items: [itemByHref('/dashboard/messages'), itemByHref('/dashboard/notifications')] },
     {
-      labelKey: 'groupTools',
-      items: [itemByHref('/dashboard/reviews')],
+      labelKey: 'groupCommunication',
+      items: [itemByHref('/dashboard/messages'), itemByHref('/dashboard/notifications')],
     },
-    { labelKey: 'groupAccount', items: [itemByHref('/dashboard/payments'), itemByHref('/dashboard/settings')] },
+    {
+      labelKey: 'groupAccount',
+      items: [itemByHref('/dashboard/reviews'), itemByHref('/dashboard/settings')],
+    },
+  ],
+
+  // -------------------------------------------------------------------------
+  // PROJECT OWNER — free role, project-focused
+  // Groups: Main → Projects → Commerce → Communication → Business → Account
+  // -------------------------------------------------------------------------
+  project_owner: [
+    { labelKey: 'groupCore', items: [itemByHref('/dashboard')] },
+    {
+      labelKey: 'groupProjectsBidding',
+      items: [
+        itemByHref('/dashboard/projects'),
+        itemByLabel('receivedBids'),
+        itemByHref('/dashboard/invitations'),
+      ],
+    },
+    {
+      labelKey: 'groupCommerce',
+      items: [
+        itemByHref('/dashboard/deals'),
+        itemByHref('/dashboard/quotations'),
+        itemByHref('/dashboard/rfqs'),
+        itemByHref('/dashboard/contracts'),
+        itemByHref('/dashboard/inquiries'),
+      ],
+    },
+    {
+      labelKey: 'groupCommunication',
+      items: [itemByHref('/dashboard/messages'), itemByHref('/dashboard/notifications')],
+    },
+    {
+      labelKey: 'groupBusiness',
+      items: [
+        itemByLabel('contractorsSuppliers'),
+        itemByHref('/dashboard/reviews'),
+        itemByHref('/dashboard/analytics'),
+      ],
+    },
+    { labelKey: 'groupAccount', items: [itemByHref('/dashboard/settings')] },
+  ],
+
+  // -------------------------------------------------------------------------
+  // CONTRACTOR — paid role, full features + billing
+  // Groups: Main → Projects → Commerce → Communication → Business → Billing → Account
+  // -------------------------------------------------------------------------
+  contractor: [
+    { labelKey: 'groupCore', items: [itemByHref('/dashboard')] },
+    {
+      labelKey: 'groupProjectsBidding',
+      items: [
+        itemByHref('/dashboard/projects'),
+        itemByHref('/dashboard/bids'),
+        itemByHref('/dashboard/invitations'),
+      ],
+    },
+    {
+      labelKey: 'groupCommerce',
+      items: [
+        itemByHref('/dashboard/deals'),
+        itemByHref('/dashboard/quotations'),
+        itemByHref('/dashboard/rfqs'),
+        itemByHref('/dashboard/contracts'),
+        itemByHref('/dashboard/inquiries'),
+      ],
+    },
+    {
+      labelKey: 'groupCommunication',
+      items: [itemByHref('/dashboard/messages'), itemByHref('/dashboard/notifications')],
+    },
+    {
+      labelKey: 'groupBusiness',
+      items: [
+        itemByHref('/dashboard/crm'),
+        itemByHref('/dashboard/reviews'),
+        itemByHref('/dashboard/analytics'),
+      ],
+    },
+    {
+      labelKey: 'groupBilling',
+      items: [
+        itemByHref('/dashboard/commissions'),
+        itemByHref('/dashboard/payments'),
+      ],
+    },
+    {
+      labelKey: 'groupAccount',
+      items: [itemByHref('/dashboard/settings')],
+    },
+  ],
+
+  // -------------------------------------------------------------------------
+  // SUPPLIER — paid role, product-focused + billing
+  // Groups: Main → Catalog → Commerce → Communication → Business → Billing → Account
+  // -------------------------------------------------------------------------
+  supplier: [
+    { labelKey: 'groupCore', items: [itemByHref('/dashboard')] },
+    {
+      labelKey: 'groupProductsSales',
+      items: [
+        itemByHref('/dashboard/products'),
+        itemByHref('/dashboard/inquiries'),
+        itemByHref('/dashboard/invitations'),
+      ],
+    },
+    {
+      labelKey: 'groupCommerce',
+      items: [
+        itemByHref('/dashboard/deals'),
+        itemByHref('/dashboard/quotations'),
+        itemByHref('/dashboard/rfqs'),
+        itemByHref('/dashboard/contracts'),
+      ],
+    },
+    {
+      labelKey: 'groupCommunication',
+      items: [itemByHref('/dashboard/messages'), itemByHref('/dashboard/notifications')],
+    },
+    {
+      labelKey: 'groupBusiness',
+      items: [
+        itemByHref('/dashboard/crm'),
+        itemByHref('/dashboard/reviews'),
+        itemByHref('/dashboard/analytics'),
+      ],
+    },
+    {
+      labelKey: 'groupBilling',
+      items: [
+        itemByHref('/dashboard/commissions'),
+        itemByHref('/dashboard/payments'),
+      ],
+    },
+    {
+      labelKey: 'groupAccount',
+      items: [itemByHref('/dashboard/settings')],
+    },
   ],
 };
 
 /** Fallback when role is unknown — flat list, all items */
-const DEFAULT_GROUPS: NavGroup[] = [
+export const DEFAULT_GROUPS: NavGroup[] = [
   { labelKey: 'groupCore', items: ALL_NAV_ITEMS },
 ];
 
@@ -182,18 +255,15 @@ interface SidebarProps {
   userRole?: UserRole;
   /** Slug for the user's public partner profile (contractor/supplier only) */
   profileSlug?: string | null;
-  messageCount?: number;
-  notificationCount?: number;
   className?: string;
 }
 
 export function Sidebar({
   userRole,
   profileSlug,
-  messageCount = 0,
-  notificationCount = 0,
   className,
 }: SidebarProps) {
+  const { notificationCount, messageCount } = useRealtimeCounts();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});

@@ -1,5 +1,5 @@
 // =============================================================================
-// Quotation List Page — Dashboard
+// Quotation List Page — Dashboard (Sent + Received with tab toggle)
 // =============================================================================
 
 import { Link } from '@/i18n/navigation';
@@ -7,12 +7,14 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Plus } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
 import { getTranslations } from 'next-intl/server';
 import {
   QuotationsTableClient,
   type QuotationItem,
 } from '@/components/features/quotations/quotations-table-client';
 import { bulkDeleteDraftQuotations, bulkSendQuotations } from '@/actions/quotations';
+import { DirectionTabs } from '@/components/features/direction-tabs';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -22,7 +24,7 @@ function db(supabase: any): any {
 export default async function QuotationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; view?: string; page?: string; search?: string; sort?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -42,28 +44,66 @@ export default async function QuotationsPage({
   const role = profile?.role;
   const canCreate = role === 'contractor' || role === 'supplier';
 
-  // Fetch sent quotations
+  const activeView = params.view === 'sent' || params.view === 'received'
+    ? params.view
+    : canCreate ? 'sent' : 'received';
+
+  const page = Math.max(1, Number(params.page) || 1);
+  const perPage = 20;
+  const search = params.search?.trim() || '';
+  const sort = params.sort || '';
+
+  const sortMap: Record<string, { column: string; ascending: boolean }> = {
+    newest: { column: 'created_at', ascending: false },
+    oldest: { column: 'created_at', ascending: true },
+    amountHigh: { column: 'total', ascending: false },
+    amountLow: { column: 'total', ascending: true },
+  };
+  const sortConfig = sortMap[sort] ?? sortMap.newest;
+
+  // Fetch sent quotations with pagination
   let sentQuery = db(supabase)
     .from('quotations')
-    .select('id, number, mode, recipient_id, client_name, subtotal, vat_amount, total, validity_days, status, created_at')
+    .select('id, number, mode, recipient_id, client_name, subtotal, vat_amount, total, validity_days, status, created_at', { count: 'exact' })
     .eq('sender_id', user.id)
-    .order('created_at', { ascending: false });
+    .order(sortConfig.column, { ascending: sortConfig.ascending });
 
   if (params.status) {
     sentQuery = sentQuery.eq('status', params.status);
   }
+  if (search) {
+    sentQuery = sentQuery.or(`number.ilike.%${search}%,client_name.ilike.%${search}%`);
+  }
 
-  const { data: sentQuotations } = await sentQuery.limit(100);
-
-  // Fetch received quotations
-  const { data: receivedQuotations } = await db(supabase)
+  // Fetch received quotations with pagination
+  let recvQuery = db(supabase)
     .from('quotations')
-    .select('id, number, mode, sender_id, client_name, subtotal, vat_amount, total, validity_days, status, created_at')
+    .select('id, number, mode, sender_id, client_name, subtotal, vat_amount, total, validity_days, status, created_at', { count: 'exact' })
     .eq('recipient_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(100);
+    .order(sortConfig.column, { ascending: sortConfig.ascending });
 
-  const sentItems: QuotationItem[] = (sentQuotations ?? []).map((q: Record<string, unknown>) => ({
+  if (params.status) {
+    recvQuery = recvQuery.eq('status', params.status);
+  }
+  if (search) {
+    recvQuery = recvQuery.or(`number.ilike.%${search}%,client_name.ilike.%${search}%`);
+  }
+
+  // Paginate active view, limit inactive to count only
+  let sentData, sentCount, recvData, recvCount;
+  if (activeView === 'sent') {
+    ({ data: sentData, count: sentCount } = await sentQuery.range((page - 1) * perPage, page * perPage - 1));
+    ({ count: recvCount } = await db(supabase)
+      .from('quotations').select('id', { count: 'exact' })
+      .eq('recipient_id', user.id));
+  } else {
+    ({ data: recvData, count: recvCount } = await recvQuery.range((page - 1) * perPage, page * perPage - 1));
+    ({ count: sentCount } = await db(supabase)
+      .from('quotations').select('id', { count: 'exact' })
+      .eq('sender_id', user.id));
+  }
+
+  const mapQuotation = (q: Record<string, unknown>): QuotationItem => ({
     id: q.id as string,
     number: q.number as string,
     mode: q.mode as string,
@@ -74,20 +114,13 @@ export default async function QuotationsPage({
     validity_days: q.validity_days as number,
     status: q.status as string,
     created_at: q.created_at as string,
-  }));
+  });
 
-  const receivedItems: QuotationItem[] = (receivedQuotations ?? []).map((q: Record<string, unknown>) => ({
-    id: q.id as string,
-    number: q.number as string,
-    mode: q.mode as string,
-    client_name: q.client_name as string | null,
-    subtotal: q.subtotal as number,
-    vat_amount: q.vat_amount as number,
-    total: q.total as number,
-    validity_days: q.validity_days as number,
-    status: q.status as string,
-    created_at: q.created_at as string,
-  }));
+  const sentItems = (sentData ?? []).map(mapQuotation);
+  const receivedItems = (recvData ?? []).map(mapQuotation);
+  const items = activeView === 'sent' ? sentItems : receivedItems;
+  const totalCount = activeView === 'sent' ? (sentCount ?? 0) : (recvCount ?? 0);
+  const totalPages = Math.ceil(totalCount / perPage);
 
   // Build translation map for client component
   const translations: Record<string, string> = {
@@ -112,83 +145,72 @@ export default async function QuotationsPage({
     status_expired: tCommon('expired'),
   };
 
+  // Filter groups
+  const filterGroups = [
+    {
+      key: 'status',
+      label: tCommon('status'),
+      options: [
+        { value: 'draft', label: tCommon('draft') },
+        { value: 'sent', label: t('sent') },
+        { value: 'viewed', label: tCommon('viewed') },
+        { value: 'accepted', label: t('accepted') },
+        { value: 'rejected', label: tCommon('rejected') },
+        { value: 'expired', label: tCommon('expired') },
+      ],
+    },
+  ];
+
+  const sortOptions = [
+    { value: 'newest', label: tCommon('createdAt') + ' ↓' },
+    { value: 'oldest', label: tCommon('createdAt') + ' ↑' },
+    { value: 'amountHigh', label: t('total') + ' ↓' },
+    { value: 'amountLow', label: t('total') + ' ↑' },
+  ];
+
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('subtitle')}
-          </p>
-        </div>
-        {canCreate && (
-          <Link
-            href="/dashboard/quotations/new"
-            className={buttonVariants()}
-          >
-            <Plus className="h-4 w-4" />
-            {t('new')}
-          </Link>
-        )}
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title={t('title')}
+        description={t('subtitle')}
+        action={
+          canCreate ? (
+            <Link href="/dashboard/quotations/new" className={buttonVariants()}>
+              <Plus className="h-4 w-4" />
+              {t('new')}
+            </Link>
+          ) : undefined
+        }
+      />
 
-      {/* Status filters */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        <Link
-          href="/dashboard/quotations"
-          className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-            !params.status ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'
-          }`}
-        >
-          {tCommon('all')}
-        </Link>
-        {(['draft', 'sent', 'viewed', 'accepted', 'rejected', 'expired'] as const).map((key) => (
-          <Link
-            key={key}
-            href={`/dashboard/quotations?status=${key}`}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-              params.status === key ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'
-            }`}
-          >
-            {key === 'sent' ? t('sent') : key === 'accepted' ? t('accepted') : key === 'expired' ? t('expired') : key === 'viewed' ? tCommon('viewed') : tCommon(key as 'draft' | 'rejected')}
-          </Link>
-        ))}
-      </div>
-
-      {/* Sent Quotations */}
-      {canCreate && (
-        <section className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">
-            {t('sentQuotations')} ({sentItems.length})
-          </h2>
-          <QuotationsTableClient
-            items={sentItems}
-            direction="sent"
-            translations={translations}
-            onBulkDelete={async (ids: string[]) => {
-              'use server';
-              await bulkDeleteDraftQuotations(ids);
-            }}
-            onBulkSend={async (ids: string[]) => {
-              'use server';
-              await bulkSendQuotations(ids);
-            }}
-          />
-        </section>
-      )}
-
-      {/* Received Quotations */}
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-foreground">
-          {t('receivedQuotations')} ({receivedItems.length})
-        </h2>
-        <QuotationsTableClient
-          items={receivedItems}
-          direction="received"
-          translations={translations}
+      {/* Direction Tabs */}
+      <DirectionTabs
+          tabs={[
+            ...(canCreate ? [{ key: 'sent', label: t('sentTab', { count: sentCount ?? 0 }).replace(` (${sentCount ?? 0})`, ''), count: sentCount ?? 0, href: '/dashboard/quotations?view=sent' }] : []),
+            { key: 'received', label: t('receivedTab', { count: recvCount ?? 0 }).replace(` (${recvCount ?? 0})`, ''), count: recvCount ?? 0, href: '/dashboard/quotations?view=received' },
+          ]}
+          activeTab={activeView}
         />
-      </section>
+
+      {/* Active Table */}
+      <QuotationsTableClient
+        items={items}
+        direction={activeView as 'sent' | 'received'}
+        totalCount={totalCount}
+        currentPage={page}
+        totalPages={totalPages}
+        translations={translations}
+        filterGroups={filterGroups}
+        sortOptions={sortOptions}
+        onBulkDelete={activeView === 'sent' ? async (ids: string[]) => {
+          'use server';
+          await bulkDeleteDraftQuotations(ids);
+        } : undefined}
+        onBulkSend={activeView === 'sent' ? async (ids: string[]) => {
+          'use server';
+          await bulkSendQuotations(ids);
+        } : undefined}
+      />
     </div>
   );
 }

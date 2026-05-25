@@ -2,13 +2,15 @@
 
 import { useState, useMemo, useTransition } from 'react';
 import { useRouter } from '@/i18n/navigation';
-import { useTranslations } from 'next-intl';
+import { useRealtime } from '@/hooks';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
-import { BulkActionBar, type BulkAction } from '@/components/features/bulk-action-bar';
-import { Badge, type BadgeProps } from '@/components/ui/badge';
+import { DashboardTableShell, type FilterGroup } from '@/components/features/dashboard-table-shell';
+import { type BulkAction } from '@/components/features/bulk-action-bar';
+import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/features/empty-state';
 import { Receipt, Trash2, Send } from 'lucide-react';
 import { formatSAR, formatDate } from '@/lib/utils';
+import { getStatusVariant } from '@/components/features/status-badge-map';
 
 // =============================================================================
 // Types
@@ -30,23 +32,15 @@ export interface QuotationItem {
 interface QuotationsTableClientProps {
   items: QuotationItem[];
   direction: 'sent' | 'received';
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
   translations: Record<string, string>;
+  filterGroups: FilterGroup[];
+  sortOptions: { value: string; label: string }[];
   onBulkDelete?: (ids: string[]) => Promise<void>;
   onBulkSend?: (ids: string[]) => Promise<void>;
 }
-
-// =============================================================================
-// Status badge variant mapping
-// =============================================================================
-
-const statusBadge: Record<string, BadgeProps['variant']> = {
-  draft: 'draft',
-  sent: 'pending',
-  viewed: 'info',
-  accepted: 'success',
-  rejected: 'rejected',
-  expired: 'secondary',
-};
 
 // =============================================================================
 // Component
@@ -55,12 +49,20 @@ const statusBadge: Record<string, BadgeProps['variant']> = {
 export function QuotationsTableClient({
   items,
   direction,
+  totalCount,
+  currentPage,
+  totalPages,
   translations: t,
+  filterGroups,
+  sortOptions,
   onBulkDelete,
   onBulkSend,
 }: QuotationsTableClientProps) {
   const router = useRouter();
-  const tCommon = useTranslations('common');
+
+  // Live updates when quotations change
+  useRealtime({ channel: 'rt-quotations', table: 'quotations' });
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
 
@@ -77,7 +79,7 @@ export function QuotationsTableClient({
         id: 'status',
         header: t.status || 'Status',
         cell: (row) => (
-          <Badge variant={statusBadge[row.status] || 'secondary'}>
+          <Badge variant={getStatusVariant(row.status)}>
             {t[`status_${row.status}`] || row.status}
           </Badge>
         ),
@@ -156,34 +158,37 @@ export function QuotationsTableClient({
     return actions;
   }, [direction, onBulkDelete, onBulkSend, t, startTransition]);
 
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={<Receipt className="h-12 w-12" />}
-        title={direction === 'sent' ? (t.noSent || 'No sent quotations') : (t.noReceived || 'No received quotations')}
-        description={direction === 'sent' ? (t.noSentDesc || '') : (t.noReceivedDesc || '')}
-      />
-    );
-  }
-
   return (
-    <div className={isPending ? 'opacity-60 pointer-events-none' : ''}>
-      <DataTable
-        columns={columns}
-        data={items}
-        getRowId={(row) => row.id}
-        selectable={direction === 'sent'}
-        onSelectionChange={setSelectedIds}
-        onRowClick={(row) => router.push(`/dashboard/quotations/${row.id}`)}
-      />
-      {direction === 'sent' && (
-        <BulkActionBar
-          selectedCount={selectedIds.length}
-          selectedIds={selectedIds}
-          actions={bulkActions}
-          onClear={() => setSelectedIds([])}
+    <DashboardTableShell
+      totalCount={totalCount}
+      currentPage={currentPage}
+      totalPages={totalPages}
+      filterGroups={filterGroups}
+      sortOptions={sortOptions}
+      searchable
+      preserveParams={['view']}
+      selectedIds={selectedIds}
+      selectedCount={selectedIds.length}
+      bulkActions={bulkActions}
+      onSelectionClear={() => setSelectedIds([])}
+    >
+      <div className={isPending ? 'opacity-60 pointer-events-none' : ''}>
+        <DataTable
+          columns={columns}
+          data={items}
+          getRowId={(row) => row.id}
+          selectable={direction === 'sent'}
+          onSelectionChange={setSelectedIds}
+          onRowClick={(row) => router.push(`/dashboard/quotations/${row.id}`)}
+          emptyState={
+            <EmptyState
+              icon={<Receipt className="h-12 w-12" />}
+              title={direction === 'sent' ? (t.noSent || 'No sent quotations') : (t.noReceived || 'No received quotations')}
+              description={direction === 'sent' ? (t.noSentDesc || '') : (t.noReceivedDesc || '')}
+            />
+          }
         />
-      )}
-    </div>
+      </div>
+    </DashboardTableShell>
   );
 }

@@ -17,6 +17,7 @@ import { loginLimiter, registrationLimiter, passwordResetLimiter, checkRateLimit
 import { localizeFieldErrors } from '@/lib/zod-i18n';
 import { generateUniqueSlug } from '@/lib/utils';
 import type { ActionResult } from '@/types';
+import { SUBSCRIPTION_PRICING, DURATION_DISCOUNTS, VAT_RATE } from '@/types';
 
 // Temporary helper: until DB types are generated, cast supabase for table queries
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -118,10 +119,7 @@ export async function login(
       return { data: null, error: t('accountBanned') };
     }
 
-    if (profile?.verification_status === 'restricted') {
-      await supabase.auth.signOut();
-      return { data: null, error: t('accountRestricted') };
-    }
+    // Restricted users can log in — limited access enforced at server action level
 
     // 5. Single-device enforcement — set session token (invalidates other devices)
     await setSessionToken(supabase, user.id);
@@ -210,6 +208,7 @@ export async function register(
     company_name_ar: formData.get('company_name_ar') || undefined,
     company_name_en: formData.get('company_name_en') || undefined,
     cr_number: formData.get('cr_number') || undefined,
+    vat_number: formData.get('vat_number') || undefined,
     website: formData.get('website') || undefined,
     city: formData.get('city'),
     tier: formData.get('tier') || undefined,
@@ -273,10 +272,11 @@ export async function register(
   // 4. DB trigger `handle_new_user()` creates the profile row automatically.
   //    Update with additional fields the trigger doesn't set.
   //    Use admin client because there's no session after email-requiring signUp.
-  const profileUpdate: Record<string, unknown> = { profile_type };
+  const profileUpdate: Record<string, unknown> = { profile_type, pdpl_consent_at: new Date().toISOString() };
   if (parsed.data.company_name_ar) profileUpdate.company_name_ar = parsed.data.company_name_ar;
   if (parsed.data.company_name_en) profileUpdate.company_name_en = parsed.data.company_name_en;
   if (parsed.data.cr_number) profileUpdate.cr_number = parsed.data.cr_number;
+  if (parsed.data.vat_number) profileUpdate.vat_number = parsed.data.vat_number;
   if (parsed.data.website) profileUpdate.website = parsed.data.website;
 
   // Look up city_id from slug (use admin client — no user session yet)
@@ -321,7 +321,8 @@ export async function register(
 
       const ext = getExtension(bankReceipt.name);
       const receiptPath = `${authData.user.id}/receipt${ext}`;
-      const { error: uploadError } = await supabase.storage
+      // Use adminClient — no user session exists yet (email unconfirmed)
+      const { error: uploadError } = await adminClient.storage
         .from('bank-payments')
         .upload(receiptPath, bankReceipt);
 
@@ -329,12 +330,44 @@ export async function register(
         return { data: null, error: t('receiptUploadError') };
       }
 
-      // Store receipt path on the profile for admin review
-      await db(supabase)
+      // Store full public URL on the profile for admin review
+      const { data: { publicUrl } } = adminClient.storage
+        .from('bank-payments')
+        .getPublicUrl(receiptPath);
+
+      await adminClient
         .from('profiles')
-        .update({ bank_receipt_url: receiptPath })
+        .update({ bank_receipt_url: publicUrl })
         .eq('id', authData.user.id);
     }
+
+    // Create a pending subscription record for bank transfer
+    // so admin has a concrete record to approve
+    const durationMonths = parsed.data.duration_months || 1;
+    const baseMonthly = SUBSCRIPTION_PRICING[tier as keyof typeof SUBSCRIPTION_PRICING]?.monthly ?? 0;
+    const durationDiscount = DURATION_DISCOUNTS[durationMonths as keyof typeof DURATION_DISCOUNTS] ?? 0;
+    const subtotal = baseMonthly * durationMonths * (1 - durationDiscount);
+    const vatAmount = subtotal * VAT_RATE;
+    const total = subtotal + vatAmount;
+    const expiresAt = new Date();
+    expiresAt.setMonth(expiresAt.getMonth() + durationMonths);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (adminClient as any)
+      .from('subscriptions')
+      .insert({
+        user_id: authData.user.id,
+        tier,
+        duration_months: durationMonths,
+        base_price: subtotal,
+        duration_discount: subtotal - (baseMonthly * durationMonths),
+        final_price: total,
+        payment_status: 'pending',
+        payment_method: 'bank_transfer',
+        is_active: false,
+        starts_at: new Date().toISOString(),
+        expires_at: expiresAt.toISOString(),
+      });
   }
 
   // 6. Upload verification documents (Pro+ contractors/suppliers)
@@ -355,16 +388,18 @@ export async function register(
 
       const ext = getExtension(doc.name);
       const docPath = `${authData.user.id}/${docType}-${Date.now()}${ext}`;
-      const { error: docUploadError } = await supabase.storage
+      // Use adminClient — no user session exists yet (email unconfirmed)
+      const { error: docUploadError } = await adminClient.storage
         .from('verification-docs')
         .upload(docPath, doc, { contentType: doc.type });
 
       if (!docUploadError) {
-        const { data: { publicUrl } } = supabase.storage
+        const { data: { publicUrl } } = adminClient.storage
           .from('verification-docs')
           .getPublicUrl(docPath);
 
-        await db(supabase)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (adminClient as any)
           .from('verification_documents')
           .insert({
             user_id: authData.user.id,
@@ -456,6 +491,7 @@ export async function completeGoogleRegistration(
     company_name_ar: formData.get('company_name_ar') || undefined,
     company_name_en: formData.get('company_name_en') || undefined,
     cr_number: formData.get('cr_number') || undefined,
+    vat_number: formData.get('vat_number') || undefined,
     website: formData.get('website') || undefined,
     city: formData.get('city'),
     tier: formData.get('tier') || undefined,
@@ -479,6 +515,17 @@ export async function completeGoogleRegistration(
   const formFullName = formData.get('full_name') as string | null;
   const fullName = formFullName?.trim() || (user.user_metadata?.full_name ?? user.user_metadata?.name ?? '');
 
+  // Look up city_id from slug
+  let cityId: string | undefined;
+  if (city) {
+    const { data: cityRow } = await db(supabase)
+      .from('saudi_cities')
+      .select('id')
+      .ilike('name_en', city)
+      .single();
+    if (cityRow) cityId = cityRow.id;
+  }
+
   // Generate slugs from company name or full name
   const gSlugSourceAr = parsed.data.company_name_ar || fullName;
   const gSlugSourceEn = parsed.data.company_name_en || fullName;
@@ -487,25 +534,27 @@ export async function completeGoogleRegistration(
     generateUniqueSlug(gSlugSourceEn, 'profiles', 'slug_en', supabase, user.id),
   ]);
 
+  const profileUpdate: Record<string, unknown> = {
+    role,
+    phone: `+966${phone}`,
+    profile_type,
+    full_name: fullName,
+    company_name_ar: parsed.data.company_name_ar,
+    company_name_en: parsed.data.company_name_en,
+    cr_number: parsed.data.cr_number,
+    vat_number: parsed.data.vat_number,
+    website: parsed.data.website,
+    provider: 'google',
+    pdpl_consent_at: new Date().toISOString(),
+  };
+  if (cityId) profileUpdate.city_id = cityId;
+  if (gSlugAr) profileUpdate.slug_ar = gSlugAr;
+  if (gSlugEn) profileUpdate.slug_en = gSlugEn;
+  if (user.user_metadata?.picture) profileUpdate.avatar_url = user.user_metadata.picture;
+
   const { error: updateError } = await db(supabase)
     .from('profiles')
-    .update({
-      role,
-      phone: `+966${phone}`,
-      profile_type,
-      city,
-      full_name: fullName,
-      company_name_ar: parsed.data.company_name_ar,
-      company_name_en: parsed.data.company_name_en,
-      cr_number: parsed.data.cr_number,
-      website: parsed.data.website,
-      tier,
-      provider: 'google',
-      pdpl_consent: true,
-      pdpl_consent_date: new Date().toISOString(),
-      ...(gSlugAr ? { slug_ar: gSlugAr } : {}),
-      ...(gSlugEn ? { slug_en: gSlugEn } : {}),
-    })
+    .update(profileUpdate)
     .eq('id', user.id);
 
   if (updateError) {
@@ -536,11 +585,42 @@ export async function completeGoogleRegistration(
         return { data: null, error: t('receiptUploadError') };
       }
 
+      // Store full public URL for admin review
+      const { data: { publicUrl } } = supabase.storage
+        .from('bank-payments')
+        .getPublicUrl(receiptPath);
+
       await db(supabase)
         .from('profiles')
-        .update({ bank_receipt_url: receiptPath })
+        .update({ bank_receipt_url: publicUrl })
         .eq('id', user.id);
     }
+
+    // Create a pending subscription record for bank transfer
+    const durationMonths = parsed.data.duration_months || 1;
+    const baseMonthly = SUBSCRIPTION_PRICING[tier as keyof typeof SUBSCRIPTION_PRICING]?.monthly ?? 0;
+    const durationDiscount = DURATION_DISCOUNTS[durationMonths as keyof typeof DURATION_DISCOUNTS] ?? 0;
+    const subtotal = baseMonthly * durationMonths * (1 - durationDiscount);
+    const vatAmount = subtotal * VAT_RATE;
+    const total = subtotal + vatAmount;
+    const expiresAt = new Date();
+    expiresAt.setMonth(expiresAt.getMonth() + durationMonths);
+
+    await db(supabase)
+      .from('subscriptions')
+      .insert({
+        user_id: user.id,
+        tier,
+        duration_months: durationMonths,
+        base_price: subtotal,
+        duration_discount: subtotal - (baseMonthly * durationMonths),
+        final_price: total,
+        payment_status: 'pending',
+        payment_method: 'bank_transfer',
+        is_active: false,
+        starts_at: new Date().toISOString(),
+        expires_at: expiresAt.toISOString(),
+      });
   }
 
   // 6. Set verification status — Google users skip email verification
@@ -709,28 +789,52 @@ export async function uploadVerificationDocuments(
     return { data: null, error: t('unsupportedFileType') };
   }
 
-  // Upload to Supabase Storage
-  const vatPath = `verification/${user.id}/vat-certificate${getExtension(vatCert.name)}`;
-  const crPath = `verification/${user.id}/cr-license${getExtension(crLicense.name)}`;
+  // Upload to Supabase Storage (bucket: verification-docs)
+  const vatExt = getExtension(vatCert.name);
+  const crExt = getExtension(crLicense.name);
+  const vatPath = `${user.id}/vat_certificate/${crypto.randomUUID()}${vatExt}`;
+  const crPath = `${user.id}/commercial_license/${crypto.randomUUID()}${crExt}`;
 
   const [vatUpload, crUpload] = await Promise.all([
-    supabase.storage.from('documents').upload(vatPath, vatCert, { upsert: true }),
-    supabase.storage.from('documents').upload(crPath, crLicense, { upsert: true }),
+    supabase.storage.from('verification-docs').upload(vatPath, vatCert, { upsert: true }),
+    supabase.storage.from('verification-docs').upload(crPath, crLicense, { upsert: true }),
   ]);
 
   if (vatUpload.error || crUpload.error) {
     return { data: null, error: t('documentUploadError') };
   }
 
-  // Update profile with document paths and advance to pending_approval
-  const { error: updateError } = await db(supabase)
+  // Insert document records into verification_documents table
+  const { error: insertError } = await db(supabase)
+    .from('verification_documents')
+    .insert([
+      {
+        user_id: user.id,
+        doc_type: 'vat_certificate',
+        file_url: vatPath,
+        file_name: vatCert.name,
+        file_size: vatCert.size,
+        mime_type: vatCert.type,
+      },
+      {
+        user_id: user.id,
+        doc_type: 'commercial_license',
+        file_url: crPath,
+        file_name: crLicense.name,
+        file_size: crLicense.size,
+        mime_type: crLicense.type,
+      },
+    ]);
+
+  if (insertError) {
+    return { data: null, error: t('statusUpdateError') };
+  }
+
+  // Advance verification status to pending_approval
+  const adminClient = createAdminClient();
+  const { error: updateError } = await db(adminClient)
     .from('profiles')
-    .update({
-      vat_certificate_url: vatPath,
-      cr_license_url: crPath,
-      verification_status: 'pending_approval',
-      documents_submitted_at: new Date().toISOString(),
-    })
+    .update({ verification_status: 'pending_approval' })
     .eq('id', user.id);
 
   if (updateError) {

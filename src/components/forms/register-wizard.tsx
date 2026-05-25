@@ -32,6 +32,7 @@ export interface WizardData {
   company_name_ar: string;
   company_name_en: string;
   cr_number: string;
+  vat_number: string;
   website: string;
   city: string;
   // Step 4
@@ -56,6 +57,7 @@ const initialData: WizardData = {
   company_name_ar: '',
   company_name_en: '',
   cr_number: '',
+  vat_number: '',
   website: '',
   city: '',
   tier: 'starter',
@@ -75,7 +77,7 @@ interface StepConfig {
   label: string;
 }
 
-function getSteps(role: string, tier: string, _isOAuth: boolean, t: (key: string) => string): StepConfig[] {
+function getSteps(role: string, tier: string, t: (key: string) => string): StepConfig[] {
   const base: StepConfig[] = [
     { key: 'role', label: t('role') },
     { key: 'account', label: t('account') },
@@ -122,7 +124,7 @@ export function RegisterWizard({ isOAuthMode = false, oauthEmail = '', oauthName
   const [serverError, setServerError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
-  const steps = getSteps(data.role, data.tier, isOAuthMode, t);
+  const steps = getSteps(data.role, data.tier, t);
 
   const updateData = useCallback((partial: Partial<WizardData>) => {
     setData((prev) => ({ ...prev, ...partial }));
@@ -158,6 +160,7 @@ export function RegisterWizard({ isOAuthMode = false, oauthEmail = '', oauthName
     if (data.company_name_ar) formData.set('company_name_ar', data.company_name_ar);
     if (data.company_name_en) formData.set('company_name_en', data.company_name_en);
     if (data.cr_number) formData.set('cr_number', data.cr_number);
+    if (data.vat_number) formData.set('vat_number', data.vat_number);
     if (data.website) formData.set('website', data.website);
     if (data.tier) formData.set('tier', data.tier);
     if (data.duration_months) formData.set('duration_months', String(data.duration_months));

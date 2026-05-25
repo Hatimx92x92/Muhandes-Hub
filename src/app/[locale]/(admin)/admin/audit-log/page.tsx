@@ -14,11 +14,12 @@ const AUDIT_ACTIONS = [
   'change_subscription', 'extend_subscription', 'cancel_subscription',
   'send_email', 'mark_contact_read', 'mark_contact_unread', 'delete_contact',
   'hide_review', 'unhide_review',
+  'approve_subscription_payment',
 ] as const;
 
 const TARGET_TYPES = [
   'project', 'product', 'rfq', 'user', 'users', 'commission', 'review', 'coupon',
-  'platform_settings', 'contact_submission',
+  'platform_settings', 'contact_submission', 'subscription',
 ] as const;
 
 export default async function AdminAuditLogPage({

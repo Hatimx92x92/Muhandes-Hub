@@ -64,7 +64,7 @@ export async function submitBid(
   // 2. Role check â€” contractor only
   const { data: profile } = await db(supabase)
     .from('profiles')
-    .select('role')
+    .select('role, classification')
     .eq('id', user.id)
     .single();
 
@@ -84,15 +84,17 @@ export async function submitBid(
   const monthlyLimit = TIER_LIMITS[tier]?.bidsPerMonth ?? 10;
 
   if (monthlyLimit !== Infinity) {
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+    const SAUDI_OFFSET_MS = 3 * 60 * 60 * 1000; // UTC+3, no DST in Saudi Arabia
+    const nowSaudi = new Date(Date.now() + SAUDI_OFFSET_MS);
+    const startOfMonthSaudi = new Date(
+      Date.UTC(nowSaudi.getUTCFullYear(), nowSaudi.getUTCMonth(), 1) - SAUDI_OFFSET_MS
+    );
 
     const { count } = await db(supabase)
       .from('bids')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .eq('contractor_id', user.id)
-      .gte('submitted_at', startOfMonth.toISOString());
+      .gte('submitted_at', startOfMonthSaudi.toISOString());
 
     if ((count ?? 0) >= monthlyLimit) {
       return { data: null, error: t('monthlyLimitReached', { limit: monthlyLimit }) };
@@ -103,7 +105,8 @@ export async function submitBid(
   const raw = {
     project_id: formData.get('project_id'),
     amount: formData.get('amount'),
-    timeline_days: formData.get('timeline_days'),
+    timeline_value: formData.get('timeline_value'),
+    timeline_unit: formData.get('timeline_unit') || 'days',
     methodology_ar: formData.get('methodology_ar') || '',
     methodology_en: formData.get('methodology_en') || '',
   };
@@ -117,7 +120,7 @@ export async function submitBid(
   // 6. Verify project is published
   const { data: project } = await db(supabase)
     .from('projects')
-    .select('id, status, classification, owner_id')
+    .select('id, status, classification, owner_id, title_ar, title_en, slug_ar, slug_en')
     .eq('id', parsed.data.project_id)
     .single();
 
@@ -131,7 +134,10 @@ export async function submitBid(
   }
 
   // 7. Classification check (contractor classification >= project classification)
-  if (project.classification && profile.classification) {
+  if (project.classification) {
+    if (!profile.classification) {
+      return { data: null, error: t('insufficientClassification') };
+    }
     const classOrder = { a: 3, b: 2, c: 1 } as Record<string, number>;
     const projectLevel = classOrder[project.classification] || 0;
     const contractorLevel = classOrder[profile.classification] || 0;
@@ -152,16 +158,40 @@ export async function submitBid(
     return { data: null, error: t('alreadyBid') };
   }
 
-  // 9. Insert bid
+  // 9. Convert timeline value + unit to days
+  const unitMultiplier = { days: 1, months: 30, years: 365 } as const;
+  const timelineDays = parsed.data.timeline_value * (unitMultiplier[parsed.data.timeline_unit] ?? 1);
+
+  // 9b. Handle file attachments
+  const bidFiles = formData.getAll('bid_attachments') as File[];
+  const attachmentsMeta: { url: string; name: string; size: number; type: string }[] = [];
+  if (bidFiles.length > 0) {
+    const { uploadFile: doUpload } = await import('@/actions/uploads');
+    for (const file of bidFiles) {
+      if (!file || file.size === 0) continue;
+      const uploadResult = await doUpload('bid-attachments', file, `${user.id}/${parsed.data.project_id}/${Date.now()}-${file.name}`);
+      if (uploadResult.data) {
+        attachmentsMeta.push({
+          url: uploadResult.data.url,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        });
+      }
+    }
+  }
+
+  // 9c. Insert bid
   const { data: bid, error } = await db(supabase)
     .from('bids')
     .insert({
       project_id: parsed.data.project_id,
       contractor_id: user.id,
       amount: parsed.data.amount,
-      timeline_days: parsed.data.timeline_days,
+      timeline_days: timelineDays,
       methodology_ar: parsed.data.methodology_ar || null,
       methodology_en: parsed.data.methodology_en || null,
+      attachments: attachmentsMeta.length > 0 ? attachmentsMeta : null,
       status: 'pending',
     })
     .select('id')
@@ -177,6 +207,7 @@ export async function submitBid(
     projectTitle: { ar: project.title_ar || '', en: project.title_en || '' },
     bidderName: user.user_metadata?.full_name || '',
     projectId: parsed.data.project_id,
+    projectSlug: project.slug_en || project.slug_ar || undefined,
     bidId: bid.id,
   }).catch(() => { /* fire-and-forget */ });
 
@@ -200,7 +231,8 @@ export async function updateBid(
   const raw = {
     bid_id: formData.get('bid_id'),
     amount: formData.get('amount'),
-    timeline_days: formData.get('timeline_days'),
+    timeline_value: formData.get('timeline_value'),
+    timeline_unit: formData.get('timeline_unit') || 'days',
     methodology_ar: formData.get('methodology_ar') || '',
     methodology_en: formData.get('methodology_en') || '',
   };
@@ -225,11 +257,14 @@ export async function updateBid(
     return { data: null, error: t('cannotEditNonPending') };
   }
 
+  const unitMultiplier2 = { days: 1, months: 30, years: 365 } as const;
+  const updatedTimelineDays = parsed.data.timeline_value * (unitMultiplier2[parsed.data.timeline_unit] ?? 1);
+
   const { error } = await db(supabase)
     .from('bids')
     .update({
       amount: parsed.data.amount,
-      timeline_days: parsed.data.timeline_days,
+      timeline_days: updatedTimelineDays,
       methodology_ar: parsed.data.methodology_ar || null,
       methodology_en: parsed.data.methodology_en || null,
     })
@@ -273,7 +308,9 @@ export async function shortlistBid(bidId: string): Promise<ActionResult<{ status
     return { data: null, error: t('cannotShortlistNonPending') };
   }
 
-  const { error } = await db(supabase)
+  // Use admin client — RLS on bids only allows contractor self-updates
+  const admin = createAdminClient();
+  const { error } = await db(admin)
     .from('bids')
     .update({ status: 'shortlisted' })
     .eq('id', bidId);
@@ -343,8 +380,8 @@ export async function awardBid(bidId: string): Promise<ActionResult<{ bidId: str
   const commissionAmount = bid.amount * commissionRate;
   const commissionVat = commissionAmount * VAT_RATE; // ZATCA 15%
 
-  // 1. Award bid
-  const { error: awardError } = await db(supabase)
+  // 1. Award bid (use admin client — RLS on bids only allows contractor updates)
+  const { error: awardError } = await db(admin)
     .from('bids')
     .update({ status: 'awarded' })
     .eq('id', bidId);
@@ -352,7 +389,7 @@ export async function awardBid(bidId: string): Promise<ActionResult<{ bidId: str
   if (awardError) return { data: null, error: t('awardError') };
 
   // 2. Reject all other bids on this project
-  await db(supabase)
+  await db(admin)
     .from('bids')
     .update({ status: 'rejected' })
     .eq('project_id', bid.project_id)
@@ -360,18 +397,20 @@ export async function awardBid(bidId: string): Promise<ActionResult<{ bidId: str
     .in('status', ['pending', 'shortlisted']);
 
   // 3. Update project status to awarded
-  await db(supabase)
+  await db(admin)
     .from('projects')
     .update({ status: 'awarded' })
     .eq('id', bid.project_id);
 
-  // 4. Create DEAL-PROJECT
-  const { data: deal, error: dealError } = await db(supabase)
+  // 4. Create DEAL-PROJECT (use admin client — no INSERT RLS policy on deals)
+  // Use English title for ASCII-safe slug, fall back to short ID
+  const slugBase = project.title_en
+    ? slugify(project.title_en).slice(0, 40)
+    : bid.project_id.slice(0, 8);
+  const { data: deal, error: dealError } = await db(admin)
     .from('deals')
     .insert({
-      title_slug: slugify(`deal-${project.title_ar?.slice(0, 30) || bid.project_id}`),
-      title_ar: project.title_ar || null,
-      title_en: project.title_en || null,
+      title_slug: `deal-${slugBase}`,
       deal_type: 'deal_project',
       trigger_source: 'bid_award',
       bid_id: bidId,
@@ -397,6 +436,7 @@ export async function awardBid(bidId: string): Promise<ActionResult<{ bidId: str
     projectTitle: { ar: project.title_ar || '', en: project.title_en || '' },
     projectId: bid.project_id,
     bidId: bidId,
+    dealId: deal.id,
   }).catch(() => {});
 
   notifyDealCreated({
@@ -471,7 +511,9 @@ export async function rejectBid(
   if (reasonAr) updateData.rejection_reason_ar = reasonAr;
   if (reasonEn) updateData.rejection_reason_en = reasonEn;
 
-  const { error } = await db(supabase)
+  // Use admin client — RLS on bids only allows contractor self-updates
+  const admin = createAdminClient();
+  const { error } = await db(admin)
     .from('bids')
     .update(updateData)
     .eq('id', bidId);

@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
-import { changeUserSubscription, extendUserSubscription, cancelUserSubscription, approveSubscriptionPayment } from '@/actions/admin/subscriptions';
+import { changeUserSubscription, extendUserSubscription, cancelUserSubscription, approveSubscriptionPayment, rejectSubscriptionPayment } from '@/actions/admin/subscriptions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -72,6 +72,21 @@ export function SubscriptionManagerButton({
         setResult({ type: 'error', message: res.error });
       } else {
         setResult({ type: 'success', message: t('paymentApproved') });
+        setIsOpen(false);
+        router.refresh();
+      }
+    });
+  };
+
+  const handleRejectPayment = () => {
+    if (!reason.trim()) return;
+    if (!confirm(t('rejectPaymentConfirm'))) return;
+    startTransition(async () => {
+      const res = await rejectSubscriptionPayment(subscriptionId, reason);
+      if (res.error) {
+        setResult({ type: 'error', message: res.error });
+      } else {
+        setResult({ type: 'success', message: t('paymentRejected') });
         setIsOpen(false);
         router.refresh();
       }
@@ -170,12 +185,17 @@ export function SubscriptionManagerButton({
         )}
 
         <div className="flex flex-wrap gap-2">
-          {paymentStatus === 'pending' && (
+          {paymentStatus && paymentStatus !== 'completed' && (
             <Button size="sm" variant="primary" loading={isPending} onClick={handleApprovePayment}>
               {t('approvePayment')}
             </Button>
           )}
-          <Button size="sm" variant={paymentStatus === 'pending' ? 'outline' : 'primary'} loading={isPending} onClick={handleChangePlan} disabled={newTier === currentTier}>
+          {paymentStatus && paymentStatus !== 'completed' && (
+            <Button size="sm" variant="destructive" loading={isPending} onClick={handleRejectPayment} disabled={!reason.trim()}>
+              {t('rejectPayment')}
+            </Button>
+          )}
+          <Button size="sm" variant={paymentStatus && paymentStatus !== 'completed' ? 'outline' : 'primary'} loading={isPending} onClick={handleChangePlan} disabled={newTier === currentTier}>
             {t('changePlan')}
           </Button>
           <Button size="sm" variant="outline" loading={isPending} onClick={handleExtend}>

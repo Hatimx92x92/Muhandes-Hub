@@ -1,12 +1,15 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Sidebar } from '@/components/layout/sidebar';
+import { DashboardMobileNav } from '@/components/layout/dashboard-mobile-nav';
 import { Toaster } from '@/components/ui/sonner';
-import { NotificationListener } from '@/components/features/notifications/notification-listener';
+import { RealtimeProvider } from '@/components/features/realtime-provider';
 import { BreadcrumbProvider } from '@/components/layout/breadcrumb-provider';
 import { BreadcrumbNav } from '@/components/layout/breadcrumb-nav';
 import { CommandSearch } from '@/components/features/command-search';
 import { getUnreadNotificationCount, getUnreadMessageCount } from '@/actions/notifications';
+import { getPlatformAnnouncement } from '@/actions/admin/settings';
+import { AnnouncementBanner } from '@/components/features/announcement-banner';
 import { getLocale } from 'next-intl/server';
 import { getEntitySlug } from '@/lib/utils';
 import type { UserRole } from '@/types';
@@ -52,22 +55,40 @@ export default async function DashboardLayout({
   const locale = await getLocale();
   const profileSlug = profile ? getEntitySlug(profile, locale) : null;
 
-  // Fetch unread counts for sidebar badges
-  const [notificationCount, messageCount] = await Promise.all([
+  // Fetch unread counts + platform announcement in parallel
+  const [notificationCount, messageCount, announcement] = await Promise.all([
     getUnreadNotificationCount(),
     getUnreadMessageCount(),
+    getPlatformAnnouncement(),
   ]);
 
   return (
-    <>
+    <RealtimeProvider
+      userId={user.id}
+      initialNotificationCount={notificationCount}
+      initialMessageCount={messageCount}
+    >
       <div className="flex flex-1">
         {/* Sidebar - hidden on mobile, shown md+ */}
         <div className="hidden md:block">
-          <Sidebar userRole={userRole} profileSlug={profileSlug} messageCount={messageCount} notificationCount={notificationCount} />
+          <Sidebar userRole={userRole} profileSlug={profileSlug} />
         </div>
 
         {/* Main area */}
         <div className="flex flex-1 flex-col">
+          {/* Platform announcement banner */}
+          {announcement && (
+            <AnnouncementBanner
+              message_ar={announcement.message_ar}
+              message_en={announcement.message_en}
+            />
+          )}
+
+          {/* Mobile topbar — hamburger + title, hidden on md+ */}
+          <div className="md:hidden sticky top-16 z-30 flex items-center gap-3 border-b border-border bg-background px-4 py-2">
+            <DashboardMobileNav userRole={userRole} profileSlug={profileSlug} />
+          </div>
+
           <BreadcrumbProvider>
             <main className="flex-1 p-4 sm:p-6 lg:p-8">
               <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -78,11 +99,8 @@ export default async function DashboardLayout({
             </main>
           </BreadcrumbProvider>
         </div>
-
-        {/* Realtime notification listener */}
-        <NotificationListener userId={user.id} />
       </div>
       <Toaster position="bottom-left" dir="auto" richColors />
-    </>
+    </RealtimeProvider>
   );
 }

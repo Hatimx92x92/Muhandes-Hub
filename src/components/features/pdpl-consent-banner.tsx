@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { Shield } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 
 const CONSENT_COOKIE = 'pdpl_consent';
 
@@ -52,18 +53,18 @@ export function PDPLConsentBanner() {
               >
                 {t('accept')}
               </button>
-              <a
+              <Link
                 href="/privacy"
                 className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
               >
                 {t('privacyPolicy')}
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/cookies"
                 className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
               >
                 {t('cookiePolicy')}
-              </a>
+              </Link>
             </div>
           </div>
         </div>

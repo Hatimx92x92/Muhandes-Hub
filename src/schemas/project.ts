@@ -20,6 +20,7 @@ export const ProjectSchema = z.object({
   timeline_end: z.string().optional(),
   classification: z.enum(['a', 'b', 'c']).optional(),
   source: z.enum(['owner', 'subcontract']).default('owner'),
+  external_link: z.string().url().max(500).optional().or(z.literal('')),
 }).refine(
   (data) => {
     const ar = data.title_ar?.trim();

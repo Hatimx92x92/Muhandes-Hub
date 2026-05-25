@@ -53,20 +53,21 @@ export async function GET(request: NextRequest) {
 
       const { data: profile } = await db
         .from('profiles')
-        .select('role, verification_status, provider')
+        .select('role, verification_status, provider, phone')
         .eq('id', user.id)
         .single();
 
       // New Google user without a profile → redirect to register to pick a role
       // Also catch users whose profile was auto-created by the DB trigger but
-      // never completed registration (provider still 'email' while OAuth is google)
+      // never completed registration (phone is empty until wizard is submitted)
       const isIncompleteGoogleUser =
         user.app_metadata?.provider === 'google' &&
-        profile?.provider !== 'google';
+        !profile?.phone;
 
       if (!profile || isIncompleteGoogleUser) {
+        const oauthName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? '';
         return NextResponse.redirect(
-          new URL(`/register?oauth=google&email=${encodeURIComponent(user.email ?? '')}`, origin),
+          new URL(`/register?oauth=google&email=${encodeURIComponent(user.email ?? '')}&name=${encodeURIComponent(oauthName)}`, origin),
         );
       }
 

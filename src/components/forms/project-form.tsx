@@ -12,10 +12,13 @@ import { BilingualFieldPair } from '@/components/ui/bilingual-field-pair';
 import { CitySelect } from '@/components/forms/city-select';
 import { CurrencyInput } from '@/components/forms/currency-input';
 import { FileUpload } from '@/components/forms/file-upload';
+import { DatePicker } from '@/components/ui/date-picker';
 import { createProject, updateProject, removeProjectFile } from '@/actions/projects';
+import { adminUpdateProject } from '@/actions/admin/moderation';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, FileText } from 'lucide-react';
+import { X, FileText, LinkIcon, ImagePlus } from 'lucide-react';
+import { getProxyUrl } from '@/lib/file-utils';
 import type { ActionResult } from '@/types';
 
 interface ExistingFile {
@@ -27,8 +30,15 @@ interface ExistingFile {
   mime_type?: string;
 }
 
+interface ExistingImage {
+  id: string;
+  file_url: string;
+  file_name: string;
+  file_size: number;
+}
+
 interface ProjectFormProps {
-  mode: 'create' | 'edit';
+  mode: 'create' | 'edit' | 'admin';
   defaultValues?: {
     project_id?: string;
     title_ar?: string;
@@ -43,23 +53,47 @@ interface ProjectFormProps {
     timeline_end?: string;
     classification?: string;
     source?: string;
+    external_link?: string;
+    status?: string;
     existingFiles?: ExistingFile[];
+    existingImages?: ExistingImage[];
   };
 }
 
 export function ProjectForm({ mode, defaultValues }: ProjectFormProps) {
   const t = useTranslations('forms.project');
   const tFiles = useTranslations('forms.project.files');
-  const action = mode === 'create' ? createProject : updateProject;
+  const action = mode === 'admin' ? adminUpdateProject : mode === 'create' ? createProject : updateProject;
   const [state, formAction, isPending] = useActionState<
     ActionResult<{ id: string; status?: string }> | null,
     FormData
   >(action as (state: ActionResult<{ id: string; status?: string }> | null, formData: FormData) => Promise<ActionResult<{ id: string; status?: string }>>, null);
 
   const [projectFiles, setProjectFiles] = useState<File[]>([]);
+  const [projectImages, setProjectImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [fileCategory, setFileCategory] = useState('general');
   const [existingFiles, setExistingFiles] = useState<ExistingFile[]>(defaultValues?.existingFiles ?? []);
+  const [existingImages, setExistingImages] = useState<ExistingImage[]>(defaultValues?.existingImages ?? []);
   const [isRemoving, startRemoveTransition] = useTransition();
+
+  const handleImageUpload = (files: File[]) => {
+    setProjectImages(files);
+    // Generate previews
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setImagePreviews((prev) => {
+      prev.forEach((url) => URL.revokeObjectURL(url));
+      return previews;
+    });
+  };
+
+  const removeNewImage = (index: number) => {
+    setProjectImages((prev) => {
+      const updated = prev.filter((_, i) => i !== index);
+      handleImageUpload(updated);
+      return updated;
+    });
+  };
 
   const getError = (field: string) =>
     state?.error ? state.fieldErrors?.[field]?.[0] : undefined;
@@ -74,13 +108,35 @@ export function ProjectForm({ mode, defaultValues }: ProjectFormProps) {
         if (projectFiles.length > 0) {
           formData.set('file_category', fileCategory);
         }
+        // Append images separately
+        projectImages.forEach((file) => {
+          formData.append('project_images', file);
+        });
         formAction(formData);
       }}
       className="space-y-8"
     >
       {/* Hidden fields */}
-      {mode === 'edit' && defaultValues?.project_id && (
+      {(mode === 'edit' || mode === 'admin') && defaultValues?.project_id && (
         <input type="hidden" name="project_id" value={defaultValues.project_id} />
+      )}
+
+      {/* Admin: Status control */}
+      {mode === 'admin' && (
+        <section>
+          <h2 className="mb-4 text-lg font-semibold text-foreground">{t('statusTitle')}</h2>
+          <Select name="status" defaultValue={defaultValues?.status || 'draft'}>
+            <SelectTrigger className="w-full sm:w-64">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">{t('statusDraft')}</SelectItem>
+              <SelectItem value="pending">{t('statusPending')}</SelectItem>
+              <SelectItem value="published">{t('statusPublished')}</SelectItem>
+              <SelectItem value="rejected">{t('statusRejected')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </section>
       )}
 
       {/* Global error */}
@@ -105,6 +161,7 @@ export function ProjectForm({ mode, defaultValues }: ProjectFormProps) {
           errorAr={getError('title_ar')}
           errorEn={getError('title_en')}
           required
+          showBothLanguages={mode === 'admin'}
         />
         <div className="mt-4">
           <BilingualFieldPair
@@ -118,6 +175,7 @@ export function ProjectForm({ mode, defaultValues }: ProjectFormProps) {
             errorAr={getError('description_ar')}
             errorEn={getError('description_en')}
             required
+            showBothLanguages={mode === 'admin'}
           />
         </div>
       </section>
@@ -165,6 +223,22 @@ export function ProjectForm({ mode, defaultValues }: ProjectFormProps) {
         </div>
       </section>
 
+      {/* Section: External Link */}
+      <section>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">{t('externalLinkTitle')}</h2>
+        <div className="relative">
+          <Input
+            type="url"
+            name="external_link"
+            label={t('externalLink')}
+            placeholder="https://example.com/project-details"
+            defaultValue={defaultValues?.external_link}
+            error={getError('external_link')}
+            hint={t('externalLinkHint')}
+          />
+        </div>
+      </section>
+
       {/* Section: Budget */}
       <section>
         <h2 className="mb-4 text-lg font-semibold text-foreground">{t('budgetTitle')}</h2>
@@ -188,15 +262,13 @@ export function ProjectForm({ mode, defaultValues }: ProjectFormProps) {
       <section>
         <h2 className="mb-4 text-lg font-semibold text-foreground">{t('timelineTitle')}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Input
-            type="date"
+          <DatePicker
             name="timeline_start"
             label={t('startDate')}
             defaultValue={defaultValues?.timeline_start}
             error={getError('timeline_start')}
           />
-          <Input
-            type="date"
+          <DatePicker
             name="timeline_end"
             label={t('endDate')}
             defaultValue={defaultValues?.timeline_end}
@@ -205,13 +277,85 @@ export function ProjectForm({ mode, defaultValues }: ProjectFormProps) {
         </div>
       </section>
 
+      {/* Section: Project Images */}
+      <section>
+        <h2 className="mb-2 text-lg font-semibold text-foreground">{t('imagesTitle')}</h2>
+        <p className="mb-4 text-sm text-muted-foreground">{t('imagesHint')}</p>
+
+        {/* Existing images (edit/admin mode) */}
+        {(mode === 'edit' || mode === 'admin') && existingImages.length > 0 && (
+          <div className="mb-4">
+            <p className="mb-2 text-sm font-medium text-foreground">{t('existingImages')}</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+              {existingImages.map((img) => (
+                <div key={img.id} className="group relative overflow-hidden rounded-lg border">
+                  <img
+                    src={getProxyUrl(img.file_url)}
+                    alt={img.file_name}
+                    className="aspect-video w-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    disabled={isRemoving}
+                    onClick={() => {
+                      if (!defaultValues?.project_id) return;
+                      startRemoveTransition(async () => {
+                        await removeProjectFile(defaultValues.project_id!, img.id);
+                        setExistingImages((prev) => prev.filter((f) => f.id !== img.id));
+                      });
+                    }}
+                    className="absolute end-1 top-1 rounded-full bg-destructive/80 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* New image previews */}
+        {imagePreviews.length > 0 && (
+          <div className="mb-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+              {imagePreviews.map((url, index) => (
+                <div key={url} className="group relative overflow-hidden rounded-lg border">
+                  <img
+                    src={url}
+                    alt={projectImages[index]?.name ?? ''}
+                    className="aspect-video w-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeNewImage(index)}
+                    className="absolute end-1 top-1 rounded-full bg-destructive/80 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <FileUpload
+          name="project_images_input"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          multiple
+          maxSize={50}
+          maxFiles={10}
+          hint={t('imagesFileLimit')}
+          onUpload={handleImageUpload}
+        />
+      </section>
+
       {/* Section: Documents & Files */}
       <section>
         <h2 className="mb-2 text-lg font-semibold text-foreground">{tFiles('title')}</h2>
         <p className="mb-4 text-sm text-muted-foreground">{tFiles('hint')}</p>
 
-        {/* Existing files (edit mode) */}
-        {mode === 'edit' && existingFiles.length > 0 && (
+        {/* Existing files (edit/admin mode) */}
+        {(mode === 'edit' || mode === 'admin') && existingFiles.length > 0 && (
           <div className="mb-4">
             <p className="mb-2 text-sm font-medium text-foreground">{tFiles('existingFiles')}</p>
             <ul className="space-y-2">
@@ -225,7 +369,7 @@ export function ProjectForm({ mode, defaultValues }: ProjectFormProps) {
                     {tFiles(file.category as 'boq' | 'drawings' | 'images' | 'specs' | 'general')}
                   </span>
                   <a
-                    href={file.file_url}
+                    href={getProxyUrl(file.file_url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 truncate text-primary underline-offset-2 hover:underline"
@@ -278,7 +422,7 @@ export function ProjectForm({ mode, defaultValues }: ProjectFormProps) {
           name="project_files_input"
           accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/jpeg,image/png,image/webp"
           multiple
-          maxSize={10}
+          maxSize={50}
           maxFiles={10}
           hint={tFiles('fileLimit')}
           onUpload={setProjectFiles}

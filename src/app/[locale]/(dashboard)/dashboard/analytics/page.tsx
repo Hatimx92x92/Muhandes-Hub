@@ -1,10 +1,12 @@
 import { redirect } from 'next/navigation';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
+import { requireRole } from '@/lib/auth-guards';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
 import { Download } from 'lucide-react';
-import { TIER_LIMITS } from '@/types';
+import { getEffectiveLimits, isFreeRole } from '@/types';
 import { getUserAnalytics } from '@/actions/analytics';
 import { AnalyticsKpiCards, AnalyticsKpiSecondary } from '@/components/features/analytics/analytics-kpi-cards';
 import { AnalyticsRoleStats } from '@/components/features/analytics/analytics-role-stats';
@@ -18,17 +20,23 @@ function db(supabase: any): any {
 }
 
 interface PageProps {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ period?: string }>;
 }
 
-export default async function AnalyticsDashboardPage({ searchParams }: PageProps) {
+export default async function AnalyticsDashboardPage({ params: routeParams, searchParams }: PageProps) {
+  const { locale } = await routeParams;
+  setRequestLocale(locale);
+
+  // Role guard — buyer excluded from analytics
+  await requireRole(['project_owner', 'contractor', 'supplier']);
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
   const t = await getTranslations('dashboard.analytics');
   const tGate = await getTranslations('tierGate');
-  const locale = await getLocale();
 
   // Get profile + subscription
   const { data: profile } = await db(supabase)
@@ -45,9 +53,9 @@ export default async function AnalyticsDashboardPage({ searchParams }: PageProps
     .single();
 
   const tier = (subscription?.tier ?? 'starter') as string;
-  const limits = TIER_LIMITS[tier] ?? TIER_LIMITS.starter;
   const role = profile?.role ?? 'project_owner';
-  const isAdvanced = limits.hasAnalytics === 'full' || role === 'project_owner';
+  const limits = getEffectiveLimits(role, tier);
+  const isAdvanced = limits.hasAnalytics === 'full';
 
   // Resolve period from searchParams
   const resolvedParams = await searchParams;
@@ -68,31 +76,30 @@ export default async function AnalyticsDashboardPage({ searchParams }: PageProps
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {isAdvanced ? t('fullDashboard') : t('summaryWidget')}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          {isAdvanced && <AnalyticsPeriodFilter currentPeriod={period} />}
-          {isAdvanced && (
-            <a
-              href="/api/analytics/export"
-              download
-              className={buttonVariants({ variant: 'outline', size: 'sm' })}
-            >
-              <Download className="h-3.5 w-3.5" />
-              {t('exportCsv')}
-            </a>
-          )}
-          <Badge variant={tier === 'starter' ? 'outline' : tier as 'pro' | 'business' | 'enterprise'}>
-            {t(`tiers.${tier}` as never)}
-          </Badge>
-        </div>
-      </div>
+      <PageHeader
+        title={t('title')}
+        description={isAdvanced ? t('fullDashboard') : t('summaryWidget')}
+        action={
+          <div className="flex flex-wrap items-center gap-3">
+            {isAdvanced && <AnalyticsPeriodFilter currentPeriod={period} />}
+            {isAdvanced && (
+              <a
+                href="/api/analytics/export"
+                download
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+              >
+                <Download className="h-3.5 w-3.5" />
+                {t('exportCsv')}
+              </a>
+            )}
+            {!isFreeRole(role) && (
+              <Badge variant={tier === 'starter' ? 'outline' : tier as 'pro' | 'business' | 'enterprise'}>
+                {t(`tiers.${tier}` as never)}
+              </Badge>
+            )}
+          </div>
+        }
+      />
 
       {/* KPI Cards — all tiers */}
       <AnalyticsKpiCards kpi={kpi} trends={trends} locale={locale} period={period} />

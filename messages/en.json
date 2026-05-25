@@ -35,12 +35,17 @@
     "viewAll": "View all",
     "learnMore": "Learn more",
     "getStarted": "Get started",
-    "copyright": "© {year} Muhandes HUB. All rights reserved.",
+    "copyrightStart": "© {year} Muhandes HUB. A product of",
+    "copyrightCompany": "Remal Al Mas",
+    "copyrightEnd": ". All rights reserved.",
     "saudiArabia": "Saudi Arabia",
     "vat15": "15% VAT",
     "saudiVat": "Saudi Arabia | 15% VAT",
     "translating": "Translating...",
     "autoTranslated": "Auto-translated",
+    "addEnglishTranslation": "Add English translation",
+    "addArabicTranslation": "Add Arabic translation",
+    "hideTranslation": "Hide translation",
     "selectedCount": "{count} selected",
     "clearSelection": "Clear selection"
   },
@@ -59,6 +64,7 @@
     "registrations": "Registrations",
     "posts": "Posts",
     "subscriptions": "Subscriptions",
+    "payments": "Payments",
     "auditLog": "Audit Log",
     "contacts": "Contacts"
   },
@@ -93,20 +99,24 @@
     "terms": "Terms & Conditions",
     "privacy": "Privacy Policy",
     "cookies": "Cookie Policy",
+    "refundPolicy": "Refund Policy",
     "adminPanel": "Admin Panel",
     "groupOverview": "Overview",
     "groupCore": "Core",
     "groupCommerce": "Commerce",
     "groupProjectManagement": "Project Management",
-    "groupProjectsBidding": "Projects & Bidding",
+    "groupProjectsBidding": "Projects & Bids",
     "groupProductsSales": "Products & Sales",
     "groupProcurement": "Procurement",
     "groupCommunication": "Communication",
     "groupTools": "Tools",
     "groupBusiness": "Business",
+    "groupBilling": "Billing",
     "groupAccount": "Account",
     "viewPublicProfile": "View Public Profile",
     "myBids": "My Bids",
+    "receivedBids": "Received Bids",
+    "contractorsSuppliers": "Contractors & Suppliers",
     "invitations": "Invitations"
   },
   "locale": {
@@ -126,12 +136,33 @@
     "heading1": "Muhandes HUB",
     "heading2": "Saudi Construction Industry Platform",
     "subheading": "A comprehensive digital ecosystem connecting project owners, contractors, suppliers, and buyers — ensuring efficient and reliable project execution.",
+    "roleCycle": {
+      "prefix": "Built for",
+      "roles": [
+        "Project Owners who need reliable contractors",
+        "Contractors looking for their next big project",
+        "Suppliers expanding their client base",
+        "Buyers sourcing the best materials"
+      ]
+    },
+    "ticker": {
+      "events": [
+        "New project posted in Riyadh",
+        "Bid awarded: SAR 450K — Villa Construction",
+        "12 suppliers responded to RFQ",
+        "Deal completed in Jeddah — 4.9★ review",
+        "New contractor joined from Dammam",
+        "Quotation accepted: SAR 85K — Steel Supply",
+        "3 new bids received on MEP project",
+        "Contract signed: Office Building — Makkah"
+      ]
+    },
     "ctaPrimary": "Get Started for Free",
     "ctaSecondary": "Browse Projects",
     "stats": {
-      "roles": "Specialized Roles",
-      "plans": "Subscription Plans",
-      "vatInclusive": "VAT Inclusive"
+      "partners": "Verified Partners",
+      "projects": "Active Projects",
+      "products": "Products Listed"
     },
     "roles": {
       "title": "One Platform for All Project Stakeholders",
@@ -181,27 +212,74 @@
         "desc": "Identity verification and data protection per Saudi regulations"
       }
     },
+    "tools": {
+      "label": "Business Tools",
+      "dealWorkspace": {
+        "title": "Deal Workspace",
+        "desc": "Milestones, documents & payments in one place"
+      },
+      "crmPipeline": {
+        "title": "CRM Pipeline",
+        "desc": "Track clients from lead to closed deal"
+      },
+      "bulkManagement": {
+        "title": "Bulk Management",
+        "desc": "Import products & data via CSV in seconds"
+      },
+      "ratings": {
+        "title": "Ratings & Reviews",
+        "desc": "Build trust with verified project reviews"
+      },
+      "quotations": {
+        "title": "Quotation System",
+        "desc": "Professional quotes with VAT & branding"
+      },
+      "kanban": {
+        "title": "Project Management",
+        "desc": "Drag-and-drop task management per deal"
+      }
+    },
     "partners": {
       "title": "Our Construction Industry Partners",
       "subtitle": "We collaborate with leading companies and institutions in the sector",
-      "ariaLabel": "Platform Partners",
-      "logos": {
-        "advancedConstruction": "Advanced Construction Co.",
-        "saudiIronFactory": "Saudi Iron Factory",
-        "gulfWarehouses": "Gulf Warehouses",
-        "contractorsGroup": "Contractors Group",
-        "nationalArchitecture": "National Architecture Co.",
-        "constructionTools": "Construction Tools Est.",
-        "layersMaterials": "Layers Materials",
-        "riyadhContainers": "Riyadh Containers",
-        "precisionMeasurement": "Precision Measurement Co.",
-        "safetyExcellence": "Safety Excellence Works"
-      }
+      "ariaLabel": "Platform Partners"
     },
     "cta": {
       "title": "Start Your Journey in Digital Construction",
       "subtitle": "Register now for free and discover new business opportunities in the Saudi construction sector",
       "button": "Create Free Account"
+    },
+    "bento": {
+      "bidTable": {
+        "title": "Bid Comparison",
+        "bidder1": "Al-Rajhi Contracting",
+        "bidder2": "Saudi Build Co.",
+        "bidder3": "Gulf Contractors",
+        "award": "Awarded"
+      },
+      "timeline": {
+        "title": "Deal Progress",
+        "foundation": "Foundation",
+        "structure": "Structure",
+        "mep": "MEP Systems",
+        "finishing": "Finishing",
+        "handover": "Handover"
+      },
+      "activity": {
+        "label": "Active Projects"
+      },
+      "rating": {
+        "reviews": "reviews"
+      },
+      "chat": {
+        "title": "Messages",
+        "message1": "Contract ready for review",
+        "message2": "Approved ✓"
+      },
+      "cta": {
+        "heading": "Grow your business today",
+        "button": "Join Free"
+      }
     }
   },
   "trust": {
@@ -210,7 +288,9 @@
     "bilingual": "Bilingual AR/EN"
   },
   "footer": {
-    "description": "A comprehensive digital platform for the Saudi construction industry — connecting project owners, contractors, suppliers, and buyers."
+    "description": "A comprehensive digital platform for the Saudi construction industry — connecting project owners, contractors, suppliers, and buyers.",
+    "phone": "+966 55 107 0673",
+    "email": "info@muhandeshub.com"
   },
   "auth": {
     "login": {
@@ -292,7 +372,9 @@
     "accountStep": {
       "title": "Account Details",
       "fullName": "Full Name *",
+      "fullNamePlaceholder": "Enter your full name",
       "email": "Email Address *",
+      "emailPlaceholder": "email@example.com",
       "password": "Password *",
       "passwordHint": "Must be at least 8 characters",
       "phone": "Phone Number *",
@@ -308,10 +390,17 @@
       "company": "Company",
       "individual": "Individual",
       "companyNameAr": "Company Name (Arabic) *",
+      "companyNameArPlaceholder": "Company name in Arabic",
       "companyNameEn": "Company Name (English) *",
+      "companyNameEnPlaceholder": "Company name in English",
       "crNumber": "Commercial Registration Number",
+      "crNumberPlaceholder": "e.g. 1010XXXXXX",
+      "vatNumber": "VAT Number",
+      "vatNumberPlaceholder": "e.g. 300XXXXXXXXXXXX",
       "website": "Website",
-      "city": "City *"
+      "websitePlaceholder": "https://example.com",
+      "city": "City *",
+      "cityPlaceholder": "Select city"
     },
     "tierStep": {
       "title": "Choose Subscription Plan",
@@ -326,6 +415,7 @@
       "paymentCardDesc": "Pay with Visa/MasterCard via secure 3D Secure",
       "paymentBank": "Bank Transfer",
       "paymentBankDesc": "Transfer to our bank account and upload receipt",
+      "paymentBankRecommended": "Recommended",
       "selectPaymentMethod": "Please select a payment method",
       "features": {
         "bids10": "10 bids/month",
@@ -366,7 +456,8 @@
       "paymentMethod": "Payment Method",
       "paymentCard": "Online Payment (Card)",
       "paymentBank": "Bank Transfer",
-      "submit": "Create Account"
+      "submit": "Create Account",
+      "editLabel": "Edit"
     },
     "paymentStep": {
       "title": "Complete Payment",
@@ -398,6 +489,12 @@
     }
   },
   "verify": {
+    "stepper": {
+      "email": "Email",
+      "payment": "Payment",
+      "documents": "Documents",
+      "review": "Review"
+    },
     "emailSent": {
       "title": "Check Your Email",
       "description": "We've sent a verification link to your email address. Please open the link to activate your account.",
@@ -418,7 +515,23 @@
       "bankPendingDesc": "Our team will verify your transfer. This usually takes 1-2 business days.",
       "bankReceiptUploaded": "Receipt uploaded successfully",
       "retryPayment": "Retry Payment",
-      "switchToBank": "Pay via Bank Transfer"
+      "switchToBank": "Pay via Bank Transfer",
+      "tierLabel": "Plan",
+      "duration": "Duration",
+      "months": "months",
+      "totalAmount": "Total Amount",
+      "vatInclusive": "All prices are VAT-inclusive (15%)",
+      "bankTransfer": "Bank Transfer Details",
+      "bankName": "Bank",
+      "iban": "IBAN",
+      "reference": "Reference",
+      "onlinePayment": "Online payment via Moyasar will be available soon.",
+      "contactSupport": "Contact Support",
+      "tiers": {
+        "pro": "Pro",
+        "business": "Business",
+        "enterprise": "Enterprise"
+      }
     },
     "documents": {
       "title": "Upload Documents",
@@ -427,7 +540,9 @@
       "crDoc": "Commercial Registration (CR)",
       "validation": "Both documents must be uploaded",
       "submit": "Upload Documents",
-      "logout": "Logout"
+      "logout": "Logout",
+      "rejectedTitle": "Documents Rejected",
+      "rejectedReupload": "Please review the feedback above and re-upload your documents."
     },
     "pendingApproval": {
       "title": "Pending Approval",
@@ -450,6 +565,12 @@
     "greeting": "Hello, {name}",
     "greetingDefault": "Welcome",
     "overview": "Here's a quick overview of your activity on the platform",
+    "role": {
+      "project_owner": "Project Owner",
+      "contractor": "Contractor",
+      "supplier": "Supplier",
+      "buyer": "Buyer"
+    },
     "quickActions": "Quick Actions",
     "currentSubscription": "Current Subscription",
     "manageSubscription": "Manage Subscription",
@@ -464,7 +585,10 @@
       "products": "Products",
       "quotations": "Quotations",
       "deals": "Deals",
-      "contracts": "Contracts"
+      "contracts": "Contracts",
+      "inquiries": "Inquiries",
+      "bidsReceived": "Bids Received",
+      "sentInquiries": "Sent Inquiries"
     },
     "actions": {
       "newProject": "Post New Project",
@@ -475,7 +599,10 @@
       "newQuotation": "Create Quotation",
       "newProduct": "Add New Product",
       "browseRfqs": "Browse RFQs",
-      "browseProducts": "Browse Products"
+      "browseProducts": "Browse Products",
+      "viewDeals": "View Deals",
+      "viewAnalytics": "View Analytics",
+      "viewMyInquiries": "My Inquiries"
     },
     "common": {
       "sar": "SAR",
@@ -535,6 +662,27 @@
       "selected": "selected",
       "clear": "Clear"
     },
+    "table": {
+      "showing": "{count, plural, =0 {No results} =1 {1 result} other {# results}}",
+      "export": "Export CSV",
+      "clearFilters": "Clear filters",
+      "sort": {
+        "newest": "Newest first",
+        "oldest": "Oldest first",
+        "amountHigh": "Amount: High to Low",
+        "amountLow": "Amount: Low to High",
+        "nameAsc": "Name A-Z",
+        "nameDesc": "Name Z-A",
+        "valueHigh": "Value: High to Low",
+        "valueLow": "Value: Low to High",
+        "budgetHigh": "Budget: High to Low",
+        "budgetLow": "Budget: Low to High",
+        "priceHigh": "Price: High to Low",
+        "priceLow": "Price: Low to High",
+        "deadlineSoon": "Deadline: Soonest",
+        "deadlineLate": "Deadline: Latest"
+      }
+    },
     "error": {
       "title": "Error Occurred",
       "description": "Sorry, an error occurred while loading the page",
@@ -560,6 +708,7 @@
         "editProjectDesc": "Edit your project details then resubmit for review",
         "submitForReview": "Submit for Review",
         "documentsAndFiles": "Documents & Files",
+        "projectImages": "Project Images",
         "associatedDeals": "Associated Deals"
       }
     },
@@ -589,6 +738,7 @@
       "noBids": "No Bids Yet",
       "noBidsDesc": "Browse available projects and submit your first bid",
       "browseProjects": "Browse Projects",
+      "viewDeal": "View Deal",
       "projectName": "Project",
       "amount": "Amount",
       "timeline": "Timeline",
@@ -604,7 +754,16 @@
       "awardedBids": "Awarded",
       "editBid": "Edit Bid",
       "viewProject": "View Project",
-      "days": "{count} days"
+      "days": "{count} days",
+      "sentTab": "My Bids ({count})",
+      "receivedTab": "Received Bids ({count})",
+      "contractorName": "Contractor",
+      "noReceivedBids": "No Received Bids",
+      "noReceivedBidsDesc": "Bids submitted on your projects will appear here",
+      "receivedBidsTotal": "Received Bids",
+      "shortlist": "Shortlist",
+      "award": "Award",
+      "reject": "Reject"
     },
     "deals": {
       "title": "Deals",
@@ -648,6 +807,10 @@
       "noDealsAsSellerDesc": "Deals will appear here when your offers are accepted",
       "youAreBuyer": "You are the Buyer",
       "youAreSeller": "You are the Seller",
+      "youAreProjectOwner": "Project Owner",
+      "youAreContractor": "Contractor",
+      "youAreSupplier": "Supplier",
+      "youAreBuyerRole": "Buyer",
       "commission": "Commission",
       "tabOverview": "Overview",
       "tabMilestones": "Milestones",
@@ -745,7 +908,13 @@
       "dealType": "Type",
       "triggerSource": "Source",
       "viewDailyLog": "Daily Log",
+      "writeDailyLog": "Write Daily Log",
       "viewKanban": "Kanban Board",
+      "editKanban": "Edit Kanban",
+      "contractorWorkProgress": "Contractor Work",
+      "supplierSupplyProgress": "Supplier Supply",
+      "projectOwnerPaymentProgress": "Owner Payments",
+      "buyerPaymentProgress": "Buyer Payments",
       "viewContract": "Contract",
       "quickLinks": "Quick Links",
       "requestCancellation": "Request Cancellation",
@@ -753,6 +922,7 @@
       "startConversation": "Start a conversation about this deal",
       "typeMessage": "Type a message...",
       "typing": "typing",
+      "chat": "Chat",
       "chatError": "Error loading chat",
       "you": "You",
       "attachment": "Attachment",
@@ -763,6 +933,9 @@
       "pendingCount": "{count} pending",
       "suggestChangesHint": "You can suggest changes to the buyer",
       "skipToFinish": "Skip to Finish",
+      "skipToFinishModal": "Skip to Finish",
+      "cancelDealModal": "Request Deal Cancellation",
+      "moreActions": "More Actions",
       "pendingSkipRequests": "Pending Skip-to-Finish Requests",
       "awaitingApproval": "Awaiting approval",
       "cancelRequestedBy": "Requested by {party}",
@@ -777,6 +950,8 @@
       "accountRole": "Account Role",
       "dealOrigin": "Deal Origin",
       "linkedContracts": "Linked Contracts",
+      "generateContract": "Generate Contract",
+      "noContracts": "No contracts linked yet",
       "untitledDeal": "Untitled Deal",
       "guide": {
         "nextStep": "Next Step",
@@ -813,7 +988,7 @@
       "noProductsDesc": "Add your products to list them in the marketplace",
       "newPage": {
         "title": "New Product",
-        "subtitle": "Add a new product to be listed in the marketplace after admin approval"
+        "subtitle": "Add a new product to be listed in the marketplace"
       },
       "inStock": "In Stock",
       "outOfStock": "Out of Stock",
@@ -830,12 +1005,18 @@
       "byVariants": "By Variants",
       "atLimitWarning": "You've reached the max products ({max}) in your",
       "upgradeYourPlan": "Upgrade your plan",
+      "unpublished": "Unpublished",
+      "unpublish": "Unpublish",
+      "republish": "Republish",
+      "editPrice": "Edit Price",
+      "editStock": "Edit Stock",
+      "export": "Export CSV",
+      "cancel": "Cancel",
       "detail": {
         "backToProducts": "Back to Products",
         "productDetails": "Product Details",
         "editProduct": "Edit Product",
-        "editProductDesc": "Edit your product details then resubmit for review",
-        "submitForReview": "Submit for Review",
+        "editProductDesc": "Edit your product details",
         "fixedPrice": "Fixed Price",
         "variantBased": "Variant Based",
         "stockQuantity": "Stock Quantity",
@@ -859,7 +1040,15 @@
         "pending": "Pending",
         "responded": "Responded",
         "closed": "Closed"
-      }
+      },
+      "sentTab": "Sent Inquiries ({count})",
+      "receivedTab": "Received Inquiries ({count})",
+      "sentTitle": "Sent Inquiries",
+      "sentDescription": "Track inquiries you sent about products",
+      "noSent": "No Sent Inquiries",
+      "noSentDescription": "Inquiries you send about products will appear here",
+      "supplier": "Supplier",
+      "browseProducts": "Browse Products"
     },
     "inquiryDetail": {
       "title": "Inquiry Details",
@@ -882,6 +1071,9 @@
     },
     "invitations": {
       "title": "Invitations",
+      "createInvite": "Create Invite",
+      "chooseTypeDesc": "Choose whether to invite a supplier for a quotation or a contractor for a bid.",
+      "noProjectsWarning": "You need at least one published project to send invitations. Publish a project first.",
       "tabSendQuote": "Invite to Quote",
       "tabSendBid": "Invite to Bid",
       "tabSent": "Sent Invitations",
@@ -937,7 +1129,12 @@
       "status_pending": "Pending",
       "status_accepted": "Accepted",
       "status_declined": "Declined",
-      "status_cancelled": "Cancelled"
+      "status_cancelled": "Cancelled",
+      "colType": "Type",
+      "colProject": "Project",
+      "colRecipient": "Recipient",
+      "colDate": "Date",
+      "colStatus": "Status"
     },
     "bulkUpload": {
       "title": "Bulk Product Upload",
@@ -992,7 +1189,20 @@
       "responseAccepted": "Accepted",
       "responseRejected": "Rejected",
       "linkedProduct": "Linked Product",
-      "attachments": "Attachments"
+      "attachments": "Attachments",
+      "editPage": {
+        "title": "Edit RFQ",
+        "subtitle": "Update your request for quotation details"
+      },
+      "colTitle": "Title",
+      "colBudget": "Budget",
+      "colDeadline": "Deadline",
+      "colResponses": "Responses",
+      "colRfq": "RFQ",
+      "budgetHighSort": "Budget: High to Low",
+      "budgetLowSort": "Budget: Low to High",
+      "deadlineSoonSort": "Deadline: Soonest",
+      "deadlineLateSort": "Deadline: Latest"
     },
     "quotations": {
       "title": "Quotations",
@@ -1034,7 +1244,15 @@
       "downloadPdf": "Download PDF",
       "unit": "Unit",
       "sourceRfq": "From RFQ",
-      "sourceInquiry": "From Inquiry"
+      "sourceInquiry": "From Inquiry",
+      "viewDeal": "View Deal",
+      "dealCreated": "This quotation was accepted — a deal has been created.",
+      "sentTab": "Sent ({count})",
+      "receivedTab": "Received ({count})",
+      "editPage": {
+        "title": "Edit Quotation",
+        "subtitle": "Update your quotation details and line items"
+      }
     },
     "contracts": {
       "title": "Contracts",
@@ -1051,6 +1269,13 @@
       "signaturesLabel": "Signatures",
       "signaturesCount": "signatures",
       "linkedToDeal": "Linked to Deal",
+      "colStatus": "Status",
+      "colTemplate": "Type",
+      "colParties": "Parties",
+      "colCreated": "Created",
+      "colSignatures": "Signatures",
+      "colDeal": "Deal",
+      "colYourSignature": "Your Signature",
       "contract": "Contract",
       "viewLinkedDeal": "View Linked Deal",
       "contractDetails": "Contract Details",
@@ -1088,7 +1313,16 @@
       "unsigned": "Unsigned",
       "signContract": "Sign Contract",
       "downloadPdf": "Download PDF",
-      "backToContracts": "Back to Contracts"
+      "backToContracts": "Back to Contracts",
+      "createdTab": "My Contracts ({count})",
+      "receivedTab": "Contracts to Sign ({count})",
+      "receivedContracts": "Contracts to Sign",
+      "noReceivedContracts": "No Contracts to Sign",
+      "noReceivedContractsDesc": "Contracts sent to you for signing will appear here",
+      "awaitingSignature": "Awaiting Your Signature",
+      "creatorName": "Created By",
+      "pendingSignature": "Pending Signature",
+      "alreadySigned": "You Signed"
     },
     "messages": {
       "title": "Messages",
@@ -1134,6 +1368,9 @@
       "messageLabel": "Message",
       "timeLabel": "Time",
       "markRead": "Mark Read",
+      "read": "Read",
+      "unread": "Unread",
+      "filterByType": "Type",
       "types": {
         "bid_received": "New Bid",
         "bid_awarded": "Bid Awarded",
@@ -1179,6 +1416,17 @@
           "rfqs": "RFQs",
           "subscriptionDocs": "Subscription & Documents"
         }
+      },
+      "dropdown": {
+        "viewAll": "View all notifications",
+        "empty": "No notifications yet",
+        "emptyDesc": "Important updates will appear here"
+      },
+      "groups": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "thisWeek": "This week",
+        "older": "Older"
       }
     },
     "crm": {
@@ -1223,6 +1471,30 @@
         "direct_hire": "Direct Hire"
       }
     },
+    "contractorsSuppliers": {
+      "title": "Contractors & Suppliers",
+      "subtitle": "View contractors and suppliers you've worked with or saved",
+      "workedWithTab": "Worked With ({count})",
+      "savedTab": "Saved ({count})",
+      "searchPlaceholder": "Search by name or company...",
+      "allRoles": "All Roles",
+      "contractors": "Contractors",
+      "suppliers": "Suppliers",
+      "allRatings": "All Ratings",
+      "sortByDeals": "Most Deals",
+      "sortByValue": "Highest Value",
+      "sortByRating": "Highest Rating",
+      "sortByRecent": "Most Recent",
+      "dealsCount": "Completed Deals",
+      "totalValue": "Total Value",
+      "myRating": "My Rating",
+      "lastDeal": "Last Deal",
+      "viewProfile": "View Profile",
+      "noWorkedWith": "No partners yet",
+      "noWorkedWithDesc": "After completing your first deals, contractors and suppliers will appear here",
+      "noSaved": "No saved partners",
+      "noSavedDesc": "You can save contractors and suppliers from the client list"
+    },
     "reviews": {
       "title": "Reviews",
       "subtitle": "Reviews you've given and received",
@@ -1264,6 +1536,11 @@
     "settings": {
       "title": "Settings",
       "subtitle": "Your account settings and preferences",
+      "tabs": {
+        "profile": "Profile",
+        "notifications": "Notifications",
+        "account": "Account"
+      },
       "notificationPreferences": "Notification Preferences",
       "notificationPreferencesDesc": "Notification settings will be available soon.",
       "language": "Language",
@@ -1275,6 +1552,11 @@
     "subscription": {
       "title": "Subscription",
       "subtitle": "Manage your subscription plan",
+      "freePlanTitle": "Free Plan",
+      "freePlanSubtitle": "Your account has full free access — no subscription required",
+      "freePlanBadge": "Free",
+      "freePlanDescription": "As a {role}, you enjoy full platform access at no cost. No subscription or commission fees apply.",
+      "freeLimitsTitle": "Your Plan Features",
       "tiers": {
         "starter": "Starter",
         "pro": "Pro",
@@ -1335,6 +1617,7 @@
         "cardDescription": "Visa/Mastercard with 3D Secure",
         "bankTransfer": "Bank Transfer",
         "bankDescription": "Transfer and upload receipt",
+        "recommended": "Recommended",
         "couponCode": "Discount Code",
         "couponPlaceholder": "Enter discount code",
         "applyCoupon": "Apply",
@@ -1443,7 +1726,14 @@
       "dueDate": "Due date:",
       "disputeReason": "Dispute reason:",
       "paidOn": "Paid on:",
-      "downloadInvoice": "Download Invoice"
+      "downloadInvoice": "Download Invoice",
+      "colDeal": "Deal",
+      "colDealValue": "Deal Value",
+      "colTotal": "Total",
+      "colDueDate": "Due Date",
+      "colRate": "Rate:",
+      "amountHighSort": "Amount: High to Low",
+      "amountLowSort": "Amount: Low to High"
     },
     "analytics": {
       "title": "Analytics",
@@ -1618,8 +1908,12 @@
       "posts": "Posts",
       "deals": "Deals",
       "commissions": "Commissions",
+      "payments": "Payments",
       "subscriptions": "Subscriptions",
       "reviews": "Reviews",
+      "rfqs": "RFQs",
+      "bids": "Bids",
+      "quotations": "Quotations",
       "auditLog": "Audit Log",
       "settings": "Settings",
       "analytics": "Analytics",
@@ -1787,6 +2081,27 @@
       "totalPending": "Total Pending",
       "colTier": "Tier",
       "colDocuments": "Documents",
+      "colPhone": "Phone",
+      "colEmail": "Email",
+      "colPayment": "Payment",
+      "colCrVat": "CR / VAT",
+      "crLabel": "CR",
+      "vatLabel": "VAT",
+      "pmCard": "Card",
+      "pmBankTransfer": "Bank Transfer",
+      "pmFree": "Free (Starter)",
+      "psPending": "Pending",
+      "psCompleted": "Completed",
+      "psFailed": "Failed",
+      "viewReceipt": "View Receipt",
+      "sar": "SAR",
+      "approvePaymentConfirm": "Approve this bank transfer payment?",
+      "rejectPaymentReason": "Reject Payment",
+      "rejectPaymentReasonLabel": "Rejection Reason",
+      "rejectPaymentReasonPlaceholder": "Why is this payment being rejected?",
+      "confirmRejectPayment": "Confirm Rejection",
+      "actionApprovePayment": "Approve Payment",
+      "actionRejectPayment": "Reject Payment",
       "noRegistrations": "No pending registrations",
       "noRegistrationsDesc": "All registrations have been processed",
       "docVatCertificate": "VAT Certificate",
@@ -1799,7 +2114,27 @@
       "rejectReasonAr": "Reason (Arabic)",
       "rejectReasonEn": "Reason (English)",
       "confirmReject": "Confirm Rejection",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "viewDetails": "View",
+      "registrationDetail": "Registration Details",
+      "personalInfo": "Personal Information",
+      "companyInfo": "Company Information",
+      "companyAr": "Arabic",
+      "companyEn": "English",
+      "legalInfo": "Legal Information",
+      "cr_label": "CR Number",
+      "vat_label": "VAT Number",
+      "subscriptionPayment": "Subscription & Payment",
+      "col_tier": "Tier",
+      "col_payment": "Payment",
+      "paymentStatus": "Status",
+      "price": "Price",
+      "col_documents": "Documents",
+      "col_created": "Registered",
+      "noDocs": "No documents uploaded",
+      "documentPreview": "Document Preview",
+      "openInNewTab": "Open in new tab",
+      "viewFullProfile": "View Full Profile"
     },
     "postsPage": {
       "title": "Post Management",
@@ -1808,12 +2143,87 @@
       "typeLabel": "Type:",
       "noPosts": "No posts matching this filter"
     },
+    "bidsPage": {
+      "title": "Bid Management",
+      "subtitle": "View and manage all bids",
+      "noBids": "No bids matching this filter"
+    },
+    "rfqsPage": {
+      "title": "RFQ Management",
+      "subtitle": "View and manage all RFQs",
+      "noRfqs": "No RFQs matching this filter"
+    },
+    "quotationsPage": {
+      "title": "Quotation Management",
+      "subtitle": "View and manage all quotations",
+      "noQuotations": "No quotations matching this filter"
+    },
+    "bidStatus": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn"
+    },
+    "quotationStatus": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "viewed": "Viewed",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    },
+    "bidEdit": {
+      "title": "Edit Bid",
+      "subtitle": "View and modify bid details",
+      "contractor": "Contractor"
+    },
+    "rfqEdit": {
+      "title": "Edit RFQ",
+      "subtitle": "View and modify RFQ details",
+      "poster": "Poster"
+    },
+    "quotationEdit": {
+      "title": "Edit Quotation",
+      "subtitle": "View and modify quotation details",
+      "sender": "Sender",
+      "recipient": "Recipient"
+    },
+    "days": "days",
     "dealsPage": {
       "title": "Deal Management",
       "subtitle": "Track all platform deals",
       "noDeals": "No deals matching this filter",
       "dealPrefix": "Deal",
-      "valueLabel": "Value:"
+      "valueLabel": "Value:",
+      "triggerSource": "Trigger Source",
+      "triggerBidAward": "Bid Award",
+      "triggerQuotation": "Inquiry Quotation",
+      "triggerRfqResponse": "RFQ Response",
+      "triggerDirectHire": "Direct Hire",
+      "sellerProgress": "Seller Progress",
+      "buyerProgress": "Buyer Progress",
+      "startedAt": "Started",
+      "completedAt": "Completed",
+      "cancelledAt": "Cancelled",
+      "disputedAt": "Disputed",
+      "linkedProject": "View Linked Project",
+      "linkedProduct": "View Linked Product",
+      "buyer": "Buyer",
+      "seller": "Seller",
+      "commissionSummary": "Commission Summary",
+      "commissionRate": "Rate",
+      "commissionAmount": "Amount",
+      "commissionTotal": "Total",
+      "milestones": "Milestones",
+      "proofs": "Deal Proofs",
+      "rejectionReason": "Rejection Reason",
+      "file": "File",
+      "documents": "Documents",
+      "siteLogs": "Daily Site Logs",
+      "requests": "Skip & Cancel Requests",
+      "skipRequest": "Skip Request",
+      "cancelRequest": "Cancel Request",
+      "activityLog": "Activity Log"
     },
     "commissionsPage": {
       "title": "Commission Management",
@@ -1827,14 +2237,80 @@
       "vat": "VAT",
       "total": "Total",
       "dueDate": "Due date:",
-      "disputeReason": "Dispute reason:"
+      "disputeReason": "Dispute reason:",
+      "viewDetails": "View",
+      "commissionDetail": "Commission Details",
+      "amountBreakdown": "Amount Breakdown",
+      "commissionRate": "Commission Rate",
+      "paymentInfo": "Payment Information",
+      "paymentMethod": "Payment Method",
+      "bankReceipt": "View Bank Receipt",
+      "sellerInfo": "Seller Information",
+      "sellerCompany": "Company",
+      "sellerEmail": "Email",
+      "viewUser": "View Profile",
+      "dealInfo": "Deal Information",
+      "dealType": "Deal Type",
+      "dealValue": "Deal Value",
+      "dealStatus": "Deal Status",
+      "viewDeal": "View Deal",
+      "dates": "Dates",
+      "createdAt": "Created"
+    },
+    "paymentsPage": {
+      "title": "Payment Management",
+      "subtitle": "Review and manage user payment records",
+      "noPayments": "No payments matching this filter",
+      "searchPlaceholder": "Search by user name...",
+      "statusPending": "Pending",
+      "statusCompleted": "Completed",
+      "statusFailed": "Failed",
+      "paymentMethod": "Payment Method",
+      "date": "Date",
+      "pmCard": "Credit Card",
+      "pmBankTransfer": "Bank Transfer",
+      "pmFree": "Free"
+    },
+    "paymentActions": {
+      "approve": "Approve Payment",
+      "reject": "Reject Payment",
+      "approveConfirm": "Approve this payment and activate the subscription?",
+      "approved": "Payment approved successfully",
+      "rejectTitle": "Reject Payment",
+      "reasonPlaceholder": "Reason for rejection...",
+      "rejected": "Payment rejected — user notified",
+      "cancel": "Cancel"
     },
     "subscriptionsPage": {
       "title": "Subscription Management",
       "subtitle": "Track platform subscriptions",
       "noSubscriptions": "No subscriptions matching this filter",
       "subscriptionPrefix": "Subscription",
-      "amountLabel": "Amount:"
+      "amountLabel": "Amount:",
+      "viewDetails": "View",
+      "subscriptionDetail": "Subscription Details",
+      "pricingBreakdown": "Pricing Breakdown",
+      "basePrice": "Base Price",
+      "duration": "Duration",
+      "months": "months",
+      "durationDiscount": "Duration Discount",
+      "couponDiscount": "Coupon Discount",
+      "couponCode": "Coupon Code",
+      "finalPrice": "Final Price",
+      "paymentInfo": "Payment Information",
+      "paymentMethod": "Payment Method",
+      "paymentStatus": "Payment Status",
+      "moyasarId": "Moyasar Payment ID",
+      "bankReceipt": "View Bank Receipt",
+      "subscriptionDates": "Subscription Dates",
+      "startDate": "Start Date",
+      "expiresDate": "Expires",
+      "createdAt": "Created",
+      "userInfo": "User Information",
+      "userName": "Name",
+      "userEmail": "Email",
+      "userRole": "Role",
+      "viewUser": "View Profile"
     },
     "reviewsPage": {
       "title": "Review Management",
@@ -1842,7 +2318,31 @@
       "totalReviews": "Total Reviews",
       "hiddenLabel": "Hidden",
       "noReviews": "No reviews found",
-      "hiddenBadge": "Hidden"
+      "hiddenBadge": "Hidden",
+      "viewDetails": "View",
+      "reviewDetail": "Review Details",
+      "overallRating": "Overall Rating",
+      "subRatings": "Sub-Ratings",
+      "qualityRating": "Quality",
+      "timelinessRating": "Timeliness",
+      "communicationRating": "Communication",
+      "wouldRecommend": "Would Recommend",
+      "wouldRecommendYes": "Yes",
+      "wouldRecommendNo": "No",
+      "comment": "Comment",
+      "commentAr": "Comment (Arabic)",
+      "commentEn": "Comment (English)",
+      "reviewer": "Reviewer",
+      "reviewerCompany": "Company",
+      "reviewee": "Reviewee",
+      "revieweeCompany": "Company",
+      "dealInfo": "Deal Information",
+      "dealType": "Deal Type",
+      "dealValue": "Deal Value",
+      "viewDeal": "View Deal",
+      "dates": "Dates",
+      "createdAt": "Created",
+      "updatedAt": "Last Updated"
     },
     "table": {
       "export": "Export CSV",
@@ -1884,7 +2384,18 @@
         "adminId": "Admin ID",
         "ip": "IP Address",
         "details": "Details",
-        "timestamp": "Timestamp"
+        "timestamp": "Timestamp",
+        "contractor": "Contractor",
+        "poster": "Poster",
+        "sender": "Sender",
+        "client": "Client",
+        "budget": "Budget",
+        "deadline": "Deadline",
+        "timeline": "Timeline",
+        "number": "Number",
+        "email": "Email",
+        "phone": "Phone",
+        "project": "Project"
       },
       "sort": {
         "newest": "Newest first",
@@ -1920,7 +2431,13 @@
       "announcementEnPlaceholder": "Write announcement in English",
       "announcementActive": "Show announcement to users",
       "announcementSaved": "Announcement saved",
-      "saveAnnouncement": "Save Announcement"
+      "saveAnnouncement": "Save Announcement",
+      "searchIndex": "Search Index",
+      "reindexTitle": "Reindex Typesense",
+      "reindexDesc": "Sync database data with the search index",
+      "reindexNow": "Reindex Now",
+      "reindexing": "Reindexing...",
+      "reindexSuccess": "Reindex complete: {count} records synced"
     },
     "auditLogPage": {
       "title": "Audit Log",
@@ -1978,6 +2495,11 @@
       "adminNotes": "Admin Notes",
       "noDocs": "No documents",
       "viewFile": "View File",
+      "approveDocs": "Approve Documents",
+      "rejectDocs": "Reject Documents",
+      "rejectReasonAr": "Rejection reason (Arabic) *",
+      "rejectReasonEn": "Rejection reason (English)",
+      "confirmReject": "Confirm Rejection",
       "actions": "Actions",
       "sendMessage": "Send Message",
       "sendEmail": "Send Email",
@@ -2049,7 +2571,26 @@
       "unread": "Unread",
       "currency": "SAR",
       "vat": "VAT",
-      "manageSubscription": "Manage Subscription"
+      "manageSubscription": "Manage Subscription",
+      "paymentRecords": "Payment Records & Invoices",
+      "paymentMethod": "Payment Method",
+      "paymentStatus": "Payment Status",
+      "price": "Price",
+      "tier": "Plan",
+      "viewReceipt": "View Receipt",
+      "downloadInvoice": "Download Invoice",
+      "noPayments": "No payment records",
+      "noInvoices": "No invoices",
+      "invoiceNumber": "Invoice #",
+      "invoiceDate": "Issue Date",
+      "subtotal": "Subtotal",
+      "invoiceTotal": "Total",
+      "pmCard": "Card",
+      "pmBankTransfer": "Bank Transfer",
+      "pmFree": "Free",
+      "psPending": "Pending",
+      "psCompleted": "Completed",
+      "psFailed": "Failed"
     },
     "analyticsPage": {
       "title": "Analytics",
@@ -2112,6 +2653,7 @@
       "unread": "Unread",
       "company": "Company:",
       "roleInterest": "Role Interest:",
+      "subject": "Subject:",
       "receivedAt": "Received:",
       "deleteConfirm": "Are you sure you want to delete this submission?"
     },
@@ -2124,7 +2666,11 @@
       "typeMessage": "Type your message...",
       "newConversation": "New Conversation",
       "selectUser": "Select User",
-      "unreadCount": "{count} unread"
+      "unreadCount": "{count} unread",
+      "searchPlaceholder": "Search by name or company...",
+      "startConversation": "Start Conversation",
+      "noResults": "No users found",
+      "searchMinChars": "Type at least 2 characters to search"
     },
     "subscriptionManager": {
       "title": "Manage User Subscription",
@@ -2147,6 +2693,9 @@
       "approvePayment": "Approve Payment",
       "approvePaymentConfirm": "Approve this bank transfer payment and activate the subscription?",
       "paymentApproved": "Payment approved and subscription activated",
+      "rejectPayment": "Reject Payment",
+      "rejectPaymentConfirm": "Reject this bank transfer payment? The user will be notified and can re-upload a receipt.",
+      "paymentRejected": "Payment rejected — user notified",
       "pendingPayment": "Pending Payment"
     },
     "postEdit": {
@@ -2162,6 +2711,51 @@
       "deadline": "Deadline",
       "success": "Post updated successfully",
       "error": "Error updating post"
+    },
+    "postDetail": {
+      "untitled": "Untitled Post",
+      "description": "Description",
+      "arabic": "Arabic",
+      "english": "English",
+      "details": "Details",
+      "files": "Attachments & Files",
+      "noFiles": "No files were uploaded with this post",
+      "viewFile": "View",
+      "city": "City",
+      "budget": "Budget",
+      "timeline": "Timeline",
+      "classification": "Classification",
+      "class": "Class",
+      "source": "Source",
+      "sourceOwner": "From Owner",
+      "sourceSubcontract": "Subcontract",
+      "externalLink": "External Link",
+      "createdAt": "Created",
+      "updatedAt": "Last Updated",
+      "owner": "Project Owner",
+      "viewProfile": "View Profile",
+      "rejectionReason": "Rejection Reason",
+      "category": "Category",
+      "productImages": "Product Images",
+      "primaryImage": "Primary",
+      "variants": "Variants",
+      "variantName": "Name",
+      "variantPrice": "Price",
+      "variantStock": "Stock",
+      "specSheets": "Spec Sheets",
+      "pricingModel": "Pricing Model",
+      "pricing_fixed": "Fixed Price",
+      "pricing_variant": "Variant-Based",
+      "price": "Price",
+      "stockStatus": "Stock Status",
+      "inStock": "In Stock",
+      "outOfStock": "Out of Stock",
+      "minOrderQty": "Min Order Qty",
+      "leadTime": "Lead Time",
+      "days": "days",
+      "quantity": "Quantity",
+      "deadline": "Deadline",
+      "responseCount": "Responses"
     },
     "emailComposer": {
       "title": "Send Email",
@@ -2281,6 +2875,8 @@
       "sendMessage": "Send Us a Message",
       "email": "Email",
       "phone": "Phone",
+      "emailValue": "info@muhandeshub.com",
+      "phoneValue": "+966 55 107 0673",
       "address": "Address",
       "addressValue": "Riyadh, Saudi Arabia",
       "hours": "Business Hours",
@@ -2363,6 +2959,8 @@
       "bidCount": "{count} bids submitted",
       "submitBid": "Submit Bid",
       "loginToSubmitBid": "Login to submit a bid",
+      "alreadyBid": "You have already submitted a bid on this project",
+      "contractorsOnly": "Only contractors can submit bids",
       "projectDetails": "Project Details",
       "city": "City:",
       "budget": "Budget:",
@@ -2375,6 +2973,7 @@
       "defaultOwner": "Project Owner",
       "publishedAt": "Published: {date}",
       "documentsAndFiles": "Documents & Files",
+      "projectImages": "Project Images",
       "moreFromOwner": "More Projects by this Owner",
       "manageListing": "Manage Listing"
     },
@@ -2432,6 +3031,7 @@
   "pricing": {
     "title": "Subscription Plans",
     "subtitle": "Choose the right plan for your business. All prices include 15% VAT",
+    "freeRoleCallout": "Project Owners and Buyers have unlimited access to all platform features at no cost. The subscription plans below apply to Contractors and Suppliers only.",
     "mostPopular": "Most Popular",
     "startFree": "Start Free",
     "subscribe": "Subscribe Now",
@@ -2467,30 +3067,56 @@
         "description": "For large enterprises"
       }
     },
+    "roleSelector": "View features by role",
+    "freeForever": "Always Free",
+    "roles": {
+      "contractor": "Contractor",
+      "supplier": "Supplier",
+      "projectOwner": "Project Owner",
+      "buyer": "Buyer"
+    },
+    "freeRoleTable": {
+      "feature": "Feature",
+      "availability": "Availability"
+    },
     "featureSections": {
       "contractor": "Contractor Features",
       "supplier": "Supplier Features",
-      "common": "Common Features"
+      "common": "Common Features",
+      "projectOwner": "Project Owner Features",
+      "buyer": "Buyer Features"
     },
     "featureLabels": {
-      "bidsMonth": "Bids/month",
-      "kanban": "Project Kanban",
+      "bidsMonth": "Bids / Month",
+      "kanban": "Project Management Board",
       "productListings": "Product Listings",
       "bulkCsv": "Bulk CSV Upload",
       "crmClients": "CRM Clients",
       "quotationsMonth": "Quotations/month",
       "contractsMonth": "Contracts/month",
+      "contractGenerator": "Contract Generator",
+      "dailySiteLog": "Daily Site Log",
       "analyticsFeature": "Analytics",
       "clauseLibrary": "Clause Library",
       "customContracts": "Custom Contracts",
-      "commission": "Commission"
+      "commission": "Commission on deal value",
+      "projects": "Post Projects",
+      "rfqs": "Post RFQs",
+      "dealWorkspace": "Deal Workspace",
+      "messages": "Messaging",
+      "reviews": "Reviews",
+      "contracts": "Contract Templates",
+      "crm": "CRM",
+      "hireRequests": "Hire Requests"
     },
     "featureValues": {
       "checklist": "Checklist",
       "full": "Full",
       "basic": "2 Basic",
       "summary": "Summary",
-      "unlimited": "Unlimited"
+      "unlimited": "Unlimited",
+      "allTemplates": "All Templates",
+      "viewOnly": "View Only"
     },
     "sar": "SAR",
     "durations": {
@@ -2537,10 +3163,22 @@
       "timelineTitle": "Timeline",
       "startDate": "Start Date",
       "endDate": "End Date",
+      "externalLinkTitle": "External Link",
+      "externalLink": "Project URL",
+      "externalLinkHint": "Add a link to the original project listing or additional reference (optional)",
+      "statusTitle": "Status",
+      "statusDraft": "Draft",
+      "statusPending": "Pending Review",
+      "statusPublished": "Published",
+      "statusRejected": "Rejected",
       "createProject": "Create Project",
       "saveChanges": "Save Changes",
       "createSuccess": "Project created successfully as draft",
       "updateSuccess": "Project updated successfully",
+      "imagesTitle": "Project Images",
+      "imagesHint": "Upload images to showcase your project. The first image will be used as the thumbnail on project cards.",
+      "imagesFileLimit": "Max 50 MB per image (JPEG, PNG, WebP, GIF)",
+      "existingImages": "Existing Images",
       "files": {
         "title": "Documents & Files",
         "hint": "Upload project documents such as BOQ, drawings, specs, and images",
@@ -2552,7 +3190,7 @@
         "general": "General",
         "addFiles": "Add Files",
         "uploading": "Uploading...",
-        "fileLimit": "Max 10 MB per file (PDF, Word, Excel, or images)",
+        "fileLimit": "Max 50 MB per file (PDF, Word, Excel, or images)",
         "remove": "Remove",
         "existingFiles": "Existing Files",
         "selectCategory": "Select category"
@@ -2593,14 +3231,28 @@
       "successMessage": "Bid submitted successfully ✓",
       "biddingOn": "Submitting a bid on project",
       "amountLabel": "Bid Amount (SAR)",
-      "timelineDaysLabel": "Timeline (days)",
-      "timelinePlaceholder": "e.g. 90",
+      "timelineLabel": "Timeline",
+      "timelineValuePlaceholder": "e.g. 3",
+      "unitDays": "Days",
+      "unitMonths": "Months",
+      "unitYears": "Years",
       "methodologyArLabel": "Methodology (Arabic)",
       "methodologyArPlaceholder": "Describe your methodology and work plan...",
       "methodologyEnLabel": "Methodology (English)",
       "methodologyEnPlaceholder": "Describe your methodology and work plan...",
+      "attachmentsLabel": "Attachments",
+      "addAttachment": "Add Attachment",
+      "attachmentsHint": "PDF, Word, Excel, or images (max 10 MB each)",
       "submitting": "Submitting...",
-      "submitBid": "Submit Bid"
+      "submitBid": "Submit Bid",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "updateSuccess": "Bid updated successfully",
+      "statusTitle": "Status",
+      "statusPending": "Pending",
+      "statusAccepted": "Accepted",
+      "statusRejected": "Rejected",
+      "statusWithdrawn": "Withdrawn"
     },
     "contract": {
       "templateType": "Template Type",
@@ -2701,14 +3353,20 @@
       "outOfStock": "Out of Stock",
       "minOrderQty": "Minimum Order Quantity",
       "leadTimeDays": "Lead Time (days)",
+      "statusTitle": "Status",
+      "statusDraft": "Draft",
+      "statusPending": "Pending Review",
+      "statusPublished": "Published",
+      "statusRejected": "Rejected",
       "createProduct": "Create Product",
       "saveChanges": "Save Changes",
-      "createSuccess": "Product created successfully as draft",
+      "createSuccess": "Product created and published successfully",
       "updateSuccess": "Product updated successfully",
       "media": {
         "imagesTitle": "Product Images",
         "imagesHint": "Upload product photos (JPEG, PNG, WebP)",
         "imageHint": "Max 10 images, up to 5 MB each (JPEG, PNG, WebP)",
+        "imageRequired": "Please upload at least one product image",
         "addImages": "Add Images",
         "uploading": "Uploading...",
         "primary": "Primary",
@@ -2851,7 +3509,17 @@
       "notesEn": "Notes (EN)",
       "notesEnPlaceholder": "Additional notes...",
       "creating": "Creating...",
-      "createQuotation": "Create Quotation"
+      "createQuotation": "Create Quotation",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "updateSuccess": "Quotation updated successfully",
+      "statusTitle": "Status",
+      "statusDraft": "Draft",
+      "statusSent": "Sent",
+      "statusViewed": "Viewed",
+      "statusAccepted": "Accepted",
+      "statusRejected": "Rejected",
+      "statusExpired": "Expired"
     },
     "rfq": {
       "successMessage": "RFQ created successfully",
@@ -2871,6 +3539,15 @@
       "allCities": "All Cities",
       "creating": "Creating...",
       "createRfq": "Create RFQ",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "updateSuccess": "RFQ updated successfully",
+      "statusTitle": "Status",
+      "statusDraft": "Draft",
+      "statusPending": "Pending Review",
+      "statusPublished": "Published",
+      "statusRejected": "Rejected",
+      "statusClosed": "Closed",
       "files": {
         "title": "Attachments",
         "hint": "Upload supporting documents (BOQ, drawings, specs)",
@@ -2881,7 +3558,7 @@
         "general": "General",
         "addFiles": "Add Files",
         "uploading": "Uploading...",
-        "fileLimit": "Max 10 MB per file (PDF, Word, Excel, or images)",
+        "fileLimit": "Max 50 MB per file (PDF, Word, Excel, or images)",
         "remove": "Remove",
         "existingFiles": "Existing Files",
         "selectCategory": "Select category"
@@ -2988,8 +3665,8 @@
       "closed": "Closed"
     },
     "pdpl": {
-      "title": "Privacy & Data Protection Policy",
-      "description": "We comply with Saudi Arabia's Personal Data Protection Law (PDPL). Your data is used only to provide our services and improve your experience. See our privacy policy for details.",
+      "title": "Your Privacy Matters",
+      "description": "We use cookies to keep you logged in and remember your preferences. We never sell your data. By continuing, you agree to our privacy and cookie policies.",
       "accept": "Accept",
       "privacyPolicy": "Privacy Policy",
       "cookiePolicy": "Cookie Policy"
@@ -3089,7 +3766,9 @@
       "startConversation": "Start the conversation by sending a message",
       "quickReplies": "Quick replies",
       "attachFile": "Attach file",
-      "typeMessage": "Type your message..."
+      "typeMessage": "Type your message...",
+      "typing": "typing",
+      "dropFiles": "Drop files here"
     },
     "reviewCard": {
       "unknown": "Unknown",
@@ -3138,7 +3817,9 @@
       "confirmReject": "Confirm Rejection",
       "cancel": "Cancel",
       "approve": "Approve",
-      "reject": "Reject"
+      "reject": "Reject",
+      "approveSuccess": "Post approved and published",
+      "rejectSuccess": "Post rejected"
     },
     "adminUser": {
       "approve": "Approve",
@@ -3148,7 +3829,8 @@
       "unban": "Unban",
       "unrestrict": "Remove Restriction",
       "adminRestriction": "Admin restriction",
-      "adminBan": "Admin ban"
+      "adminBan": "Admin ban",
+      "sendMessage": "Send Message"
     },
     "couponForm": {
       "codePlaceholder": "Coupon code (e.g.: WELCOME50)",
@@ -3257,12 +3939,9 @@
     "crmAddClient": {
       "addClient": "+ Add Client",
       "title": "Add New Client",
-      "name": "Name",
-      "namePlaceholder": "Client name",
-      "phone": "Phone",
-      "email": "Email",
-      "company": "Company",
-      "companyPlaceholder": "Company name",
+      "user": "User",
+      "searchPlaceholder": "Search by name, company, or email...",
+      "searchNoResults": "No results found",
       "source": "Source",
       "sources": {
         "manual_entry": "Manual Entry",
@@ -3378,109 +4057,352 @@
   "legal": {
     "privacy": {
       "title": "Privacy Policy",
-      "lastUpdated": "Last updated: January 1, 2025",
-      "intro": "At Muhandes HUB, we are committed to protecting your privacy and personal data in accordance with the Personal Data Protection Law (PDPL) of Saudi Arabia.",
+      "lastUpdated": "Last updated: January 2025",
+      "intro": "Muhandes HUB is owned and operated by Remal Al Mas International Company. At Muhandes HUB, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your data.",
       "dataCollection": {
-        "title": "Data We Collect",
-        "item1": "Registration data: Name, email, phone number, company name",
-        "item2": "Verification data: Commercial registration, VAT certificate",
-        "item3": "Usage data: Platform activity, preferences, browsing history",
-        "item4": "Transaction data: Deal details, payments, commissions"
+        "title": "1. Information We Collect",
+        "description": "We collect the following types of information:",
+        "personal": {
+          "title": "Personal Information",
+          "item1": "Name, email address, and phone number",
+          "item2": "Company name and commercial registration details",
+          "item3": "VAT registration number",
+          "item4": "Banking information (for commission payments)",
+          "item5": "Government-issued identification documents"
+        },
+        "business": {
+          "title": "Business Information",
+          "item1": "Commercial License details",
+          "item2": "VAT certificates",
+          "item3": "Company address and contact details",
+          "item4": "Business descriptions and capabilities"
+        },
+        "usage": {
+          "title": "Usage Data",
+          "item1": "Log data (IP address, browser type, pages visited)",
+          "item2": "Device information",
+          "item3": "Cookies and similar tracking technologies",
+          "item4": "Search queries and platform interactions"
+        },
+        "transaction": {
+          "title": "Transaction Data",
+          "item1": "Subscription payment information",
+          "item2": "Commission payment records",
+          "item3": "Deal history and quotations",
+          "item4": "Invoice and receipt data"
+        }
       },
       "dataUsage": {
-        "title": "How We Use Your Data",
-        "item1": "Providing platform services and managing your account",
-        "item2": "Identity and document verification",
-        "item3": "Processing payments and commissions",
-        "item4": "Sending notifications and updates related to your activity",
-        "item5": "Improving user experience and developing the platform"
+        "title": "2. How We Use Your Information",
+        "description": "We use collected information for:",
+        "item1": "Providing and maintaining our services",
+        "item2": "Processing registrations and verifying business credentials",
+        "item3": "Facilitating transactions and generating ZATCA-compliant invoices",
+        "item4": "Sending service-related notifications and updates",
+        "item5": "Improving platform functionality and user experience",
+        "item6": "Preventing fraud and ensuring platform security",
+        "item7": "Complying with legal obligations and tax regulations",
+        "item8": "Responding to your inquiries and support requests"
       },
       "dataSharing": {
-        "title": "Data Sharing",
-        "description": "We do not sell your personal data to any third party. We may share your data in the following cases:",
-        "item1": "With other parties in deals (necessary information only)",
-        "item2": "With service providers (payment gateway, email service)",
-        "item3": "When requested by official authorities per Saudi regulations"
-      },
-      "rights": {
-        "title": "Your Rights",
-        "item1": "Access your personal data and request a copy",
-        "item2": "Correct inaccurate data",
-        "item3": "Request deletion of your data (subject to legal requirements)",
-        "item4": "Withdraw consent for data processing",
-        "item5": "File a complaint with the relevant authority"
+        "title": "3. Information Sharing and Disclosure",
+        "description": "We may share your information with:",
+        "serviceProviders": {
+          "title": "Service Providers",
+          "description": "Third-party vendors who assist us in operating the platform (e.g., payment processors, hosting providers, email services). These providers are bound by confidentiality agreements."
+        },
+        "otherUsers": {
+          "title": "Other Platform Users",
+          "description": "Your business profile, including company name, services offered, and contact information, is visible to other verified users on the platform."
+        },
+        "legal": {
+          "title": "Legal Requirements",
+          "description": "We may disclose information when required by law, court order, or government regulation, including compliance with ZATCA requirements."
+        },
+        "businessTransfers": {
+          "title": "Business Transfers",
+          "description": "In the event of a merger, acquisition, or sale of assets, your information may be transferred to the acquiring entity."
+        }
       },
       "security": {
-        "title": "Data Security",
-        "description": "We use advanced encryption technologies and strict security measures to protect your data, including SSL/TLS encryption and limited access policies."
+        "title": "4. Data Security",
+        "description": "We implement industry-standard security measures to protect your information, including encryption, secure servers, and access controls. However, no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security."
       },
       "retention": {
-        "title": "Data Retention",
-        "description": "We retain your data throughout your use of the platform and for 5 years after account closure per legal and regulatory requirements."
+        "title": "5. Data Retention",
+        "description": "We retain your personal information for as long as necessary to provide our services, comply with legal obligations, resolve disputes, and enforce our agreements. Business and transaction records are retained for at least 10 years in compliance with Saudi tax laws."
+      },
+      "rights": {
+        "title": "6. Your Rights",
+        "description": "You have the right to:",
+        "item1": "Access your personal information",
+        "item2": "Correct inaccurate or incomplete data",
+        "item3": "Request deletion of your data (subject to legal retention requirements)",
+        "item4": "Object to processing of your information",
+        "item5": "Withdraw consent for marketing communications",
+        "item6": "Request a copy of your data in a portable format",
+        "contactNote": "To exercise these rights, contact us at info@muhandeshub.com."
+      },
+      "cookies": {
+        "title": "7. Cookies and Tracking",
+        "description": "We use cookies and similar technologies to enhance your experience, analyze usage patterns, and provide personalized content. You can control cookie preferences through your browser settings, though disabling cookies may affect platform functionality."
+      },
+      "internationalTransfers": {
+        "title": "8. International Data Transfers",
+        "description": "Your information may be transferred to and processed in countries outside Saudi Arabia where our service providers operate. We ensure appropriate safeguards are in place to protect your data in accordance with this Privacy Policy."
+      },
+      "children": {
+        "title": "9. Children's Privacy",
+        "description": "Muhandes HUB is intended for business use only and is not directed at individuals under 18 years of age. We do not knowingly collect personal information from minors."
+      },
+      "changes": {
+        "title": "10. Changes to This Privacy Policy",
+        "description": "We may update this Privacy Policy periodically. We will notify you of material changes via email or platform notifications. Your continued use after changes indicates acceptance of the updated policy."
       },
       "contact": {
-        "title": "Contact Us",
-        "description": "For any inquiries about your data privacy, please contact: privacy@muhandeshub.com"
+        "title": "11. Contact Us",
+        "description": "If you have questions or concerns about this Privacy Policy or our data practices, please contact us at:",
+        "email": "Email: info@muhandeshub.com",
+        "phone": "Phone: +966 55 107 0673",
+        "address": "Address: Riyadh, Saudi Arabia"
       },
+      "consent": "By using Muhandes HUB, you consent to the collection and use of your information as described in this Privacy Policy.",
       "seeAlso": "See also",
       "termsLink": "Terms of Service",
-      "cookiesLink": "Cookie Policy"
+      "cookiesLink": "Cookie Policy",
+      "refundLink": "Refund Policy"
     },
     "terms": {
-      "title": "Terms & Conditions",
-      "lastUpdated": "Last updated: January 1, 2025",
-      "intro": "By using Muhandes HUB, you agree to comply with these terms and conditions. Please read them carefully.",
-      "registration": {
-        "title": "Registration & Account",
-        "item1": "You must be at least 18 years old to create an account",
-        "item2": "You must provide accurate and truthful information during registration",
-        "item3": "You are responsible for maintaining the confidentiality of your credentials",
-        "item4": "The chosen role (project owner, contractor, supplier, buyer) cannot be changed after registration"
+      "title": "Terms of Service",
+      "lastUpdated": "Last updated: January 2, 2026",
+      "intro": "Welcome to Muhandes HUB, a B2B electronic marketplace platform owned and operated by Remal Al Mas International Company under the laws of the Kingdom of Saudi Arabia. These Terms of Service constitute a legally binding agreement between you and Muhandes HUB. By accessing, registering, or using our platform, you acknowledge that you have read, understood, and agree to be bound by these terms in their entirety. If you do not agree, you must not access or use our services.",
+      "definitions": {
+        "title": "1. Definitions and Interpretation",
+        "description": "In these Terms: 'Platform' means the Muhandes HUB website and all related services; 'User' means any registered business entity using the Platform; 'Contractor' means a User who posts projects seeking bids; 'Supplier' means a User who offers products; 'Service Provider' means a User who offers services; 'Deal' means a completed transaction between Users; 'Commission' means the percentage fee payable to Muhandes HUB upon Deal completion; 'Subscription Fee' means the periodic fee for Platform access; 'SAR' means Saudi Arabian Riyals; 'VAT' means Value Added Tax as defined by ZATCA regulations."
+      },
+      "acceptance": {
+        "title": "2. Acceptance of Terms and Legal Capacity",
+        "description": "By registering for or using Muhandes HUB, you represent and warrant that: (a) you have the legal authority to bind your business entity to these Terms; (b) you have read and understood these Terms in full; (c) you accept these Terms on behalf of your business entity; (d) your use of the Platform will comply with all applicable laws of the Kingdom of Saudi Arabia, including but not limited to the E-Commerce Law (Royal Decree No. M/126), the Commercial Register Law, VAT regulations, and Anti-Money Laundering regulations. These Terms, together with our Privacy Policy, constitute the entire agreement between you and Muhandes HUB."
+      },
+      "eligibility": {
+        "title": "3. Eligibility Requirements",
+        "description": "To use Muhandes HUB, you must satisfy ALL of the following requirements: (a) be a legally registered business entity in the Kingdom of Saudi Arabia with a valid Commercial Registration; (b) possess a valid VAT Registration Certificate issued by ZATCA; (c) have an authorized representative who is at least 18 years of age and legally competent to enter into contracts; (d) not be subject to any legal prohibition, bankruptcy proceedings, or sanctions that would prevent you from conducting business; (e) provide accurate, complete, and current information during registration and maintain its accuracy throughout your use of the Platform. Muhandes HUB reserves the right to verify your eligibility at any time and to suspend or terminate accounts that fail to meet these requirements."
+      },
+      "accounts": {
+        "title": "4. User Accounts and Security",
+        "item1": "You are solely responsible for maintaining the confidentiality and security of your account credentials, including passwords and access tokens.",
+        "item2": "You must provide accurate, current, and complete registration information and update it promptly if any changes occur.",
+        "item3": "You must notify Muhandes HUB immediately upon discovering any unauthorized access to your account or any security breach.",
+        "item4": "You are fully responsible and liable for all activities conducted under your account, whether or not authorized by you.",
+        "item5": "You may not share, transfer, or assign your account to any third party without prior written consent from Muhandes HUB.",
+        "item6": "Muhandes HUB reserves the right to suspend or terminate accounts that violate these Terms, engage in fraudulent activity, or pose a risk to the Platform or other Users.",
+        "item7": "Multiple accounts for the same business entity are prohibited unless expressly authorized in writing."
       },
       "subscriptions": {
-        "title": "Subscriptions & Payment",
-        "item1": "Four subscription plans are available: Starter (free), Pro, Business, Enterprise",
-        "item2": "All prices include 15% VAT",
-        "item3": "Subscriptions renew automatically unless cancelled",
-        "item4": "Paid amounts are non-refundable except in specific cases"
+        "title": "5. Subscription Fees and Payment Terms",
+        "item1": "Access to Muhandes HUB requires a paid subscription, except for limited trial periods as may be offered at our discretion.",
+        "item2": "Subscription fees are charged in advance based on your selected billing cycle (monthly, quarterly, or annually) and subscription tier (Pro, Business, or Enterprise).",
+        "item3": "All fees are denominated in Saudi Arabian Riyals (SAR) and are inclusive of 15% Value Added Tax (VAT) as required by ZATCA.",
+        "item4": "Payment is due immediately upon subscription activation or renewal. Failure to pay may result in immediate suspension of access.",
+        "item5": "SUBSCRIPTION FEES ARE STRICTLY NON-REFUNDABLE. By subscribing, you acknowledge and agree that all subscription payments are final and non-refundable, regardless of whether you use the Platform, cancel early, or have your account suspended or terminated for any reason.",
+        "item6": "Muhandes HUB reserves the right to modify subscription prices with thirty (30) days' prior written notice. Continued use after price changes constitutes acceptance.",
+        "item7": "Promotional pricing, discounts, or trial periods are subject to additional terms and may be modified or discontinued at any time."
       },
       "commissions": {
-        "title": "Commissions",
-        "item1": "Commission is calculated based on the seller's subscription plan: Starter 2%, Pro 1%, Business and Enterprise 0%",
-        "item2": "Commission is charged upon successful deal completion",
-        "item3": "Commission must be paid within 14 days of the due date"
+        "title": "6. Commission Structure and Payment Obligations",
+        "item1": "A success-based commission is payable to Muhandes HUB upon completion of any Deal facilitated through the Platform.",
+        "item2": "Commission rates vary by subscription tier: Trial (3%), Pro (1%), Business (0%), Enterprise (0%).",
+        "item3": "Commissions are calculated on the total Deal value and are due within thirty (30) days of Deal completion.",
+        "item4": "COMMISSIONS ARE STRICTLY NON-REFUNDABLE. Once a Deal is marked as completed, the commission becomes immediately due and payable regardless of any subsequent disputes, cancellations, or reversals between the parties.",
+        "item5": "All commissions are subject to 15% VAT, which will be added to the commission amount.",
+        "item6": "Failure to pay commissions within the specified period may result in: account suspension, late payment penalties at 2% per month, legal action to recover amounts owed, and reporting to credit agencies.",
+        "item7": "Any attempt to circumvent commission payments by conducting transactions outside the Platform after initial contact through Muhandes HUB constitutes a material breach of these Terms and may result in immediate termination and legal action."
       },
-      "postsAndOffers": {
-        "title": "Posts & Offers",
-        "item1": "All posts are subject to admin review before publishing",
-        "item2": "Content must be accurate and not contain misleading information",
-        "item3": "Administration reserves the right to reject any post that violates platform policies",
-        "item4": "Submitted offers are binding and cannot be retracted after award"
+      "noRefund": {
+        "title": "7. No Refund Policy",
+        "description": "BY USING MUHANDES HUB, YOU EXPRESSLY ACKNOWLEDGE AND AGREE THAT: (a) All subscription fees paid are final and non-refundable under any circumstances; (b) All commissions paid or payable are final and non-refundable under any circumstances; (c) This no-refund policy applies even if your account is suspended or terminated, whether by you or by Muhandes HUB; (d) This no-refund policy applies regardless of the reason for cancellation or non-use of services; (e) No partial refunds, pro-rata refunds, or credits will be issued for any unused portion of a subscription period; (f) This policy is a material term of this agreement, and you waive any right to claim refunds, chargebacks, or payment reversals. This policy is consistent with Article 10 of the Saudi E-Commerce Law and represents a clear disclosure of our refund terms prior to your subscription."
       },
-      "reviews": {
-        "title": "Reviews",
-        "item1": "Reviews can only be added after deal completion",
-        "item2": "Reviews can be edited within 48 hours only",
-        "item3": "Reviews must be honest and objective"
+      "content": {
+        "title": "8. User-Generated Content and Intellectual Property",
+        "item1": "You retain ownership of all content, data, and materials you submit to the Platform ('User Content').",
+        "item2": "By posting User Content, you grant Muhandes HUB a non-exclusive, worldwide, royalty-free license to use, display, reproduce, and distribute such content for the purpose of operating and promoting the Platform.",
+        "item3": "You represent and warrant that you own or have the necessary rights to all User Content and that it does not infringe any third-party intellectual property rights, privacy rights, or other legal rights.",
+        "item4": "You are solely responsible for the accuracy, legality, and appropriateness of all User Content you submit.",
+        "item5": "Muhandes HUB reserves the right to remove, modify, or refuse to post any User Content that violates these Terms or applicable law, without prior notice.",
+        "item6": "You agree not to post content that is false, misleading, defamatory, obscene, threatening, or otherwise objectionable.",
+        "item7": "Violation of intellectual property rights may result in immediate account termination and legal action."
+      },
+      "prohibited": {
+        "title": "9. Prohibited Activities",
+        "description": "You agree not to engage in any of the following prohibited activities:",
+        "item1": "Using the Platform for any unlawful purpose or in violation of any applicable Saudi Arabian laws or regulations.",
+        "item2": "Impersonating any person or entity, or falsely stating or misrepresenting your affiliation with any person or entity.",
+        "item3": "Posting false, inaccurate, or misleading information about projects, products, services, or your business capabilities.",
+        "item4": "Attempting to circumvent, avoid, or evade commission payments through off-platform transactions or any other means.",
+        "item5": "Interfering with, disrupting, or attempting to gain unauthorized access to the Platform, servers, or networks.",
+        "item6": "Using automated systems, bots, scrapers, or similar technology to access or collect data from the Platform.",
+        "item7": "Engaging in price manipulation, bid rigging, or any form of anti-competitive behavior.",
+        "item8": "Harassing, threatening, or abusing other Users or Muhandes HUB personnel.",
+        "item9": "Money laundering, terrorist financing, or any activity that violates anti-money laundering regulations.",
+        "item10": "Violating any applicable sanctions or export control regulations."
+      },
+      "verification": {
+        "title": "10. Document Verification and Compliance",
+        "description": "All Users must submit valid documentation for verification, including but not limited to: VAT Registration Certificate, Commercial Registration, and National ID or Iqama of the authorized representative. Muhandes HUB reserves the right to: request additional documentation at any time; verify information with relevant government authorities; reject applications that do not meet verification standards; revoke verified status if documents expire, are found to be fraudulent, or if the User violates these Terms. Users must notify Muhandes HUB within fourteen (14) days of any changes to their registration status, VAT registration, or other verified information. Failure to maintain valid documentation may result in account suspension."
+      },
+      "platformRole": {
+        "title": "11. Platform Role and Disclaimer",
+        "description": "Muhandes HUB operates solely as an electronic marketplace connecting businesses. WE DO NOT: participate in or guarantee any transaction between Users; verify the quality, safety, legality, or suitability of any products, services, or projects listed; guarantee the accuracy or truthfulness of any User Content or listings; guarantee the ability, willingness, or creditworthiness of any User to complete transactions; provide escrow, payment processing between Users, or transaction insurance. All transactions are conducted directly between Users at their own risk. Muhandes HUB is not a party to any contract formed between Users and bears no responsibility for the performance or non-performance of any such contracts."
       },
       "liability": {
-        "title": "Limitation of Liability",
-        "item1": "The platform is a technical intermediary and is not responsible for work or product quality",
-        "item2": "Parties are responsible for verifying information before transacting",
-        "item3": "We are not liable for indirect damages or loss of profits"
+        "title": "12. Limitation of Liability",
+        "description": "TO THE MAXIMUM EXTENT PERMITTED BY SAUDI ARABIAN LAW: (a) Muhandes HUB shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Platform; (b) Muhandes HUB shall not be liable for any loss of profits, revenue, data, or business opportunities; (c) Muhandes HUB shall not be liable for any disputes, claims, or damages arising from transactions between Users; (d) Our total liability for any claim arising from these Terms or your use of the Platform shall not exceed the total subscription fees paid by you in the twelve (12) months preceding the claim; (e) These limitations apply regardless of the legal theory on which the claim is based, whether contract, tort, negligence, strict liability, or otherwise."
       },
-      "modifications": {
-        "title": "Modifications",
-        "description": "We reserve the right to modify these terms at any time. Users will be notified of any material changes."
+      "indemnification": {
+        "title": "13. Indemnification",
+        "description": "You agree to indemnify, defend, and hold harmless Muhandes HUB, its officers, directors, employees, agents, and affiliates from and against any and all claims, damages, losses, liabilities, costs, and expenses (including reasonable legal fees) arising from or related to: (a) your use of the Platform; (b) your violation of these Terms; (c) your violation of any applicable law or regulation; (d) your User Content; (e) any transaction or dispute with another User; (f) your infringement of any third-party rights. This indemnification obligation shall survive termination of these Terms and your use of the Platform."
       },
+      "termination": {
+        "title": "14. Termination",
+        "description": "Muhandes HUB may suspend or terminate your account immediately and without prior notice for: violation of these Terms; fraudulent or illegal activity; non-payment of fees or commissions; providing false or misleading information; any conduct that may harm Muhandes HUB or other Users. You may cancel your subscription at any time through your account settings. Upon termination: (a) all subscription fees paid remain non-refundable; (b) any outstanding commissions become immediately due and payable; (c) your right to access the Platform ceases immediately; (d) provisions of these Terms that by their nature should survive termination shall continue in full force and effect."
+      },
+      "disputes": {
+        "title": "15. Dispute Resolution and Governing Law",
+        "description": "These Terms shall be governed by and construed in accordance with the laws of the Kingdom of Saudi Arabia. Any dispute arising from or relating to these Terms or your use of the Platform shall be resolved as follows: (a) The parties shall first attempt to resolve the dispute through good-faith negotiations for a period of thirty (30) days; (b) If negotiations fail, the dispute shall be referred to arbitration administered by the Saudi Center for Commercial Arbitration (SCCA) in Riyadh, Saudi Arabia; (c) The arbitration shall be conducted in Arabic, with English translation available upon request; (d) The arbitral award shall be final and binding on both parties; (e) You waive any right to participate in class action lawsuits or class-wide arbitration. The courts of Riyadh, Saudi Arabia shall have exclusive jurisdiction over any matters not subject to arbitration."
+      },
+      "forceMajeure": {
+        "title": "16. Force Majeure",
+        "description": "Muhandes HUB shall not be liable for any failure or delay in performing its obligations under these Terms due to circumstances beyond its reasonable control, including but not limited to: acts of God, natural disasters, war, terrorism, riots, civil unrest, government actions, pandemics, power failures, telecommunications failures, or any other force majeure event. In such circumstances, Muhandes HUB's obligations shall be suspended for the duration of the force majeure event."
+      },
+      "amendments": {
+        "title": "17. Amendments to Terms",
+        "description": "Muhandes HUB reserves the right to modify, amend, or update these Terms at any time at its sole discretion. Material changes will be notified to Users via email or Platform notification at least thirty (30) days before taking effect. Your continued use of the Platform after the effective date of any changes constitutes your acceptance of the modified Terms. If you do not agree to the modified Terms, you must stop using the Platform and cancel your subscription. It is your responsibility to review these Terms periodically."
+      },
+      "severability": {
+        "title": "18. Severability and Waiver",
+        "description": "If any provision of these Terms is found to be invalid, illegal, or unenforceable by a court of competent jurisdiction, such invalidity shall not affect the remaining provisions, which shall continue in full force and effect. The invalid provision shall be modified to the minimum extent necessary to make it valid and enforceable while preserving the parties' original intent. No waiver of any provision of these Terms shall be deemed a further or continuing waiver of such provision or any other provision, and any failure to assert a right or provision shall not constitute a waiver of such right or provision."
+      },
+      "entireAgreement": {
+        "title": "19. Entire Agreement",
+        "description": "These Terms of Service, together with our Privacy Policy and any other policies referenced herein, constitute the entire agreement between you and Muhandes HUB regarding your use of the Platform and supersede all prior agreements, understandings, negotiations, and discussions, whether oral or written. No representation, warranty, or undertaking not expressly set forth in these Terms shall be binding on either party."
+      },
+      "contactInfo": {
+        "title": "20. Contact Information",
+        "description": "For questions, concerns, or notices regarding these Terms of Service, please contact us at:",
+        "email": "Email: info@muhandeshub.com",
+        "phone": "Phone: +966 55 107 0673",
+        "address": "Address: Riyadh, Kingdom of Saudi Arabia",
+        "notice": "All legal notices must be sent in writing to the address above or via email to info@muhandeshub.com."
+      },
+      "acknowledgment": "BY REGISTERING FOR OR USING MUHANDES HUB, YOU ACKNOWLEDGE THAT YOU HAVE READ THESE TERMS OF SERVICE IN THEIR ENTIRETY, UNDERSTAND THEM, AND AGREE TO BE LEGALLY BOUND BY THEM.",
       "seeAlso": "See also",
       "privacyLink": "Privacy Policy",
-      "cookiesLink": "Cookie Policy"
+      "cookiesLink": "Cookie Policy",
+      "refundLink": "Refund Policy"
+    },
+    "refund": {
+      "title": "Refund Policy",
+      "lastUpdated": "Last updated: January 4, 2026",
+      "intro": "IMPORTANT: All payments made to Muhandes HUB (owned and operated by Remal Al Mas International Company) are final and non-refundable. By using our platform, you expressly acknowledge and accept this strict no-refund policy. Please read this policy carefully before making any payment.",
+      "generalPolicy": {
+        "title": "1. General No-Refund Policy",
+        "description": "Muhandes HUB operates under a strict NO-REFUND policy for all payments, including but not limited to subscription fees, commissions, and any other charges. This policy applies without exception, regardless of the circumstances, reason for cancellation, level of platform usage, account status, or any disputes between users. By making any payment to Muhandes HUB, you irrevocably waive any right to request, claim, or receive a refund, chargeback, or payment reversal of any kind. This policy is a fundamental term of your agreement with Muhandes HUB and is disclosed in compliance with Article 10 of the Saudi E-Commerce Law (Royal Decree No. M/126)."
+      },
+      "subscriptionFees": {
+        "title": "2. Subscription Fees - Non-Refundable",
+        "description": "All subscription fees paid to Muhandes HUB are strictly non-refundable under ALL circumstances, including:",
+        "item1": "Voluntary cancellation of your subscription at any time, for any reason",
+        "item2": "Suspension or termination of your account by Muhandes HUB for violation of Terms of Service",
+        "item3": "Suspension or termination of your account due to non-payment of commissions or other fees",
+        "item4": "Failure to use the platform or any of its features during your subscription period",
+        "item5": "Dissatisfaction with platform features, functionality, or performance",
+        "item6": "Changes to platform features, pricing, or terms of service",
+        "item7": "Business closure, bankruptcy, or any change in your business circumstances",
+        "item8": "Technical issues, downtime, or service interruptions (force majeure events)",
+        "item9": "Any dispute with other users on the platform",
+        "item10": "No pro-rata refunds, partial refunds, or credits will be issued for unused subscription periods"
+      },
+      "commissions": {
+        "title": "3. Commissions - Non-Refundable",
+        "description": "All commission fees paid or payable to Muhandes HUB are strictly non-refundable under ALL circumstances, including:",
+        "item1": "Cancellation of a deal after it has been marked as completed on the platform",
+        "item2": "Disputes between buyer and seller regarding deal terms, quality, or delivery",
+        "item3": "Partial or incomplete performance of the deal by either party",
+        "item4": "Default or non-payment by the buyer after deal completion",
+        "item5": "Any subsequent agreement between parties to modify or void the original deal",
+        "item6": "Claims of fraud, misrepresentation, or breach of contract between users",
+        "item7": "Legal disputes or court orders affecting the underlying transaction",
+        "item8": "Commission is calculated on the total deal value and becomes due immediately upon deal completion, regardless of subsequent events"
+      },
+      "dealCancellations": {
+        "title": "4. Deal Cancellations Between Users",
+        "description": "Muhandes HUB is not a party to transactions between users and bears NO responsibility for:",
+        "item1": "Refunds between buyers and sellers for cancelled or disputed transactions",
+        "item2": "Quality, condition, or fitness of products, services, or project deliverables",
+        "item3": "Performance, non-performance, or partial performance of any agreement between users",
+        "item4": "Financial disputes, payment issues, or collection matters between users",
+        "item5": "Any claims arising from user-to-user transactions conducted through the platform",
+        "item6": "Users must resolve all transaction disputes directly between themselves",
+        "item7": "Muhandes HUB will not mediate, arbitrate, or intervene in user disputes",
+        "item8": "Platform commissions remain due and payable regardless of any user-to-user refunds or cancellations"
+      },
+      "creditNotes": {
+        "title": "5. Credit Notes - Limited Exceptions",
+        "description": "In rare and exceptional circumstances, Muhandes HUB may, at its sole and absolute discretion, issue credit notes (NOT refunds) for the following situations only:",
+        "item1": "Documented system errors resulting in duplicate charges (requires technical verification)",
+        "item2": "Administrative corrections for billing errors made by Muhandes HUB (not user errors)",
+        "item3": "Overpayments that exceed the correct amount due (requires documentation)",
+        "item4": "Credit notes may only be applied to future platform charges and have no cash value",
+        "item5": "Credit notes are non-transferable and expire within 12 months of issuance",
+        "item6": "Muhandes HUB reserves the right to deny any credit note request at its sole discretion",
+        "item7": "Issuance of a credit note does not constitute admission of liability or error"
+      },
+      "chargebacks": {
+        "title": "6. Chargebacks and Payment Reversals",
+        "description": "Attempting to reverse payments through chargebacks or other means is strictly prohibited:",
+        "item1": "Any chargeback attempt constitutes a material breach of these terms",
+        "item2": "Muhandes HUB will vigorously dispute all chargebacks with payment processors",
+        "item3": "Accounts involved in chargeback attempts will be immediately and permanently suspended",
+        "item4": "All outstanding commissions and fees become immediately due upon chargeback attempt",
+        "item5": "Muhandes HUB reserves the right to pursue legal action to recover disputed amounts plus legal fees",
+        "item6": "Users may be reported to credit agencies and fraud prevention services",
+        "item7": "By using the platform, you waive any right to initiate chargebacks or payment reversals"
+      },
+      "disputeResolution": {
+        "title": "7. Dispute Resolution",
+        "description": "If you believe you have been incorrectly charged, you must submit a written dispute to info@muhandeshub.com within fourteen (14) days of the charge. Disputes must include: your account details, transaction reference, specific amount disputed, and detailed explanation with supporting documentation. Muhandes HUB will review disputes within thirty (30) business days and its decision shall be final and binding. Submission of a dispute does not suspend your payment obligations or entitle you to withhold any amounts due. Frivolous or repeated dispute submissions may result in account suspension."
+      },
+      "liabilityLimit": {
+        "title": "8. Limitation of Platform Liability",
+        "item1": "Muhandes HUB is not responsible for any losses arising from transactions between users",
+        "item2": "Muhandes HUB does not guarantee the outcome, quality, or success of any deal or transaction",
+        "item3": "Muhandes HUB is not liable for any indirect, consequential, or punitive damages",
+        "item4": "Maximum liability shall not exceed fees paid by you in the preceding 12 months",
+        "item5": "Muhandes HUB is not responsible for technical failures, data loss, or service interruptions",
+        "item6": "Users assume all risk associated with using the platform and transacting with other users",
+        "item7": "You agree to indemnify Muhandes HUB against any claims arising from your use of the platform"
+      },
+      "saudiLaw": {
+        "title": "9. Compliance with Saudi Arabian Law",
+        "description": "This Refund Policy is governed by and construed in accordance with the laws of the Kingdom of Saudi Arabia. This policy complies with Article 10 of the E-Commerce Law (Royal Decree No. M/126), which requires clear disclosure of refund policies before purchase. By using Muhandes HUB and making any payment, you acknowledge that you have been clearly informed of this no-refund policy and have voluntarily agreed to it. Any disputes shall be resolved through the Saudi Center for Commercial Arbitration (SCCA) in Riyadh, with proceedings conducted in Arabic."
+      },
+      "changes": {
+        "title": "10. Changes to This Policy",
+        "description": "Muhandes HUB reserves the right to modify this Refund Policy at any time without prior notice. Changes become effective immediately upon posting to the platform. Continued use of the platform after any changes constitutes acceptance of the modified policy. It is your responsibility to review this policy periodically. The date of the last update is indicated at the top of this page."
+      },
+      "contactInfo": {
+        "title": "11. Contact Information",
+        "description": "For questions regarding this Refund Policy or to submit a billing dispute, contact us at: Email: info@muhandeshub.com. All communications must be in writing. Muhandes HUB will not accept verbal disputes or agreements to modify this policy. Response times may vary based on inquiry volume."
+      },
+      "acknowledgment": "By using Muhandes HUB and making any payment, you confirm that you have read, understood, and unconditionally agree to this Refund Policy. You acknowledge that all payments are final and non-refundable, and you waive any right to claim refunds, chargebacks, or payment reversals.",
+      "seeAlso": "See also",
+      "termsLink": "Terms of Service",
+      "privacyLink": "Privacy Policy"
     },
     "cookies": {
       "title": "Cookie Policy",
       "lastUpdated": "Last updated: January 1, 2025",
-      "intro": "This document explains how Muhandes HUB uses cookies and similar technologies.",
+      "intro": "This document explains how Muhandes HUB (owned and operated by Remal Al Mas International Company) uses cookies and similar technologies.",
       "whatAreCookies": {
         "title": "What Are Cookies?",
         "description": "Cookies are small text files stored on your device when you visit a website. They help remember your preferences and improve your browsing experience."
@@ -3510,7 +4432,7 @@
       },
       "contact": {
         "title": "Contact Us",
-        "description": "For any inquiries about cookies: privacy@muhandeshub.com"
+        "description": "For any inquiries about cookies: info@muhandeshub.com"
       },
       "seeAlso": "See also",
       "privacyLink": "Privacy Policy",
@@ -3527,6 +4449,42 @@
     "marketplace": {
       "title": "Product Marketplace — Construction Materials & Supplies | Muhandes HUB",
       "description": "Browse products from verified suppliers in the Saudi construction industry — building materials, equipment, and tools at competitive prices."
+    },
+    "pricing": {
+      "title": "Subscription Plans & Pricing | Muhandes HUB",
+      "description": "Compare Starter, Pro, Business, and Enterprise plans for the Saudi construction marketplace. All prices include 15% VAT. Start free today."
+    },
+    "partners": {
+      "title": "Partner Directory — Verified Contractors & Suppliers | Muhandes HUB",
+      "description": "Browse verified contractors and suppliers in the Saudi construction industry. Find trusted partners for your next project."
+    },
+    "projects": {
+      "title": "Browse Construction Projects | Muhandes HUB",
+      "description": "Explore active construction projects across Saudi Arabia. Find bidding opportunities and connect with project owners."
+    },
+    "rfqs": {
+      "title": "Requests for Quotation — Construction Supplies | Muhandes HUB",
+      "description": "Browse open RFQs from buyers in the Saudi construction industry. Submit competitive quotes and win new business."
+    },
+    "contact": {
+      "title": "Contact Us | Muhandes HUB",
+      "description": "Get in touch with the Muhandes HUB team. We are here to help you with questions about the Saudi construction marketplace."
+    },
+    "terms": {
+      "title": "Terms & Conditions | Muhandes HUB",
+      "description": "Read the terms and conditions governing the use of Muhandes HUB, the Saudi construction industry B2B marketplace."
+    },
+    "privacy": {
+      "title": "Privacy Policy | Muhandes HUB",
+      "description": "Learn how Muhandes HUB collects, uses, and protects your personal data in compliance with Saudi PDPL regulations."
+    },
+    "cookies": {
+      "title": "Cookie Policy | Muhandes HUB",
+      "description": "Understand how Muhandes HUB uses cookies and similar technologies to improve your experience on our platform."
+    },
+    "refundPolicy": {
+      "title": "Refund Policy | Muhandes HUB",
+      "description": "Review the refund and cancellation policy for Muhandes HUB subscription plans and commission fees."
     },
     "default": {
       "title": "Muhandes HUB",
@@ -3652,6 +4610,7 @@
       "productLimitReached": "You have reached the product limit ({limit}). Please upgrade your subscription",
       "invalidVariants": "Invalid variant format",
       "invalidData": "Invalid data",
+      "imageRequired": "Please upload at least one product image",
       "createError": "An error occurred while creating the product",
       "productNotFound": "Product not found",
       "noPermissionEdit": "You do not have permission to edit this product",
@@ -3660,7 +4619,9 @@
       "noPermission": "You do not have permission",
       "cannotSubmitStatus": "Cannot submit the product for review in this status",
       "submitError": "An error occurred while submitting the product",
-      "cannotDeleteNonDraft": "Can only delete a product in draft status",
+      "cannotDeleteNonDraft": "Cannot delete this product",
+      "cannotDeleteActiveDeals": "Cannot delete a product with active deals",
+      "bulkPriceVariantSkip": "Variant-priced products cannot be bulk-updated",
       "deleteError": "An error occurred while deleting the product",
       "suppliersOnlyImport": "Only suppliers can import products",
       "bulkImportTierRequired": "Bulk import is only available for Business or Enterprise plans",
@@ -3797,7 +4758,8 @@
       "mustUpgradeToHigherTier": "You can only upgrade to a higher tier",
       "mustDowngradeToLowerTier": "You can only downgrade to a lower tier",
       "noActiveSubscription": "No active subscription found",
-      "cannotRenewStarter": "Starter plan does not require renewal"
+      "cannotRenewStarter": "Starter plan does not require renewal",
+      "freeRoleNoSubscription": "Your account type has unlimited free access and does not require a subscription"
     },
     "crm": {
       "mustLogin": "You must be logged in",
@@ -3805,6 +4767,9 @@
       "accessDenied": "Access denied",
       "clientLimitReached": "You've reached the maximum client limit ({limit})",
       "addClientError": "Failed to add client",
+      "clientAlreadyExists": "This user is already in your CRM",
+      "userNotFound": "User not found",
+      "searchError": "Failed to search users",
       "updateClientError": "Failed to update client",
       "invalidStage": "Invalid pipeline stage",
       "moveClientError": "Failed to move client",
@@ -3905,7 +4870,8 @@
       "markAllReadError": "Failed to update notifications",
       "invalidData": "Invalid data",
       "cannotMuteCritical": "Cannot mute critical notifications",
-      "updatePreferencesError": "Failed to update preferences"
+      "updatePreferencesError": "Failed to update preferences",
+      "fetchError": "Failed to load notifications"
     },
     "profile": {
       "mustLogin": "You must be logged in",
@@ -3982,7 +4948,9 @@
       "allFieldsRequired": "All required fields must be filled",
       "updateCouponError": "Failed to update coupon",
       "createCouponError": "Failed to create coupon",
-      "toggleCouponError": "Failed to update coupon status"
+      "toggleCouponError": "Failed to update coupon status",
+      "typesenseNotConfigured": "Search service is not configured",
+      "reindexError": "Failed to reindex data"
     },
     "adminUsers": {
       "mustLogin": "You must be logged in",
@@ -4010,7 +4978,8 @@
       "invalidDays": "Days must be between 1 and 365",
       "noSubscription": "No subscription found for this user",
       "alreadyActive": "This subscription is already active",
-      "approveError": "Failed to approve subscription payment"
+      "approveError": "Failed to approve subscription payment",
+      "rejectError": "Failed to reject subscription payment"
     },
     "adminContact": {
       "mustLogin": "You must be logged in",
@@ -4034,7 +5003,13 @@
       "general": "General",
       "files": "files",
       "noFiles": "No files uploaded",
-      "download": "Download"
+      "download": "Download",
+      "preview": "Preview",
+      "close": "Close",
+      "loading": "Loading file...",
+      "noPreview": "Preview not available for this file type",
+      "openFile": "Open File",
+      "downloadFile": "Download File"
     }
   }
 }

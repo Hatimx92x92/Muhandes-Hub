@@ -2,11 +2,13 @@
 // File Display List — Read-Only file display grouped by category
 // =============================================================================
 
-import { FileText, Image as ImageIcon, Download, FileSpreadsheet, File } from 'lucide-react';
+'use client';
+
+import { FileText, Image as ImageIcon, FileSpreadsheet, File } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
+import { FileActions } from '@/components/features/file-actions';
 
 export interface DisplayFile {
   id: string;
@@ -104,15 +106,7 @@ export function FileDisplayList({ files, title, grouped = true, className }: Fil
                     <p className="truncate text-sm font-medium text-foreground">{file.file_name}</p>
                     <p className="text-xs text-muted-foreground">{formatFileSize(file.file_size)}</p>
                   </div>
-                  <a
-                    href={file.file_url}
-                    download={file.file_name}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  >
-                    <Download className="h-4 w-4" />
-                  </a>
+                  <FileActions url={file.file_url} fileName={file.file_name} compact />
                 </li>
               ))}
             </ul>

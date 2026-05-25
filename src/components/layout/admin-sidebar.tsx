@@ -21,24 +21,28 @@ import {
   MessageSquare,
   ChevronLeft,
   ChevronDown,
+  ShoppingCart,
+  Gavel,
+  Receipt,
+  Wallet,
 } from 'lucide-react';
 
 // =============================================================================
 // Admin Navigation — grouped
 // =============================================================================
 
-interface NavItem {
+export interface AdminNavItem {
   href: string;
   labelKey: string;
   icon: React.ElementType;
 }
 
-interface NavGroup {
+export interface AdminNavGroup {
   labelKey: string;
-  items: NavItem[];
+  items: AdminNavItem[];
 }
 
-const ADMIN_GROUPS: NavGroup[] = [
+export const ADMIN_GROUPS: AdminNavGroup[] = [
   {
     labelKey: 'groupOverview',
     items: [
@@ -52,6 +56,9 @@ const ADMIN_GROUPS: NavGroup[] = [
       { href: '/admin/users', labelKey: 'users', icon: Users },
       { href: '/admin/registrations', labelKey: 'registrations', icon: UserPlus },
       { href: '/admin/posts', labelKey: 'posts', icon: FileText },
+      { href: '/admin/rfqs', labelKey: 'rfqs', icon: ShoppingCart },
+      { href: '/admin/bids', labelKey: 'bids', icon: Gavel },
+      { href: '/admin/quotations', labelKey: 'quotations', icon: Receipt },
       { href: '/admin/reviews', labelKey: 'reviews', icon: Star },
     ],
   },
@@ -60,6 +67,7 @@ const ADMIN_GROUPS: NavGroup[] = [
     items: [
       { href: '/admin/deals', labelKey: 'deals', icon: Handshake },
       { href: '/admin/commissions', labelKey: 'commissions', icon: Banknote },
+      { href: '/admin/payments', labelKey: 'payments', icon: Wallet },
       { href: '/admin/subscriptions', labelKey: 'subscriptions', icon: CreditCard },
     ],
   },

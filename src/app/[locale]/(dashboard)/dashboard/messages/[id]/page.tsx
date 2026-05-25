@@ -2,13 +2,11 @@
 // Muhandes HUB — Chat Thread Page
 // =============================================================================
 
-import { redirect } from 'next/navigation';
-import { notFound } from 'next/navigation';
-import { Link } from '@/i18n/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getTranslations } from 'next-intl/server';
-import { markAsRead } from '@/actions/messages';
+import { getTranslations, getLocale } from 'next-intl/server';
 import { ChatThread } from '@/components/features/messaging/chat-thread';
+import { EntityContextBanner } from '@/components/features/messaging/entity-context-banner';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,6 +21,8 @@ interface PageProps {
 export default async function ChatThreadPage({ params }: PageProps) {
   const { id: conversationId } = await params;
   const t = await getTranslations('dashboard.messages');
+  const locale = await getLocale();
+  const isAr = locale === 'ar';
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -36,7 +36,7 @@ export default async function ChatThreadPage({ params }: PageProps) {
     .single();
   if (!participation) notFound();
 
-  // Fetch conversation details
+  // Fetch conversation + all entity IDs
   const { data: conversation } = await db(supabase)
     .from('conversations')
     .select('id, project_id, product_id, deal_id, updated_at')
@@ -44,17 +44,16 @@ export default async function ChatThreadPage({ params }: PageProps) {
     .single();
   if (!conversation) notFound();
 
-  // Fetch other participant info
+  // Other participant info
   const { data: otherParticipants } = await db(supabase)
     .from('conversation_participants')
     .select(`
       user_id,
       profiles:user_id (
         id,
+        full_name,
         company_name_ar,
         company_name_en,
-        full_name_ar,
-        full_name_en,
         role
       )
     `)
@@ -62,13 +61,16 @@ export default async function ChatThreadPage({ params }: PageProps) {
     .neq('user_id', user.id);
 
   const otherProfile = otherParticipants?.[0]?.profiles;
-  const otherName = otherProfile?.company_name_ar || otherProfile?.full_name_ar || t('user');
+  const otherName = isAr
+    ? (otherProfile?.company_name_ar || otherProfile?.full_name || t('user'))
+    : (otherProfile?.company_name_en || otherProfile?.full_name || t('user'));
 
-  // Fetch messages (most recent first, then reverse for display)
+  // Fetch messages
   const { data: messagesRaw } = await db(supabase)
     .from('messages')
-    .select('id, sender_id, content, file_url, file_name, file_size, created_at')
+    .select('id, sender_id, content, file_url, file_name, file_size, attachments, created_at')
     .eq('conversation_id', conversationId)
+    .is('deleted_at', null)
     .order('created_at', { ascending: true })
     .limit(100);
 
@@ -79,6 +81,7 @@ export default async function ChatThreadPage({ params }: PageProps) {
     file_url: string | null;
     file_name: string | null;
     file_size: number | null;
+    attachments: Array<{ url: string; name: string; size: number; mimeType: string }> | null;
     created_at: string;
   }) => ({
     id: m.id,
@@ -87,6 +90,7 @@ export default async function ChatThreadPage({ params }: PageProps) {
     fileUrl: m.file_url,
     fileName: m.file_name,
     fileSize: m.file_size,
+    attachments: m.attachments,
     createdAt: m.created_at,
     isMine: m.sender_id === user.id,
   }));
@@ -98,32 +102,66 @@ export default async function ChatThreadPage({ params }: PageProps) {
     .eq('user_id', user.id)
     .order('sort_order', { ascending: true });
 
-  // Mark conversation as read
-  if (participation.unread_count > 0) {
-    await markAsRead(conversationId);
-  }
+  // Resolve entity context for banner
+  type EntityContext =
+    | { type: 'deal'; id: string; titleSlug: string; status: string; value: number }
+    | { type: 'project'; id: string; title: string }
+    | { type: 'product'; id: string; title: string }
+    | null;
 
-  // Context info
-  let contextLink = '';
-  let contextHref = '';
+  let entityContext: EntityContext = null;
+
   if (conversation.deal_id) {
-    contextLink = t('viewDeal');
-    contextHref = `/dashboard/deals/${conversation.deal_id}`;
+    const { data: deal } = await db(supabase)
+      .from('deals')
+      .select('id, status, value, title_slug')
+      .eq('id', conversation.deal_id)
+      .single();
+    if (deal) {
+      entityContext = {
+        type: 'deal',
+        id: deal.id,
+        titleSlug: deal.title_slug ?? conversation.deal_id,
+        status: deal.status,
+        value: deal.value,
+      };
+    }
   } else if (conversation.project_id) {
-    contextLink = t('viewProject');
-    contextHref = `/dashboard/projects/${conversation.project_id}`;
+    const { data: project } = await db(supabase)
+      .from('projects')
+      .select('id, title_ar, title_en')
+      .eq('id', conversation.project_id)
+      .single();
+    if (project) {
+      entityContext = {
+        type: 'project',
+        id: project.id,
+        title: isAr ? (project.title_ar || project.title_en) : (project.title_en || project.title_ar),
+      };
+    }
   } else if (conversation.product_id) {
-    contextLink = t('viewProduct');
-    contextHref = `/dashboard/products/${conversation.product_id}`;
+    const { data: product } = await db(supabase)
+      .from('products')
+      .select('id, title_ar, title_en')
+      .eq('id', conversation.product_id)
+      .single();
+    if (product) {
+      entityContext = {
+        type: 'product',
+        id: product.id,
+        title: isAr ? (product.title_ar || product.title_en) : (product.title_en || product.title_ar),
+      };
+    }
   }
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
       <BreadcrumbOverride segment={conversationId} label={otherName} />
-      {/* Thread Header */}
+
+      {/* Participant Header */}
       <div className="flex items-center gap-3 border-b border-border px-4 py-3 bg-card rounded-t-xl">
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
-          {otherName.charAt(0)}
+          {otherName.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
           <h2 className="font-semibold text-foreground truncate">{otherName}</h2>
@@ -133,17 +171,17 @@ export default async function ChatThreadPage({ params }: PageProps) {
             </p>
           )}
         </div>
-        {contextLink && contextHref && (
-          <Link
-            href={contextHref}
-            className="text-xs text-primary hover:underline shrink-0"
-          >
-            {contextLink}
-          </Link>
-        )}
       </div>
 
-      {/* Chat Thread Client Component */}
+      {/* Entity Context Banner */}
+      {entityContext && (
+        <EntityContextBanner
+          entity={entityContext as Parameters<typeof EntityContextBanner>[0]['entity']}
+          locale={locale}
+        />
+      )}
+
+      {/* Chat Thread */}
       <ChatThread
         conversationId={conversationId}
         currentUserId={user.id}
@@ -153,6 +191,8 @@ export default async function ChatThreadPage({ params }: PageProps) {
           contentAr: qr.content_ar,
           contentEn: qr.content_en,
         }))}
+        locale={locale}
+        initialUnreadCount={participation.unread_count}
       />
     </div>
   );

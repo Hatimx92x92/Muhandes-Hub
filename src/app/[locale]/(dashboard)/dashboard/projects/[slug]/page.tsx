@@ -5,18 +5,23 @@
 import { Link } from '@/i18n/navigation';
 import { redirect } from 'next/navigation';
 import { notFound } from 'next/navigation';
+import { after } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { backfillEntityTranslation } from '@/actions/admin/translate-backfill';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/ui/page-header';
+import { EntityDetailLayout } from '@/components/features/entity-detail-layout';
 import { PostStatusBadge } from '@/components/features/post-status-badge';
 import { ModerationFeedback } from '@/components/features/moderation-feedback';
 import { formatSAR, formatDate, getLocaleField, isUUID, getEntitySlug } from '@/lib/utils';
-import { Pencil, Send, Trash2, MapPin, Calendar, Banknote, Users, Handshake, ChevronRight } from 'lucide-react';
+import { Pencil, Send, Trash2, MapPin, Calendar, Banknote, Users, Handshake, ChevronRight, ImageIcon } from 'lucide-react';
 import { submitProjectForApproval, deleteProject } from '@/actions/projects';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 import { FileDisplayList } from '@/components/features/file-display-list';
+import { getProxyUrl } from '@/lib/file-utils';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -26,13 +31,15 @@ function db(supabase: any): any {
 export default async function ProjectDetailPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug: rawSlug } = await params;
+  setRequestLocale(locale);
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
-  const locale = await getLocale();
 
   let project;
   if (isUUID(slug)) {
@@ -51,6 +58,11 @@ export default async function ProjectDetailPage({
     ({ data: project } = await db(supabase).from('projects').select('*').eq(fallbackCol, slug).eq('owner_id', user.id).single());
   }
   if (!project) notFound();
+
+  // Backfill missing locale fields after render (fire-and-forget, free DeepL)
+  if (!project[`title_${locale}`] || !project[`description_${locale}`]) {
+    after(() => backfillEntityTranslation('projects', project.id, project, ['title', 'description']));
+  }
 
   const id = project.id;
 
@@ -81,13 +93,10 @@ export default async function ProjectDetailPage({
   return (
     <div className="space-y-6">
       <BreadcrumbOverride segment={slug} label={getLocaleField(project, 'title', locale)} />
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            {getLocaleField(project, 'title', locale)}
-          </h1>
-          <div className="mt-2 flex items-center gap-2">
+      <PageHeader
+        title={getLocaleField(project, 'title', locale)}
+        badge={
+          <div className="flex items-center gap-2">
             <PostStatusBadge status={status} />
             {project.source === 'subcontract' && (
               <Badge variant="info">{tCommon('subcontract')}</Badge>
@@ -96,42 +105,44 @@ export default async function ProjectDetailPage({
               <Badge variant="outline">{tCommon('category')} {project.classification.toUpperCase()}</Badge>
             )}
           </div>
-        </div>
-
-        <div className="flex gap-2">
-          {canEdit && (
-            <Link href={`/dashboard/projects/${id}/edit`}>
-              <Button variant="outline" size="sm">
-                <Pencil className="me-1.5 h-4 w-4" />
-                {tCommon('edit')}
-              </Button>
-            </Link>
-          )}
-          {canSubmit && (
-            <form action={async () => {
-              'use server';
-              await submitProjectForApproval(id);
-            }}>
-              <Button size="sm">
-                <Send className="me-1.5 h-4 w-4" />
-                {t('submitForReview')}
-              </Button>
-            </form>
-          )}
-          {canDelete && (
-            <form action={async () => {
-              'use server';
-              await deleteProject(id);
-              redirect('/dashboard/projects');
-            }}>
-              <Button variant="destructive" size="sm">
-                <Trash2 className="me-1.5 h-4 w-4" />
-                {tCommon('delete')}
-              </Button>
-            </form>
-          )}
-        </div>
-      </div>
+        }
+        backHref="/dashboard/projects"
+        action={
+          <div className="flex gap-2">
+            {canEdit && (
+              <Link href={`/dashboard/projects/${id}/edit`}>
+                <Button variant="outline" size="sm">
+                  <Pencil className="me-1.5 h-4 w-4" />
+                  {tCommon('edit')}
+                </Button>
+              </Link>
+            )}
+            {canSubmit && (
+              <form action={async () => {
+                'use server';
+                await submitProjectForApproval(id);
+              }}>
+                <Button size="sm">
+                  <Send className="me-1.5 h-4 w-4" />
+                  {t('submitForReview')}
+                </Button>
+              </form>
+            )}
+            {canDelete && (
+              <form action={async () => {
+                'use server';
+                await deleteProject(id);
+                redirect('/dashboard/projects');
+              }}>
+                <Button variant="destructive" size="sm">
+                  <Trash2 className="me-1.5 h-4 w-4" />
+                  {tCommon('delete')}
+                </Button>
+              </form>
+            )}
+          </div>
+        }
+      />
 
       {/* Rejection Feedback */}
       {status === 'rejected' && (
@@ -141,10 +152,75 @@ export default async function ProjectDetailPage({
         />
       )}
 
-      {/* Details Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <EntityDetailLayout
+        sidebar={
+          <>
+            {/* Meta Info */}
+            <Card className="p-5">
+              <h3 className="mb-3 text-sm font-semibold text-foreground">{t('projectDetails')}</h3>
+              <dl className="space-y-3 text-sm">
+                {project.city && (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <dt className="text-muted-foreground">{tCommon('city')}:</dt>
+                    <dd className="font-medium text-foreground">{project.city}</dd>
+                  </div>
+                )}
+                {(project.budget_min || project.budget_max) && (
+                  <div className="flex items-center gap-2">
+                    <Banknote className="h-4 w-4 text-muted-foreground" />
+                    <dt className="text-muted-foreground">{tCommon('budget')}:</dt>
+                    <dd className="font-medium text-foreground">
+                      {project.budget_min && project.budget_max
+                        ? `${formatSAR(project.budget_min)} - ${formatSAR(project.budget_max)}`
+                        : project.budget_max
+                          ? `${tCommon('upTo')} ${formatSAR(project.budget_max)}`
+                          : `${tCommon('from')} ${formatSAR(project.budget_min)}`}
+                    </dd>
+                  </div>
+                )}
+                {project.timeline_start && (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <dt className="text-muted-foreground">{tCommon('duration')}:</dt>
+                    <dd className="font-medium text-foreground">
+                      {formatDate(project.timeline_start)}
+                      {project.timeline_end && ` — ${formatDate(project.timeline_end)}`}
+                    </dd>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <dt className="text-muted-foreground">{tCommon('bids')}:</dt>
+                  <dd className="font-medium text-foreground">{project.bid_count ?? 0}</dd>
+                </div>
+              </dl>
+            </Card>
+
+            {/* Timestamps */}
+            <Card className="p-5">
+              <h3 className="mb-3 text-sm font-semibold text-foreground">{tCommon('dates')}</h3>
+              <dl className="space-y-2 text-sm">
+                <div>
+                  <dt className="text-muted-foreground">{tCommon('createdAt')}</dt>
+                  <dd className="font-medium text-foreground">{formatDate(project.created_at)}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">{tCommon('updatedAt')}</dt>
+                  <dd className="font-medium text-foreground">{formatDate(project.updated_at)}</dd>
+                </div>
+                {project.approved_at && (
+                  <div>
+                    <dt className="text-muted-foreground">{tCommon('approvalDate')}</dt>
+                    <dd className="font-medium text-foreground">{formatDate(project.approved_at)}</dd>
+                  </div>
+                )}
+              </dl>
+            </Card>
+          </>
+        }
+      >
         {/* Main Content */}
-        <div className="space-y-6 lg:col-span-2">
           {/* Description */}
           <Card className="p-6">
             <h2 className="mb-3 text-lg font-semibold text-foreground">{tCommon('description')}</h2>
@@ -153,9 +229,37 @@ export default async function ProjectDetailPage({
             </p>
           </Card>
 
-          {projectFiles && projectFiles.length > 0 && (
-            <FileDisplayList files={projectFiles} title={t('documentsAndFiles')} />
-          )}
+          {/* Project Images Gallery */}
+          {(() => {
+            const imageFiles = (projectFiles ?? []).filter((f: { category: string }) => f.category === 'images');
+            if (imageFiles.length === 0) return null;
+            return (
+              <Card className="p-6">
+                <h2 className="mb-3 text-lg font-semibold text-foreground flex items-center gap-2">
+                  <ImageIcon className="h-5 w-5 text-primary" />
+                  {t('projectImages')}
+                </h2>
+                <div className={`grid gap-2 ${imageFiles.length === 1 ? '' : 'grid-cols-2 sm:grid-cols-3'}`}>
+                  {imageFiles.map((img: { id: string; file_url: string; file_name: string }) => (
+                    <div key={img.id} className="overflow-hidden rounded-lg">
+                      <img
+                        src={getProxyUrl(img.file_url)}
+                        alt={img.file_name}
+                        className="aspect-video w-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            );
+          })()}
+
+          {/* Documents (non-image files only) */}
+          {(() => {
+            const docFiles = (projectFiles ?? []).filter((f: { category: string }) => f.category !== 'images');
+            if (docFiles.length === 0) return null;
+            return <FileDisplayList files={docFiles} title={t('documentsAndFiles')} />;
+          })()}
 
           {/* Associated Deals */}
           {projectDeals && projectDeals.length > 0 && (
@@ -190,74 +294,7 @@ export default async function ProjectDetailPage({
               </div>
             </Card>
           )}
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-4">
-          {/* Meta Info */}
-          <Card className="p-5">
-            <h3 className="mb-3 text-sm font-semibold text-foreground">{t('projectDetails')}</h3>
-            <dl className="space-y-3 text-sm">
-              {project.city && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <dt className="text-muted-foreground">{tCommon('city')}:</dt>
-                  <dd className="font-medium text-foreground">{project.city}</dd>
-                </div>
-              )}
-              {(project.budget_min || project.budget_max) && (
-                <div className="flex items-center gap-2">
-                  <Banknote className="h-4 w-4 text-muted-foreground" />
-                  <dt className="text-muted-foreground">{tCommon('budget')}:</dt>
-                  <dd className="font-medium text-foreground">
-                    {project.budget_min && project.budget_max
-                      ? `${formatSAR(project.budget_min)} - ${formatSAR(project.budget_max)}`
-                      : project.budget_max
-                        ? `${tCommon('upTo')} ${formatSAR(project.budget_max)}`
-                        : `${tCommon('from')} ${formatSAR(project.budget_min)}`}
-                  </dd>
-                </div>
-              )}
-              {project.timeline_start && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <dt className="text-muted-foreground">{tCommon('duration')}:</dt>
-                  <dd className="font-medium text-foreground">
-                    {formatDate(project.timeline_start)}
-                    {project.timeline_end && ` — ${formatDate(project.timeline_end)}`}
-                  </dd>
-                </div>
-              )}
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <dt className="text-muted-foreground">{tCommon('bids')}:</dt>
-                <dd className="font-medium text-foreground">{project.bid_count ?? 0}</dd>
-              </div>
-            </dl>
-          </Card>
-
-          {/* Timestamps */}
-          <Card className="p-5">
-            <h3 className="mb-3 text-sm font-semibold text-foreground">{tCommon('dates')}</h3>
-            <dl className="space-y-2 text-sm">
-              <div>
-                <dt className="text-muted-foreground">{tCommon('createdAt')}</dt>
-                <dd className="font-medium text-foreground">{formatDate(project.created_at)}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">{tCommon('updatedAt')}</dt>
-                <dd className="font-medium text-foreground">{formatDate(project.updated_at)}</dd>
-              </div>
-              {project.approved_at && (
-                <div>
-                  <dt className="text-muted-foreground">{tCommon('approvalDate')}</dt>
-                  <dd className="font-medium text-foreground">{formatDate(project.approved_at)}</dd>
-                </div>
-              )}
-            </dl>
-          </Card>
-        </div>
-      </div>
+      </EntityDetailLayout>
     </div>
   );
 }

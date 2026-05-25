@@ -65,17 +65,19 @@ export function CTASection() {
         </FadeIn>
 
         <FadeIn direction="up" delay={0.3}>
-          <Link href="/register">
-            <ShimmerButton
-              shimmerColor="#1E56A0"
-              background="rgba(255, 255, 255, 0.95)"
-              borderRadius="12px"
-              className="h-13 px-8 text-base font-bold text-primary shadow-lg"
-            >
-              {t('button')}
-              <ArrowLeft className="ms-2 h-4 w-4 rtl:rotate-180" />
-            </ShimmerButton>
-          </Link>
+          <div className="flex justify-center">
+            <Link href="/register">
+              <ShimmerButton
+                shimmerColor="#1E56A0"
+                background="rgba(255, 255, 255, 0.95)"
+                borderRadius="12px"
+                className="h-13 px-8 text-base font-bold text-primary shadow-lg"
+              >
+                {t('button')}
+                <ArrowLeft className="ms-2 h-4 w-4 rtl:rotate-180" />
+              </ShimmerButton>
+            </Link>
+          </div>
         </FadeIn>
       </div>
     </section>

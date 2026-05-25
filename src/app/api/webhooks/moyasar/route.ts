@@ -10,6 +10,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { VAT_RATE } from '@/types';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createHmac, timingSafeEqual } from 'crypto';
+import { renderToBuffer } from '@react-pdf/renderer';
+import { InvoicePdf } from '@/lib/pdf/invoice-pdf';
+
+const PLATFORM_INFO = {
+  platform_name: 'Muhandes HUB / منصة مهندس',
+  platform_vat_number: process.env.PLATFORM_VAT_NUMBER || '300000000000003',
+  platform_cr_number: process.env.PLATFORM_CR_NUMBER || '1010000000',
+  platform_address: process.env.PLATFORM_ADDRESS || 'Riyadh, Kingdom of Saudi Arabia',
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -237,7 +246,8 @@ async function handleCommissionPayment(
     })
     .eq('id', commissionId);
 
-  // Create invoice
+  // Create invoice record
+  const now = new Date().toISOString();
   await db(supabase).from('invoices').insert({
     user_id: commission.seller_id,
     type: 'commission',
@@ -246,10 +256,51 @@ async function handleCommissionPayment(
     vat: commission.vat_amount,
     total: commission.total,
     moyasar_payment_id: payload.id,
-    issued_at: new Date().toISOString(),
+    issued_at: now,
   });
 
-  // TODO: Generate ZATCA-compliant PDF invoice
+  // Generate ZATCA-compliant PDF invoice and store it
+  void (async () => {
+    try {
+      const [sellerResult, dealResult] = await Promise.all([
+        db(supabase).from('profiles').select('company_name_ar, company_name_en, vat_number, cr_number, city').eq('id', commission.seller_id).single(),
+        db(supabase).from('deals').select('id, title_slug, value').eq('id', commission.deal_id).single(),
+      ]);
+      const seller = sellerResult.data;
+      const deal = dealResult.data;
+
+      const buffer = await renderToBuffer(
+        InvoicePdf({
+          data: {
+            invoice_number: `INV-${commissionId.slice(0, 8).toUpperCase()}`,
+            deal_id: commission.deal_id,
+            deal_title: deal?.title_slug || undefined,
+            seller_company: seller?.company_name_ar || seller?.company_name_en || undefined,
+            seller_vat_number: seller?.vat_number || undefined,
+            seller_cr_number: seller?.cr_number || undefined,
+            seller_address: seller?.city || undefined,
+            ...PLATFORM_INFO,
+            deal_value: Number(deal?.value) || 0,
+            commission_rate: Number(commission.rate) / 100,
+            net_amount: Number(commission.amount) || 0,
+            vat_amount: Number(commission.vat_amount) || 0,
+            total: Number(commission.total) || 0,
+            issue_date: now,
+            due_date: commission.due_date,
+            status: 'paid',
+            paid_at: now,
+          },
+        }),
+      );
+
+      await supabase.storage
+        .from('invoices')
+        .upload(`commission-${commissionId}.pdf`, buffer, {
+          contentType: 'application/pdf',
+          upsert: true,
+        });
+    } catch { /* non-critical — PDF available on demand via /api/pdf/invoice */ }
+  })();
 
   return NextResponse.json({ received: true, action: 'commission_paid' });
 }

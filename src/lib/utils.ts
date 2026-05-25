@@ -110,13 +110,13 @@ export function isUUID(value: string): boolean {
  * Falls back to the other locale's slug if the preferred one is empty.
  */
 export function getEntitySlug(
-  record: { slug_ar?: string | null; slug_en?: string | null; title_slug?: string | null },
+  record: { slug_ar?: string | null; slug_en?: string | null; title_slug?: string | null; id?: string | null },
   locale: string = 'ar',
 ): string {
   if ('title_slug' in record && record.title_slug) return record.title_slug;
   const primary = locale === 'ar' ? record.slug_ar : record.slug_en;
   const fallback = locale === 'ar' ? record.slug_en : record.slug_ar;
-  return primary || fallback || '';
+  return primary || fallback || (record.id ? record.id : '');
 }
 
 /**
@@ -171,7 +171,7 @@ export function formatDate(
   options?: Intl.DateTimeFormatOptions,
 ): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString(locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-SA', {
+  return d.toLocaleDateString(locale === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-SA', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -183,9 +183,10 @@ export function formatDate(
  * Format a relative time (e.g., "3 days ago").
  */
 export function formatRelativeTime(
-  date: string | Date,
+  date: string | Date | null | undefined,
   locale: string = 'ar',
 ): string {
+  if (!date) return '';
   const d = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
@@ -194,7 +195,7 @@ export function formatRelativeTime(
   const diffHours = Math.round(diffMins / 60);
   const diffDays = Math.round(diffHours / 24);
 
-  const rtf = new Intl.RelativeTimeFormat(locale === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-SA', {
+  const rtf = new Intl.RelativeTimeFormat(locale === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-SA', {
     numeric: 'auto',
   });
 

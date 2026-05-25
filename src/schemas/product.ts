@@ -104,3 +104,23 @@ export const SubmitProductForApprovalSchema = z.object({
 export const DeleteProductSchema = z.object({
   product_id: z.string().uuid(),
 });
+
+// ---------------------------------------------------------------------------
+// Bulk Actions
+// ---------------------------------------------------------------------------
+export const BulkProductIdsSchema = z.object({
+  productIds: z.array(z.string().uuid()).min(1, 'Select at least one product').max(100),
+});
+
+export const BulkUpdateStatusSchema = BulkProductIdsSchema.extend({
+  status: z.enum(['draft', 'published']),
+});
+
+export const BulkUpdatePriceSchema = BulkProductIdsSchema.extend({
+  price: z.coerce.number().min(0.01, 'Price must be greater than 0'),
+});
+
+export const BulkUpdateStockSchema = BulkProductIdsSchema.extend({
+  in_stock: z.coerce.boolean(),
+  stock_quantity: z.coerce.number().int().min(0).optional(),
+});

@@ -10,7 +10,11 @@ function db(supabase: Awaited<ReturnType<typeof createClient>>): any {
   return supabase;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
+const BASE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com').trim();
+
+// Use build date for static pages instead of new Date() on every request.
+// Changing on every crawl signals false freshness to Google.
+const STATIC_LAST_MODIFIED = new Date('2026-04-06');
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
@@ -27,6 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/terms',
     '/privacy',
     '/cookies',
+    '/refund-policy',
     '/login',
     '/register',
   ];
@@ -34,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const page of staticPages) {
     entries.push({
       url: `${BASE_URL}/ar${page}`,
-      lastModified: new Date(),
+      lastModified: STATIC_LAST_MODIFIED,
       changeFrequency: page === '' ? 'daily' : 'weekly',
       priority: page === '' ? 1.0 : 0.7,
       alternates: {
@@ -46,7 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
     entries.push({
       url: `${BASE_URL}/en${page}`,
-      lastModified: new Date(),
+      lastModified: STATIC_LAST_MODIFIED,
       changeFrequency: page === '' ? 'daily' : 'weekly',
       priority: page === '' ? 1.0 : 0.7,
       alternates: {

@@ -3,6 +3,7 @@
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { logout } from '@/actions/auth';
+import { isFreeRole } from '@/types';
 import {
   User,
   LogOut,
@@ -10,6 +11,7 @@ import {
   Shield,
   LayoutDashboard,
   CreditCard,
+  Settings,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -18,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { UserAvatar } from '@/components/features/user-avatar';
 
 // =============================================================================
 // HeaderUserMenu — authenticated user dropdown for the main Header
@@ -27,20 +30,21 @@ interface HeaderUserMenuProps {
   userName: string;
   userAvatar?: string;
   isAdmin?: boolean;
+  userRole?: string;
 }
 
 export function HeaderUserMenu({
   userName,
+  userAvatar,
   isAdmin = false,
+  userRole,
 }: HeaderUserMenuProps) {
   const t = useTranslations('nav');
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-muted transition-colors outline-none">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <User className="h-4 w-4" />
-        </div>
+        <UserAvatar src={userAvatar} name={userName} size="sm" />
         <span className="hidden sm:block text-sm font-medium text-foreground max-w-30 truncate">
           {userName}
         </span>
@@ -59,14 +63,16 @@ export function HeaderUserMenu({
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem render={<Link href="/dashboard/profile" />}>
-          <User className="h-4 w-4" />
-          {t('profile')}
+        <DropdownMenuItem render={<Link href="/dashboard/settings" />}>
+          <Settings className="h-4 w-4" />
+          {t('settings')}
         </DropdownMenuItem>
-        <DropdownMenuItem render={<Link href="/dashboard/subscription" />}>
-          <CreditCard className="h-4 w-4" />
-          {t('subscription')}
-        </DropdownMenuItem>
+        {!isFreeRole(userRole ?? '') && (
+          <DropdownMenuItem render={<Link href="/dashboard/subscription" />}>
+            <CreditCard className="h-4 w-4" />
+            {t('subscription')}
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={() => logout()}>
           <LogOut className="h-4 w-4" />

@@ -30,6 +30,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Catch PKCE authorization codes that land on non-API routes
+  // (happens when Supabase Site URL redirect is used instead of /api/auth/callback)
+  const code = request.nextUrl.searchParams.get('code');
+  if (code && !pathname.startsWith('/api/')) {
+    const callbackUrl = new URL('/api/auth/callback', request.url);
+    callbackUrl.searchParams.set('code', code);
+    return NextResponse.redirect(callbackUrl);
+  }
+
   // 1. Run next-intl middleware first (handles locale prefix detection & redirect)
   const intlResponse = intlMiddleware(request);
 
@@ -82,15 +91,15 @@ export async function middleware(request: NextRequest) {
   if (strippedPath.startsWith('/dashboard') && user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('verification_status, role, is_admin, active_session_token, provider')
+      .select('verification_status, role, is_admin, active_session_token, provider, phone')
       .eq('id', user.id)
-      .single() as { data: { verification_status: string; role: string; is_admin: boolean; active_session_token: string | null; provider: string | null } | null };
+      .single() as { data: { verification_status: string; role: string; is_admin: boolean; active_session_token: string | null; provider: string | null; phone: string | null } | null };
 
     // Incomplete Google user (trigger-created profile, never completed registration)
     // → redirect to register wizard to finish role selection, phone, company info, etc.
     if (
       user.app_metadata?.provider === 'google' &&
-      profile?.provider !== 'google'
+      !profile?.phone
     ) {
       const email = user.email ?? '';
       return localeRedirect('/register', { oauth: 'google', email });
@@ -111,17 +120,29 @@ export async function middleware(request: NextRequest) {
 
     if (profile) {
       const status = profile.verification_status;
-      if (status === 'pending_email') {
-        return localeRedirect('/verify/email-sent');
-      }
-      if (status === 'pending_payment') {
-        return localeRedirect('/verify/payment');
-      }
-      if (status === 'pending_documents') {
-        return localeRedirect('/verify/documents');
-      }
-      if (status === 'pending_approval') {
-        return localeRedirect('/verify/pending-approval');
+      if (
+        status === 'pending_email' ||
+        status === 'pending_payment' ||
+        status === 'pending_documents' ||
+        status === 'pending_approval'
+      ) {
+        // Preserve the original destination so we can redirect back after verification
+        const verifyRedirectRes = localeRedirect(
+          status === 'pending_email'
+            ? '/verify/email-sent'
+            : status === 'pending_payment'
+              ? '/verify/payment'
+              : status === 'pending_documents'
+                ? '/verify/documents'
+                : '/verify/pending-approval',
+        );
+        verifyRedirectRes.cookies.set('mh_verify_redirect', strippedPath, {
+          path: '/',
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+          httpOnly: true,
+          sameSite: 'lax',
+        });
+        return verifyRedirectRes;
       }
       if (status === 'banned') {
         return localeRedirect('/login', { error: 'banned' });
@@ -135,6 +156,24 @@ export async function middleware(request: NextRequest) {
   // Exception: /verify/email-sent is accessible without auth (no session after signUp)
   if (strippedPath.startsWith('/verify') && strippedPath !== '/verify/email-sent' && !user) {
     return localeRedirect('/login');
+  }
+
+  // If a verified (active/restricted) user lands on /verify/*, redirect them away
+  // (e.g. after completing all gates, or bookmarked a verify URL)
+  if (strippedPath.startsWith('/verify') && strippedPath !== '/verify/email-sent' && user) {
+    const { data: vProfile } = await supabase
+      .from('profiles')
+      .select('verification_status')
+      .eq('id', user.id)
+      .single() as { data: { verification_status: string } | null };
+
+    if (vProfile && (vProfile.verification_status === 'active' || vProfile.verification_status === 'restricted')) {
+      const savedRedirect = request.cookies.get('mh_verify_redirect')?.value;
+      const target = savedRedirect || '/dashboard';
+      const res = localeRedirect(target);
+      res.cookies.set('mh_verify_redirect', '', { maxAge: 0, path: '/' });
+      return res;
+    }
   }
 
   // Protected: /admin/* requires authentication + is_admin flag
@@ -171,11 +210,11 @@ export async function middleware(request: NextRequest) {
     if (strippedPath === '/register' && user.app_metadata?.provider === 'google') {
       const { data: regProfile } = await supabase
         .from('profiles')
-        .select('provider')
+        .select('phone')
         .eq('id', user.id)
-        .single() as { data: { provider: string | null } | null };
+        .single() as { data: { phone: string | null } | null };
 
-      if (regProfile?.provider !== 'google') {
+      if (!regProfile?.phone) {
         return intlResponse;
       }
     }

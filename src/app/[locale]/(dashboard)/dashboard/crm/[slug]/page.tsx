@@ -6,9 +6,11 @@ import { redirect } from 'next/navigation';
 import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/page-header';
+import { EntityDetailLayout } from '@/components/features/entity-detail-layout';
 import { ClientActions } from '@/components/features/crm/client-actions';
 import { ClientNoteForm } from '@/components/features/crm/client-note-form';
 import { ClientReminderForm } from '@/components/features/crm/client-reminder-form';
@@ -21,12 +23,14 @@ function db(supabase: any): any { return supabase; }
 export default async function CRMClientDetailPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug: rawSlug } = await params;
+  setRequestLocale(locale);
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
   const t = await getTranslations('dashboard.crm');
   const tCommon = await getTranslations('dashboard.common');
-  const locale = await getLocale();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -104,25 +108,60 @@ export default async function CRMClientDetailPage({
   return (
     <div className="space-y-6">
       <BreadcrumbOverride segment={displaySlug} label={client.name as string} />
-      {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
+      <PageHeader
+        title={client.name as string}
+        badge={
+          <div className="flex items-center gap-2">
             {!!client.is_favorite && <span className="text-xl text-warning">★</span>}
-            <h1 className="text-2xl font-bold">{client.name as string}</h1>
             <Badge variant={client.is_archived ? 'secondary' : 'default'}>
               {client.is_archived ? t('archived') : t(`stage.${client.pipeline_stage as string}`)}
             </Badge>
           </div>
-          {!!client.company && (
-            <p className="text-sm text-muted-foreground">{client.company as string}</p>
-          )}
-        </div>
-      </div>
+        }
+        description={client.company ? (client.company as string) : undefined}
+        backHref="/dashboard/crm"
+      />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+      <EntityDetailLayout
+        sidebar={
+          <>
+            {/* Actions */}
+            <ClientActions
+              clientId={id}
+              isFavorite={!!client.is_favorite}
+              isArchived={!!client.is_archived}
+              currentStage={client.pipeline_stage as string}
+              allTags={allTags || []}
+              currentTagIds={clientTags.map((tagItem: Record<string, unknown>) => tagItem.id as string)}
+              clientName={client.name as string}
+              clientEmail={(client.email as string) || null}
+              clientPhone={(client.phone as string) || null}
+              clientCompany={(client.company as string) || null}
+            />
+
+            {/* Reminders */}
+            <Card className="p-4 space-y-3">
+              <h3 className="font-bold text-sm">{t('reminders')}</h3>
+              <ClientReminderForm clientId={id} />
+              {(reminders && reminders.length > 0) ? (
+                <div className="space-y-2">
+                  {reminders.map((r: Record<string, unknown>) => (
+                    <div
+                      key={r.id as string}
+                      className={`rounded-lg border p-2 text-xs ${r.is_completed ? 'border-border opacity-50 line-through' : 'border-warning/30'}`}
+                    >
+                      <p className="font-medium">{new Date(r.reminder_date as string).toLocaleDateString(locale)}</p>
+                      {!!r.note && <p className="text-muted-foreground">{r.note as string}</p>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">{t('noReminders')}</p>
+              )}
+            </Card>
+          </>
+        }
+      >
           {/* Client Info */}
           <Card className="p-6 space-y-3">
             <h2 className="font-bold">{t('clientData')}</h2>
@@ -224,46 +263,7 @@ export default async function CRMClientDetailPage({
               </div>
             </Card>
           )}
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Actions */}
-          <ClientActions
-            clientId={id}
-            isFavorite={!!client.is_favorite}
-            isArchived={!!client.is_archived}
-            currentStage={client.pipeline_stage as string}
-            allTags={allTags || []}
-            currentTagIds={clientTags.map((tagItem: Record<string, unknown>) => tagItem.id as string)}
-            clientName={client.name as string}
-            clientEmail={(client.email as string) || null}
-            clientPhone={(client.phone as string) || null}
-            clientCompany={(client.company as string) || null}
-          />
-
-          {/* Reminders */}
-          <Card className="p-4 space-y-3">
-            <h3 className="font-bold text-sm">{t('reminders')}</h3>
-            <ClientReminderForm clientId={id} />
-            {(reminders && reminders.length > 0) ? (
-              <div className="space-y-2">
-                {reminders.map((r: Record<string, unknown>) => (
-                  <div
-                    key={r.id as string}
-                    className={`rounded-lg border p-2 text-xs ${r.is_completed ? 'border-border opacity-50 line-through' : 'border-warning/30'}`}
-                  >
-                    <p className="font-medium">{new Date(r.reminder_date as string).toLocaleDateString(locale)}</p>
-                    {!!r.note && <p className="text-muted-foreground">{r.note as string}</p>}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground">{t('noReminders')}</p>
-            )}
-          </Card>
-        </div>
-      </div>
+      </EntityDetailLayout>
     </div>
   );
 }

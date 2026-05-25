@@ -1,36 +1,48 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useRouter } from '@/i18n/navigation';
+import { useLocale } from 'next-intl';
+import { useRealtime } from '@/hooks';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
-import { BulkActionBar, type BulkAction } from '@/components/features/bulk-action-bar';
-import { Badge, type BadgeProps } from '@/components/ui/badge';
+import { DashboardTableShell, type FilterGroup } from '@/components/features/dashboard-table-shell';
+import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/features/empty-state';
+import { getStatusVariant } from '@/components/features/status-badge-map';
 import { formatSAR, formatDate } from '@/lib/utils';
 import { Handshake } from 'lucide-react';
 import type { DealItem } from './page';
 
 // =============================================================================
-// Deals Table Client Wrapper — role/type aware
+// Deals Table Client Wrapper — role/type aware with DashboardTableShell
 // =============================================================================
-
-const statusBadge: Record<string, BadgeProps['variant']> = {
-  active: 'info',
-  in_progress: 'pending',
-  completed: 'success',
-  cancelled: 'rejected',
-  disputed: 'destructive',
-};
 
 interface DealsTableClientProps {
   items: DealItem[];
   userId: string;
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
   translations: Record<string, string>;
+  filterGroups: FilterGroup[];
+  sortOptions: { value: string; label: string }[];
 }
 
-export function DealsTableClient({ items, userId, translations: t }: DealsTableClientProps) {
+export function DealsTableClient({
+  items,
+  userId,
+  totalCount,
+  currentPage,
+  totalPages,
+  translations: t,
+  filterGroups,
+  sortOptions,
+}: DealsTableClientProps) {
   const router = useRouter();
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const locale = useLocale();
+
+  // Live updates when deals change
+  useRealtime({ channel: 'rt-deals', table: 'deals' });
 
   const columns: ColumnDef<DealItem>[] = useMemo(
     () => [
@@ -52,7 +64,7 @@ export function DealsTableClient({ items, userId, translations: t }: DealsTableC
         id: 'status',
         header: t.status,
         cell: (row) => (
-          <Badge variant={statusBadge[row.status] ?? 'secondary'}>
+          <Badge variant={getStatusVariant(row.status)}>
             {t[`status_${row.status}`] ?? row.status}
           </Badge>
         ),
@@ -72,9 +84,12 @@ export function DealsTableClient({ items, userId, translations: t }: DealsTableC
         header: t.role,
         cell: (row) => {
           const isBuyer = row.buyer_id === userId;
+          const roleKey = row.deal_type === 'deal_project'
+            ? (isBuyer ? 'youAreProjectOwner' : 'youAreContractor')
+            : (isBuyer ? 'youAreBuyerRole' : 'youAreSupplier');
           return (
             <span className="text-xs font-medium text-muted-foreground">
-              {isBuyer ? t.youAreBuyer : t.youAreSeller}
+              {t[roleKey] ?? (isBuyer ? t.youAreBuyer : t.youAreSeller)}
             </span>
           );
         },
@@ -112,7 +127,7 @@ export function DealsTableClient({ items, userId, translations: t }: DealsTableC
         id: 'created',
         header: t.created,
         cell: (row) => (
-          <span className="text-xs text-muted-foreground">{formatDate(row.created_at)}</span>
+          <span className="text-xs text-muted-foreground">{formatDate(row.created_at, locale)}</span>
         ),
         hiddenOnMobile: true,
       },
@@ -127,38 +142,30 @@ export function DealsTableClient({ items, userId, translations: t }: DealsTableC
     [router],
   );
 
-  const bulkActions: BulkAction[] = useMemo(() => [], []);
-
-  const clearSelection = useCallback(() => setSelectedIds([]), []);
-
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={<Handshake className="h-12 w-12" />}
-        title={t.noDeals}
-        description={t.noDealsDesc}
-      />
-    );
-  }
+  const emptyState = (
+    <EmptyState
+      icon={<Handshake className="h-12 w-12" />}
+      title={t.noDeals}
+      description={t.noDealsDesc}
+    />
+  );
 
   return (
-    <>
+    <DashboardTableShell
+      totalCount={totalCount}
+      currentPage={currentPage}
+      totalPages={totalPages}
+      searchable
+      filterGroups={filterGroups}
+      sortOptions={sortOptions}
+    >
       <DataTable
         columns={columns}
         data={items}
         getRowId={(row) => row.id}
         onRowClick={handleRowClick}
-        selectable
-        onSelectionChange={setSelectedIds}
+        emptyState={emptyState}
       />
-      {bulkActions.length > 0 && (
-        <BulkActionBar
-          selectedCount={selectedIds.length}
-          selectedIds={selectedIds}
-          actions={bulkActions}
-          onClear={clearSelection}
-        />
-      )}
-    </>
+    </DashboardTableShell>
   );
 }

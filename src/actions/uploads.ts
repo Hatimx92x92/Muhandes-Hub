@@ -26,7 +26,7 @@ const ALLOWED_SPECS = [...ALLOWED_DOCUMENTS, ...ALLOWED_IMAGES];
 const BUCKET_CONFIG: Record<string, { allowed: string[]; maxSize: number }> = {
   avatars: { allowed: ALLOWED_IMAGES, maxSize: 5 * 1024 * 1024 }, // 5MB
   logos: { allowed: ALLOWED_IMAGES, maxSize: 5 * 1024 * 1024 },
-  'project-files': { allowed: [...ALLOWED_DOCUMENTS, ...ALLOWED_IMAGES], maxSize: 10 * 1024 * 1024 }, // 10MB
+  'project-files': { allowed: [...ALLOWED_DOCUMENTS, ...ALLOWED_IMAGES], maxSize: 50 * 1024 * 1024 }, // 50MB
   'product-images': { allowed: ALLOWED_IMAGES, maxSize: 5 * 1024 * 1024 },
   'product-specs': { allowed: ALLOWED_SPECS, maxSize: 10 * 1024 * 1024 },
   'rfq-files': { allowed: [...ALLOWED_DOCUMENTS, ...ALLOWED_IMAGES], maxSize: 10 * 1024 * 1024 }, // 10MB

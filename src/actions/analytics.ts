@@ -7,8 +7,97 @@
 import { createClient } from '@/lib/supabase/server';
 import { apiLimiter, checkRateLimit } from '@/lib/rate-limit';
 import { GetAnalyticsSchema } from '@/schemas/analytics';
-import { TIER_LIMITS } from '@/types';
+import { getEffectiveLimits } from '@/types';
 import type { ActionResult } from '@/types';
+
+// ---------------------------------------------------------------------------
+// Public Platform Stats (no auth required)
+// ---------------------------------------------------------------------------
+
+export interface PublicStats {
+  partners: number;
+  projects: number;
+  products: number;
+}
+
+export async function getPublicStats(): Promise<PublicStats> {
+  const supabase = await createClient();
+
+  const [partnersRes, projectsRes, productsRes] = await Promise.all([
+    db(supabase)
+      .from('profiles')
+      .select('id', { count: 'exact' })
+      .eq('verification_status', 'active'),
+    db(supabase)
+      .from('projects')
+      .select('id', { count: 'exact' })
+      .eq('status', 'published'),
+    db(supabase)
+      .from('products')
+      .select('id', { count: 'exact' })
+      .eq('status', 'published'),
+  ]);
+
+  return {
+    partners: partnersRes.count ?? 0,
+    projects: projectsRes.count ?? 0,
+    products: productsRes.count ?? 0,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Network Graph Profiles (no auth required)
+// ---------------------------------------------------------------------------
+
+export interface NetworkProfile {
+  id: string;
+  full_name: string;
+  company_name_ar: string | null;
+  company_name_en: string | null;
+  avatar_url: string | null;
+  logo_url: string | null;
+  role: string;
+  average_rating: number | null;
+  total_deals: number | null;
+}
+
+export interface NetworkProfilesByRole {
+  project_owner: NetworkProfile[];
+  contractor: NetworkProfile[];
+  supplier: NetworkProfile[];
+  buyer: NetworkProfile[];
+}
+
+export async function getNetworkProfiles(): Promise<NetworkProfilesByRole> {
+  const supabase = await createClient();
+  const cols = 'id, full_name, company_name_ar, company_name_en, avatar_url, logo_url, role, average_rating, total_deals';
+
+  const [poRes, contractorRes, supplierRes, buyerRes] = await Promise.all([
+    db(supabase).from('profiles').select(cols)
+      .eq('role', 'project_owner').eq('verification_status', 'active')
+      .order('total_deals', { ascending: false, nullsFirst: false })
+      .limit(5),
+    db(supabase).from('profiles').select(cols)
+      .eq('role', 'contractor').eq('verification_status', 'active')
+      .order('total_deals', { ascending: false, nullsFirst: false })
+      .limit(5),
+    db(supabase).from('profiles').select(cols)
+      .eq('role', 'supplier').eq('verification_status', 'active')
+      .order('total_deals', { ascending: false, nullsFirst: false })
+      .limit(5),
+    db(supabase).from('profiles').select(cols)
+      .eq('role', 'buyer').eq('verification_status', 'active')
+      .order('total_deals', { ascending: false, nullsFirst: false })
+      .limit(5),
+  ]);
+
+  return {
+    project_owner: poRes.data ?? [],
+    contractor: contractorRes.data ?? [],
+    supplier: supplierRes.data ?? [],
+    buyer: buyerRes.data ?? [],
+  };
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -244,9 +333,9 @@ export async function getUserAnalytics(
     .single();
 
   const tier = subscription?.tier ?? 'starter';
-  const limits = TIER_LIMITS[tier] ?? TIER_LIMITS.starter;
   const role = profile.role as string;
-  const isAdvanced = limits.hasAnalytics === 'full' || role === 'project_owner';
+  const limits = getEffectiveLimits(role, tier);
+  const isAdvanced = limits.hasAnalytics === 'full';
 
   // 5) Period dates
   const { start, end, prevStart, prevEnd } = getPeriodDates(period);
@@ -282,18 +371,18 @@ export async function getUserAnalytics(
       .lte('created_at', prevEndISO),
     // All-time counts
     db(supabase).from('deals')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
     db(supabase).from('deals')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
       .eq('status', 'completed'),
     db(supabase).from('deals')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
       .in('status', ['active', 'in_progress']),
     db(supabase).from('deals')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
       .eq('status', 'cancelled'),
     // Reviews (current period)
@@ -412,9 +501,9 @@ async function fetchRoleStats(
       { count: awardedBids },
       { data: awardedBidsData },
     ] = await Promise.all([
-      db(supabase).from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', userId),
-      db(supabase).from('bids').select('*', { count: 'exact', head: true }).eq('contractor_id', userId),
-      db(supabase).from('bids').select('*', { count: 'exact', head: true }).eq('contractor_id', userId).eq('status', 'awarded'),
+      db(supabase).from('projects').select('id', { count: 'exact' }).eq('owner_id', userId),
+      db(supabase).from('bids').select('id', { count: 'exact' }).eq('contractor_id', userId),
+      db(supabase).from('bids').select('id', { count: 'exact' }).eq('contractor_id', userId).eq('status', 'awarded'),
       db(supabase).from('bids').select('created_at, awarded_at').eq('contractor_id', userId).eq('status', 'awarded'),
     ]);
 
@@ -448,10 +537,10 @@ async function fetchRoleStats(
       { count: quotationAccepted },
       { count: inquiries },
     ] = await Promise.all([
-      db(supabase).from('products').select('*', { count: 'exact', head: true }).eq('supplier_id', userId),
-      db(supabase).from('quotations').select('*', { count: 'exact', head: true }).eq('sender_id', userId),
-      db(supabase).from('quotations').select('*', { count: 'exact', head: true }).eq('sender_id', userId).eq('status', 'accepted'),
-      db(supabase).from('inquiries').select('*', { count: 'exact', head: true }).eq('supplier_id', userId),
+      db(supabase).from('products').select('id', { count: 'exact' }).eq('supplier_id', userId),
+      db(supabase).from('quotations').select('id', { count: 'exact' }).eq('sender_id', userId),
+      db(supabase).from('quotations').select('id', { count: 'exact' }).eq('sender_id', userId).eq('status', 'accepted'),
+      db(supabase).from('inquiries').select('id', { count: 'exact' }).eq('supplier_id', userId),
     ]);
 
     const totalQ = quotations ?? 0;
@@ -471,14 +560,14 @@ async function fetchRoleStats(
       { count: rfqs },
     ] = await Promise.all([
       db(supabase).from('projects').select('id', { count: 'exact' }).eq('owner_id', userId),
-      db(supabase).from('rfqs').select('*', { count: 'exact', head: true }).eq('poster_id', userId),
+      db(supabase).from('rfqs').select('id', { count: 'exact' }).eq('poster_id', userId),
     ]);
 
     const projectIds = (projectRows ?? []).map((p: { id: string }) => p.id);
     let bidsRcvd = 0;
     if (projectIds.length > 0) {
       const { count: totalBidsReceived } = await db(supabase)
-        .from('bids').select('*', { count: 'exact', head: true })
+        .from('bids').select('id', { count: 'exact' })
         .in('project_id', projectIds);
       bidsRcvd = totalBidsReceived ?? 0;
     }
@@ -496,8 +585,8 @@ async function fetchRoleStats(
     { count: rfqs },
     { count: deals },
   ] = await Promise.all([
-    db(supabase).from('rfqs').select('*', { count: 'exact', head: true }).eq('poster_id', userId),
-    db(supabase).from('deals').select('*', { count: 'exact', head: true }).eq('buyer_id', userId),
+    db(supabase).from('rfqs').select('id', { count: 'exact' }).eq('poster_id', userId),
+    db(supabase).from('deals').select('id', { count: 'exact' }).eq('buyer_id', userId),
   ]);
 
   return {
@@ -644,11 +733,11 @@ async function buildCharts(
       { count: funnelDeals },
       { count: funnelCompleted },
     ] = await Promise.all([
-      db(supabase).from('bids').select('*', { count: 'exact', head: true }).eq('contractor_id', userId),
-      db(supabase).from('bids').select('*', { count: 'exact', head: true }).eq('contractor_id', userId).eq('status', 'shortlisted'),
-      db(supabase).from('bids').select('*', { count: 'exact', head: true }).eq('contractor_id', userId).eq('status', 'awarded'),
-      db(supabase).from('deals').select('*', { count: 'exact', head: true }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
-      db(supabase).from('deals').select('*', { count: 'exact', head: true }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`).eq('status', 'completed'),
+      db(supabase).from('bids').select('id', { count: 'exact' }).eq('contractor_id', userId),
+      db(supabase).from('bids').select('id', { count: 'exact' }).eq('contractor_id', userId).eq('status', 'shortlisted'),
+      db(supabase).from('bids').select('id', { count: 'exact' }).eq('contractor_id', userId).eq('status', 'awarded'),
+      db(supabase).from('deals').select('id', { count: 'exact' }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
+      db(supabase).from('deals').select('id', { count: 'exact' }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`).eq('status', 'completed'),
     ]);
     charts.conversionFunnel = [
       { label: 'bids', value: totalBids ?? 0 },
@@ -665,11 +754,11 @@ async function buildCharts(
       { count: funnelDeals },
       { count: funnelCompleted },
     ] = await Promise.all([
-      db(supabase).from('quotations').select('*', { count: 'exact', head: true }).eq('sender_id', userId),
-      db(supabase).from('quotations').select('*', { count: 'exact', head: true }).eq('sender_id', userId).eq('status', 'viewed'),
-      db(supabase).from('quotations').select('*', { count: 'exact', head: true }).eq('sender_id', userId).eq('status', 'accepted'),
-      db(supabase).from('deals').select('*', { count: 'exact', head: true }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
-      db(supabase).from('deals').select('*', { count: 'exact', head: true }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`).eq('status', 'completed'),
+      db(supabase).from('quotations').select('id', { count: 'exact' }).eq('sender_id', userId),
+      db(supabase).from('quotations').select('id', { count: 'exact' }).eq('sender_id', userId).eq('status', 'viewed'),
+      db(supabase).from('quotations').select('id', { count: 'exact' }).eq('sender_id', userId).eq('status', 'accepted'),
+      db(supabase).from('deals').select('id', { count: 'exact' }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
+      db(supabase).from('deals').select('id', { count: 'exact' }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`).eq('status', 'completed'),
     ]);
     charts.conversionFunnel = [
       { label: 'quotations', value: totalQuotations ?? 0 },
@@ -686,13 +775,13 @@ async function buildCharts(
       { count: funnelDeals },
       { count: funnelCompleted },
     ] = await Promise.all([
-      db(supabase).from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', userId),
-      db(supabase).from('rfqs').select('*', { count: 'exact', head: true }).eq('poster_id', userId),
-      db(supabase).from('bids').select('*', { count: 'exact', head: true }).in('project_id',
+      db(supabase).from('projects').select('id', { count: 'exact' }).eq('owner_id', userId),
+      db(supabase).from('rfqs').select('id', { count: 'exact' }).eq('poster_id', userId),
+      db(supabase).from('bids').select('id', { count: 'exact' }).in('project_id',
         (await db(supabase).from('projects').select('id').eq('owner_id', userId)).data?.map((p: { id: string }) => p.id) ?? []
       ),
-      db(supabase).from('deals').select('*', { count: 'exact', head: true }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
-      db(supabase).from('deals').select('*', { count: 'exact', head: true }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`).eq('status', 'completed'),
+      db(supabase).from('deals').select('id', { count: 'exact' }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
+      db(supabase).from('deals').select('id', { count: 'exact' }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`).eq('status', 'completed'),
     ]);
     charts.conversionFunnel = [
       { label: 'projects', value: totalProjects ?? 0 },
@@ -708,9 +797,9 @@ async function buildCharts(
       { count: funnelDeals },
       { count: funnelCompleted },
     ] = await Promise.all([
-      db(supabase).from('rfqs').select('*', { count: 'exact', head: true }).eq('poster_id', userId),
-      db(supabase).from('deals').select('*', { count: 'exact', head: true }).eq('buyer_id', userId),
-      db(supabase).from('deals').select('*', { count: 'exact', head: true }).eq('buyer_id', userId).eq('status', 'completed'),
+      db(supabase).from('rfqs').select('id', { count: 'exact' }).eq('poster_id', userId),
+      db(supabase).from('deals').select('id', { count: 'exact' }).eq('buyer_id', userId),
+      db(supabase).from('deals').select('id', { count: 'exact' }).eq('buyer_id', userId).eq('status', 'completed'),
     ]);
     charts.conversionFunnel = [
       { label: 'rfqs', value: totalRfqs ?? 0 },

@@ -16,6 +16,35 @@ Bilingual (Arabic/English) B2B marketplace for the Saudi construction industry. 
 | `.docs/CHECKLIST.md`    | Development checklist — granular task tracking per sub-section            |
 | `.docs/ROADMAP.md`      | 16-week / 11-phase implementation plan with phase-level checklists        |
 | `.docs/USER-FLOWS.md`   | User journey flows for all roles                                          |
+| `.docs/DEMO-USERS.md`   | Test account credentials for manual testing                               |
+| `.docs/TESTS.md`        | Full 214-test E2E plan across 10 phases                                   |
+| `.docs/PRD.md`          | Product requirements document                                             |
+
+## Infrastructure Access
+
+### Supabase (via MCP)
+
+Two Supabase projects are configured in `.vscode/mcp.json`:
+
+| Server ID       | Environment    | Purpose                                      |
+| --------------- | -------------- | -------------------------------------------- |
+| `supabase`      | **Local**      | Development DB — safe for experiments        |
+| `supabase-prod` | **Production** | Live DB — **confirm before destructive ops** |
+
+Use MCP tools (`mcp_supabase_*`) to query, migrate, and manage both. Always specify which project when running SQL.
+
+### Vercel (via CLI)
+
+Logged in as `muqawilhub-2131`. Use `npx vercel` commands for:
+
+- `npx vercel ls` — list deployments
+- `npx vercel env ls` — list env vars
+- `npx vercel logs <url>` — view deployment logs
+- `npx vercel --prod` — deploy to production (⚠️ confirm first)
+
+### Environment Variables
+
+Template in `.env.example`. Required services: Supabase, Resend, Upstash Redis, Typesense, Moyasar.
 
 ## Task Workflow
 
@@ -71,6 +100,16 @@ npm run typesense:index  # Reindex Typesense
 | `lib/supabase/admin.ts`      | `src/actions/admin/` **only** | Service role — bypasses RLS ⚠️       |
 | `lib/supabase/middleware.ts` | `src/middleware.ts` only      | Session + cookie refresh             |
 
+### Middleware Flow
+
+`next-intl` locale extraction runs first. Then three protection layers:
+
+1. **Dashboard routes** — require auth + `verification_status === 'active'` (redirects to `/verify/*` gates)
+2. **Admin routes** — require auth + `is_admin` flag
+3. **Session enforcement** — single-device via `mh_session_token` cookie vs `profiles.active_session_token`
+
+Verification status flow: `pending_email` → `pending_payment` (Pro+ only) → `pending_documents` → `pending_approval` → `active`
+
 ## Frontend Consistency Rules
 
 **When changing any frontend code, ensure the entire app stays consistent:**
@@ -121,6 +160,19 @@ Return type: `ActionResult<T>` from `@/types` — always `{ data, error }` with 
 
 Schemas in `src/schemas/` — shared between client forms and server actions. Uses **Zod v4** (`import { z } from 'zod/v4'`).
 
+## Key Utilities (`@/lib/utils`)
+
+| Function                                                       | Purpose                                        |
+| -------------------------------------------------------------- | ---------------------------------------------- |
+| `cn()`                                                         | Merge Tailwind classes (clsx + tailwind-merge) |
+| `formatSAR(amount, locale?)`                                   | Saudi Riyal formatting                         |
+| `formatPhone(phone)`                                           | Format +966 phone numbers                      |
+| `getLocaleField(record, field, locale)`                        | Extract bilingual DB field with fallback       |
+| `calculateVAT(net)`, `netToGross(net)`, `grossToNet(gross)`    | VAT 15% (ZATCA)                                |
+| `slugify(text)`                                                | URL-safe slug (Unicode-aware for Arabic)       |
+| `generateUniqueSlug(text, table, column, supabase)`            | DB collision-safe slug                         |
+| `formatDate(date, locale)`, `formatRelativeTime(date, locale)` | Locale-aware dates                             |
+
 ## Immutable Business Rules
 
 DB-enforced via triggers + RLS — never violate in application code:
@@ -140,6 +192,7 @@ DB-enforced via triggers + RLS — never violate in application code:
 - Phone: `+966` validation (Zod regex `^[0-9]{9}$` for the 9 digits)
 - ZATCA VAT 15%: `calculateVAT()`, `netToGross()`, `grossToNet()` from `@/lib/utils`
 - PDPL consent banner on every page via `PDPLConsentBanner` in locale layout
+- All prices are **gross** (VAT-included) per ZATCA requirements
 
 ## Security
 
@@ -149,9 +202,112 @@ DB-enforced via triggers + RLS — never violate in application code:
 - **Rate limiting** via `@upstash/ratelimit` — see `src/lib/rate-limit.ts`
 - **Security headers** configured in `next.config.ts` (HSTS, X-Frame-Options, CSP)
 
+## Database & Schema Management
+
+### Types & Migrations
+
+- **TypeScript Types**: `src/types/database.ts` is **manually maintained** — NOT auto-generated
+  - When adding DB columns/tables, update `database.ts` with correct `Tables<>`, `TablesInsert<>`, `TablesUpdate<>` types
+  - MCP tool available: `mcp_supabase_generate_typescript_types` (requires project ID)
+- **SQL Migrations**: Hand-written SQL in `.docs/migrations/` — no ORM or auto-generation
+  - Version control unclear; single visible file `001_rfq_files.sql`
+  - Use `mcp_supabase_apply_migration` to apply DDL, `mcp_supabase_execute_sql` for raw queries
+- **Typesense Sync**: Manual only — `npm run typesense:index` required after schema/data changes
+  - No real-time webhook; search index will stale if script not run
+  - AR+EN full-text indexing must be indexed separately per language
+
+### RLS & Admin Client
+
+- **RLS on all tables** — never bypass except in `src/actions/admin/`
+- **Admin client** (`lib/supabase/admin.ts`) uses service role key — strict isolation enforced
+- Check advisors regularly: `mcp_supabase_get_advisors` (security/performance) after DDL changes
+
+## Testing & Cron Automation
+
+### Current Test Strategy
+
+- **Unit-only**: No DB integration, no API mocking, no E2E framework currently
+- **Vitest config**: jsdom environment, React 19, globals enabled
+- **Pattern**: Schema validation via Zod `.safeParse()` only
+- **Location**: `src/__tests__/{domain}/*.test.ts` mirrors action structure
+- **E2E Plan**: Theoretical 214-test plan in `.docs/TESTS.md` (10 phases) — not automated yet
+
+### Cron Jobs
+
+- **Single Daily Cron**: `vercel.json` triggers `/api/cron/daily` at `0 20 * * *` (8 PM UTC / 11 PM Saudi)
+- **3 Sub-jobs** in single endpoint:
+  1. Subscription checks (7-day & 1-day warnings)
+  2. Commission overdue notices
+  3. CRM follow-up reminders
+- **Security**: Requires `Authorization: Bearer {CRON_SECRET}` header validation
+- **Characteristics**: Stateless, idempotent, safe to re-run
+- **Important**: Cron jobs are NOT run on deploy — verify execution in Vercel logs
+
+## Code Generation & Automation
+
+- **TypeScript**: No auto-generation from schema (manual `database.ts` only)
+- **Typesense**: Manual script `npm run typesense:index` — set up post-deploy alert if forgotten
+- **No GraphQL/tRPC codegen**, no Zod type extraction
+- **Webhook pattern**: Only for external services (Moyasar, Typesense) — no internal queue system
+
+## Rate Limiting
+
+Upstash Redis configured in `src/lib/rate-limit.ts`. Pre-configured limits:
+
+| Endpoint      | Limit          | Purpose         |
+| ------------- | -------------- | --------------- |
+| Login         | 5 / 15 minutes | Brute force     |
+| Register      | 3 / hour       | Account spam    |
+| Bids          | 20 / hour      | API abuse       |
+| Messages      | 60 / minute    | Chat spam       |
+| Search        | 120 / minute   | Query spam      |
+| API (general) | 200 / minute   | Global throttle |
+
+Always check rate limit hit when debugging failed requests.
+
+## Deployment & Post-Deploy Steps
+
+### Build & Start
+
+```bash
+npm run build        # Optimizes .next/ artifact (NOT migrations or indexing)
+npm start            # Serves static .next/
+```
+
+### Manual Post-Deploy Steps
+
+These are **NOT automated** on Vercel deploy:
+
+1. Run database migrations (if any): Use MCP `mcp_supabase_apply_migration`
+2. Reindex Typesense: `npm run typesense:index` or via MCP edge functions
+3. Verify cron execution: Check Vercel logs for `/api/cron/daily`
+
+### Environment
+
+- Cron requires `CRON_SECRET` env var in Vercel (must match header validation)
+- Static security headers in `next.config.ts` (HSTS, CSP, X-Frame-Options)
+
+## Gotchas
+
+- **Locale prefix stripping**: Middleware must strip `/ar/` or `/en/` before route matching
+- **PKCE cookie loss**: Google OAuth can fail if PKCE cookie lost across browsers — middleware auto-detects this
+- **Google OAuth incomplete**: Users signing up via Google redirect to `/register?oauth=google` to complete profile (role, phone, company)
+- **Single-device sessions**: New login invalidates previous session token — middleware forces sign-out on mismatch
+- **Bilingual field fallback**: Always handle empty `{field}_ar` or `{field}_en` — production data may have gaps
+- **Manual type sync**: Schema changes require updating `database.ts` manually — no auto-generation
+- **Typesense stale**: Manual `npm run typesense:index` required — changes don't auto-propagate
+- **No E2E framework**: Tests are unit-only (Zod validation); E2E testing is manual or via `.docs/TESTS.md` checklist
+- **Cron not on deploy**: Scheduled jobs must be verified separately; not part of build pipeline
+
 ## Permission & Tier Reference
 
 Check `.docs/FEATURES.md` §2.1 for the full role permission matrix and §2.2/§4.3 for tier limits before implementing any gated feature.
+
+## Shortcuts
+
+| Trigger word | Action                                                                   |
+| ------------ | ------------------------------------------------------------------------ |
+| `deploy`     | Run `npx vercel --prod` to deploy to production — no confirmation needed |
 
 ## Agent Self-Service Rule
 

@@ -76,7 +76,7 @@ export async function createProduct(
   if (limits) {
     const { count } = await db(supabase)
       .from('products')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .eq('supplier_id', user.id);
 
     if (count != null && count >= limits.productPosts) {
@@ -141,7 +141,7 @@ export async function createProduct(
       stock_quantity: parsed.data.stock_quantity ?? null,
       slug_ar,
       slug_en,
-      status: 'draft',
+      status: 'published',
     })
     .select('id, status')
     .single();
@@ -165,13 +165,17 @@ export async function createProduct(
     await db(supabase).from('product_variants').insert(variantRows);
   }
 
-  // 8. Upload images from FormData
+  // 8. Upload images from FormData — at least one required
   const imageFiles = formData.getAll('image_files') as File[];
-  if (imageFiles.length > 0) {
+  const validImageFiles = imageFiles.filter((f) => f && f.size > 0);
+  if (validImageFiles.length === 0) {
+    await db(supabase).from('products').delete().eq('id', product.id);
+    return { data: null, error: t('imageRequired') };
+  }
+  if (validImageFiles.length > 0) {
     const { uploadFile: doUpload } = await import('@/actions/uploads');
-    for (let i = 0; i < imageFiles.length; i++) {
-      const file = imageFiles[i];
-      if (!file || file.size === 0) continue;
+    for (let i = 0; i < validImageFiles.length; i++) {
+      const file = validImageFiles[i];
       const uploadResult = await doUpload('product-images', file, `${product.id}/${Date.now()}-${i}`);
       if (uploadResult.data) {
         await db(supabase).from('product_images').insert({
@@ -294,7 +298,7 @@ export async function updateProduct(
       stock_quantity: parsed.data.stock_quantity ?? null,
       slug_ar,
       slug_en,
-      status: existing.status === 'published' ? 'published' : 'draft',
+      status: 'published',
     })
     .eq('id', parsed.data.product_id);
 
@@ -330,7 +334,7 @@ export async function updateProduct(
     const { uploadFile: doUpload } = await import('@/actions/uploads');
     const { count: existingCount } = await db(supabase)
       .from('product_images')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .eq('product_id', parsed.data.product_id);
     const startOrder = existingCount ?? 0;
     for (let i = 0; i < imageFiles.length; i++) {
@@ -373,7 +377,8 @@ export async function updateProduct(
 }
 
 // ---------------------------------------------------------------------------
-// SUBMIT FOR APPROVAL
+// SUBMIT FOR APPROVAL — DEPRECATED (products auto-publish now)
+// Kept for backward compatibility; now publishes directly.
 // ---------------------------------------------------------------------------
 export async function submitProductForApproval(
   productId: string,
@@ -397,13 +402,10 @@ export async function submitProductForApproval(
   if (product.supplier_id !== user.id) {
     return { data: null, error: t('noPermission') };
   }
-  if (!['draft', 'rejected'].includes(product.status)) {
-    return { data: null, error: t('cannotSubmitStatus') };
-  }
 
   const { error: updateErr } = await db(supabase)
     .from('products')
-    .update({ status: 'pending' })
+    .update({ status: 'published' })
     .eq('id', productId);
 
   if (updateErr) {
@@ -411,11 +413,11 @@ export async function submitProductForApproval(
   }
 
   revalidatePath('/dashboard/products');
-  return { data: { status: 'pending' }, error: null };
+  return { data: { status: 'published' }, error: null };
 }
 
 // ---------------------------------------------------------------------------
-// DELETE PRODUCT (draft only, no active deals)
+// DELETE PRODUCT (any status, no active deals)
 // ---------------------------------------------------------------------------
 export async function deleteProduct(
   productId: string,
@@ -439,11 +441,16 @@ export async function deleteProduct(
   if (product.supplier_id !== user.id) {
     return { data: null, error: t('noPermission') };
   }
-  if (product.status !== 'draft') {
-    return { data: null, error: t('cannotDeleteNonDraft') };
-  }
 
-  // TODO: Delete images and spec sheets from storage when Supabase Storage is configured
+  // Check for active deals linked to this product
+  const { count: activeDealCount } = await db(supabase)
+    .from('deals')
+    .select('id', { count: 'exact' })
+    .eq('product_id', productId)
+    .not('status', 'in', '(completed,cancelled)');
+  if (activeDealCount && activeDealCount > 0) {
+    return { data: null, error: t('cannotDeleteActiveDeals') };
+  }
 
   const { error: deleteErr } = await db(supabase)
     .from('products')
@@ -486,7 +493,7 @@ export async function addProductImage(
   // Check image count limit (max 10)
   const { count } = await db(supabase)
     .from('product_images')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'exact' })
     .eq('product_id', productId);
   if (count != null && count >= 10) return { data: null, error: t('imageLimitReached') };
 
@@ -648,7 +655,7 @@ export async function addProductSpecSheet(
   // Check spec count limit (max 5)
   const { count } = await db(supabase)
     .from('product_spec_sheets')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'exact' })
     .eq('product_id', productId);
   if (count != null && count >= 5) return { data: null, error: t('specLimitReached') };
 
@@ -787,7 +794,7 @@ export async function bulkImportProducts(
 
   const { count: existingCount } = await db(supabase)
     .from('products')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'exact' })
     .eq('supplier_id', user.id);
 
   const remaining = maxProducts === Infinity ? Infinity : maxProducts - (existingCount ?? 0);
@@ -834,7 +841,7 @@ export async function bulkImportProducts(
       unit: obj.unit?.trim() || 'piece',
       moq: obj.moq ? parseInt(obj.moq, 10) || 1 : 1,
       sku: obj.sku?.trim() || null,
-      status: 'draft',
+      status: 'published',
     });
   }
 
@@ -962,4 +969,298 @@ export async function searchPublishedProducts(
   }));
 
   return { data: merged, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// BULK DELETE PRODUCTS
+// ---------------------------------------------------------------------------
+export async function bulkDeleteProducts(
+  productIds: string[],
+): Promise<ActionResult<{ deleted: string[]; failed: { id: string; reason: string }[] }>> {
+  const t = await getTranslations('actions.products');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  const rl = apiLimiter();
+  const { success: rlOk } = await checkRateLimit(rl, user.id);
+  if (!rlOk) return { data: null, error: t('tooManyRequests') };
+
+  if (!productIds.length || productIds.length > 100) {
+    return { data: null, error: t('invalidData') };
+  }
+
+  // Fetch all products to verify ownership
+  const { data: products } = await db(supabase)
+    .from('products')
+    .select('id, supplier_id, status')
+    .in('id', productIds);
+
+  if (!products) return { data: null, error: t('deleteError') };
+
+  const deleted: string[] = [];
+  const failed: { id: string; reason: string }[] = [];
+
+  // Check for active deals on all products at once
+  const { data: activeDeals } = await db(supabase)
+    .from('deals')
+    .select('product_id')
+    .in('product_id', productIds)
+    .not('status', 'in', '(completed,cancelled)');
+  const productsWithDeals = new Set((activeDeals ?? []).map((d: { product_id: string }) => d.product_id));
+
+  const idsToDelete: string[] = [];
+  for (const product of products) {
+    if (product.supplier_id !== user.id) {
+      failed.push({ id: product.id, reason: t('noPermission') });
+    } else if (productsWithDeals.has(product.id)) {
+      failed.push({ id: product.id, reason: t('cannotDeleteActiveDeals') });
+    } else {
+      idsToDelete.push(product.id);
+    }
+  }
+
+  if (idsToDelete.length > 0) {
+    const { error: deleteErr } = await db(supabase)
+      .from('products')
+      .delete()
+      .in('id', idsToDelete);
+
+    if (deleteErr) {
+      return { data: null, error: t('deleteError') };
+    }
+    deleted.push(...idsToDelete);
+  }
+
+  revalidatePath('/dashboard/products');
+  revalidatePath('/products');
+  return { data: { deleted, failed }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// BULK UPDATE PRODUCT STATUS (publish / unpublish)
+// ---------------------------------------------------------------------------
+export async function bulkUpdateProductStatus(
+  productIds: string[],
+  status: 'draft' | 'published',
+): Promise<ActionResult<{ updated: number; failed: { id: string; reason: string }[] }>> {
+  const t = await getTranslations('actions.products');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  const rl = apiLimiter();
+  const { success: rlOk } = await checkRateLimit(rl, user.id);
+  if (!rlOk) return { data: null, error: t('tooManyRequests') };
+
+  if (!productIds.length || productIds.length > 100) {
+    return { data: null, error: t('invalidData') };
+  }
+
+  // Verify ownership
+  const { data: products } = await db(supabase)
+    .from('products')
+    .select('id, supplier_id')
+    .in('id', productIds);
+
+  if (!products) return { data: null, error: t('updateError') };
+
+  const failed: { id: string; reason: string }[] = [];
+  const ownedIds: string[] = [];
+
+  for (const product of products) {
+    if (product.supplier_id !== user.id) {
+      failed.push({ id: product.id, reason: t('noPermission') });
+    } else {
+      ownedIds.push(product.id);
+    }
+  }
+
+  let updated = 0;
+  if (ownedIds.length > 0) {
+    const { error: updateErr, count } = await db(supabase)
+      .from('products')
+      .update({ status })
+      .in('id', ownedIds)
+      .select('id', { count: 'exact' });
+
+    if (updateErr) return { data: null, error: t('updateError') };
+    updated = count ?? ownedIds.length;
+  }
+
+  revalidatePath('/dashboard/products');
+  revalidatePath('/products');
+  return { data: { updated, failed }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// BULK UPDATE PRODUCT PRICE (fixed-pricing only)
+// ---------------------------------------------------------------------------
+export async function bulkUpdateProductPrice(
+  productIds: string[],
+  price: number,
+): Promise<ActionResult<{ updated: number; skipped: { id: string; reason: string }[] }>> {
+  const t = await getTranslations('actions.products');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  const rl = apiLimiter();
+  const { success: rlOk } = await checkRateLimit(rl, user.id);
+  if (!rlOk) return { data: null, error: t('tooManyRequests') };
+
+  if (!productIds.length || productIds.length > 100 || price < 0.01) {
+    return { data: null, error: t('invalidData') };
+  }
+
+  // Fetch products to check ownership and pricing model
+  const { data: products } = await db(supabase)
+    .from('products')
+    .select('id, supplier_id, pricing_model')
+    .in('id', productIds);
+
+  if (!products) return { data: null, error: t('updateError') };
+
+  const skipped: { id: string; reason: string }[] = [];
+  const idsToUpdate: string[] = [];
+
+  for (const product of products) {
+    if (product.supplier_id !== user.id) {
+      skipped.push({ id: product.id, reason: t('noPermission') });
+    } else if (product.pricing_model !== 'fixed') {
+      skipped.push({ id: product.id, reason: t('bulkPriceVariantSkip') });
+    } else {
+      idsToUpdate.push(product.id);
+    }
+  }
+
+  let updated = 0;
+  if (idsToUpdate.length > 0) {
+    const { error: updateErr } = await db(supabase)
+      .from('products')
+      .update({ price })
+      .in('id', idsToUpdate);
+
+    if (updateErr) return { data: null, error: t('updateError') };
+    updated = idsToUpdate.length;
+  }
+
+  revalidatePath('/dashboard/products');
+  revalidatePath('/products');
+  return { data: { updated, skipped }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// BULK UPDATE PRODUCT STOCK
+// ---------------------------------------------------------------------------
+export async function bulkUpdateProductStock(
+  productIds: string[],
+  inStock: boolean,
+  stockQuantity?: number,
+): Promise<ActionResult<{ updated: number }>> {
+  const t = await getTranslations('actions.products');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  const rl = apiLimiter();
+  const { success: rlOk } = await checkRateLimit(rl, user.id);
+  if (!rlOk) return { data: null, error: t('tooManyRequests') };
+
+  if (!productIds.length || productIds.length > 100) {
+    return { data: null, error: t('invalidData') };
+  }
+
+  // Verify ownership
+  const { data: products } = await db(supabase)
+    .from('products')
+    .select('id, supplier_id')
+    .in('id', productIds);
+
+  if (!products) return { data: null, error: t('updateError') };
+
+  const ownedIds = products
+    .filter((p: { supplier_id: string }) => p.supplier_id === user.id)
+    .map((p: { id: string }) => p.id);
+
+  if (ownedIds.length === 0) return { data: null, error: t('noPermission') };
+
+  const updatePayload: { in_stock: boolean; stock_quantity?: number | null } = { in_stock: inStock };
+  if (stockQuantity !== undefined) {
+    updatePayload.stock_quantity = stockQuantity;
+  }
+
+  const { error: updateErr } = await db(supabase)
+    .from('products')
+    .update(updatePayload)
+    .in('id', ownedIds);
+
+  if (updateErr) return { data: null, error: t('updateError') };
+
+  revalidatePath('/dashboard/products');
+  revalidatePath('/products');
+  return { data: { updated: ownedIds.length }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// EXPORT PRODUCTS CSV
+// ---------------------------------------------------------------------------
+export async function exportProductsCsv(): Promise<ActionResult<{ csv: string; filename: string }>> {
+  const t = await getTranslations('actions.products');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  const { data: profile } = await db(supabase)
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile || profile.role !== 'supplier') {
+    return { data: null, error: t('suppliersOnly') };
+  }
+
+  // Fetch all supplier products
+  const { data: products } = await db(supabase)
+    .from('products')
+    .select('id, name_ar, name_en, description_ar, description_en, category_id, pricing_model, price, in_stock, stock_quantity, min_order_qty, lead_time_days, status, created_at')
+    .eq('supplier_id', user.id)
+    .order('created_at', { ascending: false });
+
+  if (!products || products.length === 0) {
+    return { data: null, error: t('noValidProducts') };
+  }
+
+  // Build CSV
+  const headers = ['id', 'title_ar', 'title_en', 'description_ar', 'description_en', 'category_id', 'pricing_model', 'price', 'in_stock', 'stock_quantity', 'min_order_qty', 'lead_time_days', 'status', 'created_at'];
+  const escapeCSV = (val: unknown) => {
+    const str = val == null ? '' : String(val);
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      return '"' + str.replace(/"/g, '""') + '"';
+    }
+    return str;
+  };
+
+  const rows = products.map((p: Record<string, unknown>) => [
+    escapeCSV(p.id),
+    escapeCSV(p.name_ar),
+    escapeCSV(p.name_en),
+    escapeCSV(p.description_ar),
+    escapeCSV(p.description_en),
+    escapeCSV(p.category_id),
+    escapeCSV(p.pricing_model),
+    escapeCSV(p.price),
+    escapeCSV(p.in_stock),
+    escapeCSV(p.stock_quantity),
+    escapeCSV(p.min_order_qty),
+    escapeCSV(p.lead_time_days),
+    escapeCSV(p.status),
+    escapeCSV(p.created_at),
+  ].join(','));
+
+  const csv = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
+  const filename = `products-export-${new Date().toISOString().slice(0, 10)}.csv`;
+
+  return { data: { csv, filename }, error: null };
 }

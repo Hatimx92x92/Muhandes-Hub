@@ -8,7 +8,6 @@ import { useState, useActionState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { sendProductInquiry } from '@/actions/inquiries';
 import { ShoppingCart, X, Send } from 'lucide-react';
@@ -55,27 +54,7 @@ export function ProductInquiryButton({ productId, isOwnProduct }: Props) {
 
       <div>
         <label className="text-xs text-muted-foreground">{t('quantity')}</label>
-        <Input name="quantity" type="number" min={1} placeholder="100" />
-      </div>
-
-      <div>
-        <label className="text-xs text-muted-foreground">{t('messageAr')}</label>
-        <Textarea
-          name="message_ar"
-          rows={2}
-          placeholder={t('messagePlaceholderAr')}
-          required
-          minLength={10}
-        />
-      </div>
-
-      <div>
-        <label className="text-xs text-muted-foreground">{t('messageEn')}</label>
-        <Textarea
-          name="message_en"
-          rows={2}
-          placeholder={t('messagePlaceholderEn')}
-        />
+        <Input name="quantity" type="number" min={1} placeholder="1" required />
       </div>
 
       {state?.error && (

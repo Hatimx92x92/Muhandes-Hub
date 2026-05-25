@@ -35,12 +35,17 @@
     "viewAll": "عرض الكل",
     "learnMore": "اعرف المزيد",
     "getStarted": "ابدأ الآن",
-    "copyright": "© {year} Muhandes HUB. جميع الحقوق محفوظة.",
+    "copyrightStart": "© {year} Muhandes HUB. منتج من",
+    "copyrightCompany": "رمال الماس",
+    "copyrightEnd": ". جميع الحقوق محفوظة.",
     "saudiArabia": "المملكة العربية السعودية",
     "vat15": "ضريبة القيمة المضافة 15%",
     "saudiVat": "المملكة العربية السعودية | ضريبة القيمة المضافة 15%",
     "translating": "جاري الترجمة...",
     "autoTranslated": "ترجمة تلقائية",
+    "addEnglishTranslation": "إضافة ترجمة بالإنجليزية",
+    "addArabicTranslation": "إضافة ترجمة بالعربية",
+    "hideTranslation": "إخفاء الترجمة",
     "selectedCount": "{count} مُختار",
     "clearSelection": "إلغاء التحديد"
   },
@@ -49,8 +54,8 @@
     "admin": "الإدارة",
     "new": "جديد",
     "edit": "تعديل",
-    "bid": "تقديم عرض",
-    "bids": "العروض",
+    "bid": "تقديم مناقصة",
+    "bids": "المناقصات",
     "kanban": "كانبان",
     "dailyLog": "السجل اليومي",
     "milestones": "المراحل",
@@ -59,6 +64,7 @@
     "registrations": "التسجيلات",
     "posts": "المنشورات",
     "subscriptions": "الاشتراكات",
+    "payments": "المدفوعات",
     "auditLog": "سجل المراجعة",
     "contacts": "جهات الاتصال"
   },
@@ -93,20 +99,24 @@
     "terms": "الشروط والأحكام",
     "privacy": "سياسة الخصوصية",
     "cookies": "سياسة ملفات تعريف الارتباط",
+    "refundPolicy": "سياسة الاسترداد",
     "adminPanel": "لوحة الإدارة",
     "groupOverview": "نظرة عامة",
     "groupCore": "الرئيسية",
     "groupCommerce": "الأعمال",
     "groupProjectManagement": "إدارة المشاريع",
-    "groupProjectsBidding": "المشاريع والعطاءات",
+    "groupProjectsBidding": "المشاريع والمناقصات",
     "groupProductsSales": "المنتجات والمبيعات",
     "groupProcurement": "المشتريات",
     "groupCommunication": "التواصل",
     "groupTools": "الأدوات",
     "groupBusiness": "الأعمال",
+    "groupBilling": "الفوترة",
     "groupAccount": "الحساب",
     "viewPublicProfile": "عرض الملف العام",
-    "myBids": "عروضي",
+    "myBids": "مناقصاتي",
+    "receivedBids": "المناقصات المستلمة",
+    "contractorsSuppliers": "المقاولون والموردون",
     "invitations": "الدعوات"
   },
   "locale": {
@@ -126,23 +136,44 @@
     "heading1": "منصة مهندس",
     "heading2": "لقطاع الإنشاءات في السعودية",
     "subheading": "منظومة رقمية متكاملة تربط أصحاب المشاريع والمقاولين والموردين والمشترين — لضمان تنفيذ المشاريع بكفاءة وموثوقية عالية.",
+    "roleCycle": {
+      "prefix": "صُممت لـ",
+      "roles": [
+        "أصحاب المشاريع الباحثين عن مقاولين موثوقين",
+        "المقاولين الباحثين عن مشاريعهم القادمة",
+        "الموردين لتوسيع قاعدة عملائهم",
+        "المشترين للحصول على أفضل المواد"
+      ]
+    },
+    "ticker": {
+      "events": [
+        "مشروع جديد في الرياض",
+        "ترسية مناقصة: ٤٥٠ ألف ريال — بناء فيلا",
+        "١٢ مورد استجابوا لطلب أسعار",
+        "صفقة مكتملة في جدة — تقييم ٤.٩★",
+        "مقاول جديد انضم من الدمام",
+        "عرض سعر مقبول: ٨٥ ألف ريال — توريد حديد",
+        "٣ مناقصات جديدة على مشروع MEP",
+        "عقد موقّع: مبنى مكاتب — مكة المكرمة"
+      ]
+    },
     "ctaPrimary": "ابدأ الآن مجاناً",
     "ctaSecondary": "تصفح المشاريع",
     "stats": {
-      "roles": "أدوار متخصصة",
-      "plans": "خطط اشتراك",
-      "vatInclusive": "شاملة الضريبة"
+      "partners": "شريك موثّق",
+      "projects": "مشروع نشط",
+      "products": "منتج معروض"
     },
     "roles": {
       "title": "منصة واحدة لجميع أطراف المشروع",
       "subtitle": "كل دور في سلسلة الإنشاءات يجد ما يحتاجه لتطوير أعماله",
       "projectOwner": {
         "title": "أصحاب المشاريع",
-        "desc": "انشر مشاريعك واستقبل عروض المقاولين وقارن بينها بسهولة"
+        "desc": "انشر مشاريعك واستقبل مناقصات المقاولين وقارن بينها بسهولة"
       },
       "contractor": {
         "title": "المقاولون",
-        "desc": "ابحث عن مشاريع جديدة وقدم عروضك وأدر أعمالك بكفاءة"
+        "desc": "ابحث عن مشاريع جديدة وقدم مناقصاتك وأدر أعمالك بكفاءة"
       },
       "supplier": {
         "title": "الموردون",
@@ -181,27 +212,74 @@
         "desc": "تحقق من الهوية وحماية البيانات وفق أنظمة المملكة"
       }
     },
+    "tools": {
+      "label": "أدوات الأعمال",
+      "dealWorkspace": {
+        "title": "مساحة عمل الصفقات",
+        "desc": "المراحل والمستندات والمدفوعات في مكان واحد"
+      },
+      "crmPipeline": {
+        "title": "إدارة العملاء",
+        "desc": "تتبع العملاء من الاستفسار حتى إغلاق الصفقة"
+      },
+      "bulkManagement": {
+        "title": "الإدارة بالجملة",
+        "desc": "استيراد المنتجات والبيانات عبر CSV في ثوانٍ"
+      },
+      "ratings": {
+        "title": "التقييمات والمراجعات",
+        "desc": "ابنِ الثقة بتقييمات مشاريع موثّقة"
+      },
+      "quotations": {
+        "title": "نظام عروض الأسعار",
+        "desc": "عروض أسعار احترافية مع الضريبة والعلامة التجارية"
+      },
+      "kanban": {
+        "title": "إدارة المشاريع",
+        "desc": "إدارة المهام بالسحب والإفلات لكل صفقة"
+      }
+    },
     "partners": {
       "title": "شركاؤنا في قطاع الإنشاءات",
       "subtitle": "نتعاون مع أبرز الشركات والمؤسسات في القطاع",
-      "ariaLabel": "شركاء المنصة",
-      "logos": {
-        "advancedConstruction": "شركة البناء المتطور",
-        "saudiIronFactory": "مصنع الحديد السعودي",
-        "gulfWarehouses": "مستودعات الخليج",
-        "contractorsGroup": "مجموعة المقاولين",
-        "nationalArchitecture": "شركة المعمار الوطنية",
-        "constructionTools": "مؤسسة الإعمار للأدوات",
-        "layersMaterials": "طبقات للمواد",
-        "riyadhContainers": "حاويات الرياض",
-        "precisionMeasurement": "شركة القياس الدقيق",
-        "safetyExcellence": "أعمال السلامة المتميزة"
-      }
+      "ariaLabel": "شركاء المنصة"
     },
     "cta": {
       "title": "ابدأ رحلتك في عالم الإنشاءات الرقمية",
       "subtitle": "سجل الآن مجاناً واكتشف فرص عمل جديدة في قطاع الإنشاءات السعودي",
       "button": "إنشاء حساب مجاني"
+    },
+    "bento": {
+      "bidTable": {
+        "title": "مقارنة المناقصات",
+        "bidder1": "مقاولات الراجحي",
+        "bidder2": "شركة البناء السعودية",
+        "bidder3": "مقاولات الخليج",
+        "award": "تمت الترسية"
+      },
+      "timeline": {
+        "title": "تقدم الصفقة",
+        "foundation": "الأساسات",
+        "structure": "الهيكل",
+        "mep": "الأنظمة الميكانيكية",
+        "finishing": "التشطيبات",
+        "handover": "التسليم"
+      },
+      "activity": {
+        "label": "مشروع نشط"
+      },
+      "rating": {
+        "reviews": "تقييم"
+      },
+      "chat": {
+        "title": "الرسائل",
+        "message1": "العقد جاهز للمراجعة",
+        "message2": "تمت الموافقة ✓"
+      },
+      "cta": {
+        "heading": "نمّي أعمالك اليوم",
+        "button": "انضم مجاناً"
+      }
     }
   },
   "trust": {
@@ -210,7 +288,9 @@
     "bilingual": "ثنائي اللغة"
   },
   "footer": {
-    "description": "منصة رقمية متكاملة لقطاع الإنشاءات في المملكة العربية السعودية — تربط أصحاب المشاريع والمقاولين والموردين والمشترين."
+    "description": "منصة رقمية متكاملة لقطاع الإنشاءات في المملكة العربية السعودية — تربط أصحاب المشاريع والمقاولين والموردين والمشترين.",
+    "phone": "+966 55 107 0673",
+    "email": "info@muhandeshub.com"
   },
   "auth": {
     "login": {
@@ -274,11 +354,11 @@
       "validation": "الرجاء اختيار دور للمتابعة",
       "projectOwner": {
         "title": "صاحب مشروع",
-        "desc": "انشر مشاريعك واستقبل عروض المقاولين"
+        "desc": "انشر مشاريعك واستقبل مناقصات المقاولين"
       },
       "contractor": {
         "title": "مقاول",
-        "desc": "قدم عروضك على المشاريع وأدر أعمالك"
+        "desc": "قدم مناقصاتك على المشاريع وأدر أعمالك"
       },
       "supplier": {
         "title": "مورد",
@@ -292,7 +372,9 @@
     "accountStep": {
       "title": "بيانات الحساب",
       "fullName": "الاسم الكامل *",
+      "fullNamePlaceholder": "أدخل اسمك الكامل",
       "email": "البريد الإلكتروني *",
+      "emailPlaceholder": "email@example.com",
       "password": "كلمة المرور *",
       "passwordHint": "يجب أن تكون 8 أحرف على الأقل",
       "phone": "رقم الهاتف *",
@@ -308,10 +390,17 @@
       "company": "شركة",
       "individual": "شخصي",
       "companyNameAr": "اسم الشركة (عربي) *",
+      "companyNameArPlaceholder": "اسم الشركة بالعربية",
       "companyNameEn": "Company Name (English) *",
+      "companyNameEnPlaceholder": "Company name in English",
       "crNumber": "رقم السجل التجاري",
+      "crNumberPlaceholder": "مثال: 1010XXXXXX",
+      "vatNumber": "الرقم الضريبي",
+      "vatNumberPlaceholder": "مثال: 300XXXXXXXXXXXX",
       "website": "الموقع الإلكتروني",
-      "city": "المدينة *"
+      "websitePlaceholder": "https://example.com",
+      "city": "المدينة *",
+      "cityPlaceholder": "اختر المدينة"
     },
     "tierStep": {
       "title": "اختر خطة الاشتراك",
@@ -326,12 +415,13 @@
       "paymentCardDesc": "ادفع باستخدام فيزا/ماستركارد عبر 3D Secure الآمن",
       "paymentBank": "تحويل بنكي",
       "paymentBankDesc": "حوّل إلى حسابنا البنكي وارفع إيصال التحويل",
+      "paymentBankRecommended": "موصى به",
       "selectPaymentMethod": "الرجاء اختيار طريقة الدفع",
       "features": {
-        "bids10": "10 عروض / شهرياً",
-        "bids50": "50 عروض / شهرياً",
-        "bids100": "100 عروض / شهرياً",
-        "bidsUnlimited": "عروض غير محدودة",
+        "bids10": "10 مناقصات / شهرياً",
+        "bids50": "50 مناقصات / شهرياً",
+        "bids100": "100 مناقصات / شهرياً",
+        "bidsUnlimited": "مناقصات غير محدودة",
         "products2": "2 منتجات",
         "products10": "10 منتجات",
         "products50": "50 منتجات",
@@ -366,7 +456,8 @@
       "paymentMethod": "طريقة الدفع",
       "paymentCard": "الدفع الإلكتروني (بطاقة)",
       "paymentBank": "تحويل بنكي",
-      "submit": "إنشاء الحساب"
+      "submit": "إنشاء الحساب",
+      "editLabel": "تعديل"
     },
     "paymentStep": {
       "title": "إتمام الدفع",
@@ -398,6 +489,12 @@
     }
   },
   "verify": {
+    "stepper": {
+      "email": "البريد",
+      "payment": "الدفع",
+      "documents": "المستندات",
+      "review": "المراجعة"
+    },
     "emailSent": {
       "title": "تحقق من بريدك الإلكتروني",
       "description": "أرسلنا رابط التحقق إلى بريدك الإلكتروني. يرجى فتح الرابط لتفعيل حسابك.",
@@ -418,7 +515,23 @@
       "bankPendingDesc": "سيتحقق فريقنا من التحويل. عادة ما يستغرق ذلك 1-2 يوم عمل.",
       "bankReceiptUploaded": "تم رفع الإيصال بنجاح",
       "retryPayment": "إعادة المحاولة",
-      "switchToBank": "الدفع عبر التحويل البنكي"
+      "switchToBank": "الدفع عبر التحويل البنكي",
+      "tierLabel": "الخطة",
+      "duration": "المدة",
+      "months": "أشهر",
+      "totalAmount": "المبلغ الإجمالي",
+      "vatInclusive": "جميع الأسعار شاملة ضريبة القيمة المضافة (15%)",
+      "bankTransfer": "بيانات التحويل البنكي",
+      "bankName": "البنك",
+      "iban": "آيبان",
+      "reference": "المرجع",
+      "onlinePayment": "الدفع الإلكتروني عبر Moyasar سيكون متاحاً قريباً.",
+      "contactSupport": "تواصل مع الدعم",
+      "tiers": {
+        "pro": "المحترف",
+        "business": "الأعمال",
+        "enterprise": "المؤسسات"
+      }
     },
     "documents": {
       "title": "رفع المستندات",
@@ -427,7 +540,9 @@
       "crDoc": "السجل التجاري (CR)",
       "validation": "يجب رفع كلا المستندين",
       "submit": "رفع المستندات",
-      "logout": "تسجيل الخروج"
+      "logout": "تسجيل الخروج",
+      "rejectedTitle": "تم رفض المستندات",
+      "rejectedReupload": "يرجى مراجعة الملاحظات أعلاه وإعادة رفع مستنداتك."
     },
     "pendingApproval": {
       "title": "بانتظار الموافقة",
@@ -450,6 +565,12 @@
     "greeting": "مرحباً، {name}",
     "greetingDefault": "مرحباً بك",
     "overview": "إليك نظرة سريعة على نشاطك في المنصة",
+    "role": {
+      "project_owner": "صاحب مشروع",
+      "contractor": "مقاول",
+      "supplier": "مورّد",
+      "buyer": "مشتري"
+    },
     "quickActions": "إجراءات سريعة",
     "currentSubscription": "الاشتراك الحالي",
     "manageSubscription": "إدارة الاشتراك",
@@ -459,12 +580,15 @@
       "rfqs": "طلبات الأسعار",
       "reviews": "التقييمات",
       "projects": "المشاريع",
-      "submittedBids": "العروض المقدمة",
+      "submittedBids": "المناقصات المقدمة",
       "activeDealsShort": "الصفقات النشطة",
       "products": "المنتجات",
       "quotations": "عروض الأسعار",
       "deals": "الصفقات",
-      "contracts": "العقود"
+      "contracts": "العقود",
+      "inquiries": "الاستفسارات",
+      "bidsReceived": "العطاءات المستلمة",
+      "sentInquiries": "استفساراتي"
     },
     "actions": {
       "newProject": "نشر مشروع جديد",
@@ -475,7 +599,10 @@
       "newQuotation": "إنشاء عرض سعر",
       "newProduct": "إضافة منتج جديد",
       "browseRfqs": "تصفح طلبات الأسعار",
-      "browseProducts": "تصفح المنتجات"
+      "browseProducts": "تصفح المنتجات",
+      "viewDeals": "عرض الصفقات",
+      "viewAnalytics": "عرض التحليلات",
+      "viewMyInquiries": "استفساراتي"
     },
     "common": {
       "sar": "ر.س",
@@ -510,7 +637,7 @@
       "noResults": "لا توجد نتائج",
       "upTo": "حتى",
       "from": "من",
-      "bids": "عرض",
+      "bids": "مناقصة",
       "descriptionAr": "الوصف (عربي)",
       "descriptionEn": "الوصف (إنجليزي)",
       "titleEn": "العنوان (إنجليزي)",
@@ -534,6 +661,27 @@
       "selectAll": "تحديد الكل",
       "selected": "محدد",
       "clear": "مسح"
+    },
+    "table": {
+      "showing": "{count, plural, =0 {لا توجد نتائج} =1 {نتيجة واحدة} two {نتيجتان} few {# نتائج} many {# نتيجة} other {# نتيجة}}",
+      "export": "تصدير CSV",
+      "clearFilters": "مسح الفلاتر",
+      "sort": {
+        "newest": "الأحدث أولاً",
+        "oldest": "الأقدم أولاً",
+        "amountHigh": "المبلغ: من الأعلى",
+        "amountLow": "المبلغ: من الأقل",
+        "nameAsc": "الاسم أ-ي",
+        "nameDesc": "الاسم ي-أ",
+        "valueHigh": "القيمة: من الأعلى",
+        "valueLow": "القيمة: من الأقل",
+        "budgetHigh": "الميزانية: من الأعلى",
+        "budgetLow": "الميزانية: من الأقل",
+        "priceHigh": "السعر: من الأعلى",
+        "priceLow": "السعر: من الأقل",
+        "deadlineSoon": "الموعد: الأقرب",
+        "deadlineLate": "الموعد: الأبعد"
+      }
     },
     "error": {
       "title": "حدث خطأ",
@@ -560,16 +708,17 @@
         "editProjectDesc": "عدّل بيانات مشروعك ثم أعد تقديمه للمراجعة",
         "submitForReview": "تقديم للمراجعة",
         "documentsAndFiles": "المستندات والملفات",
+        "projectImages": "صور المشروع",
         "associatedDeals": "الصفقات المرتبطة"
       }
     },
     "bids": {
-      "submitBid": "تقديم عرض",
-      "alreadySubmitted": "تم تقديم عرض بالفعل",
-      "alreadySubmittedDesc": "لقد قدمت عرضاً على هذا المشروع سابقاً",
-      "onlyContractors": "فقط المقاولون يمكنهم تقديم العروض",
-      "submittedBids": "العروض المقدمة",
-      "totalBids": "إجمالي العروض",
+      "submitBid": "تقديم مناقصة",
+      "alreadySubmitted": "تم تقديم مناقصة بالفعل",
+      "alreadySubmittedDesc": "لقد قدمت مناقصة على هذا المشروع سابقاً",
+      "onlyContractors": "فقط المقاولون يمكنهم تقديم المناقصات",
+      "submittedBids": "المناقصات المقدمة",
+      "totalBids": "إجمالي المناقصات",
       "shortlisted": "في القائمة المختصرة",
       "contractor": "المقاول",
       "amount": "القيمة",
@@ -578,17 +727,18 @@
       "lowest": "الأقل",
       "fastest": "الأسرع",
       "methodologyDetails": "تفاصيل المنهجيات",
-      "noBidsYet": "لا توجد عروض بعد",
-      "noBidsDesc": "لم يتقدم أي مقاول بعرض على هذا المشروع",
+      "noBidsYet": "لا توجد مناقصات بعد",
+      "noBidsDesc": "لم يتقدم أي مقاول بمناقصة على هذا المشروع",
       "backToProjectDetails": "العودة لتفاصيل المشروع",
-      "cantViewOthersBids": "لا يمكنك عرض العروض على مشاريع الآخرين"
+      "cantViewOthersBids": "لا يمكنك عرض المناقصات على مشاريع الآخرين"
     },
     "myBids": {
-      "title": "عروضي",
-      "subtitle": "تتبع عروضك المقدمة وحالتها",
-      "noBids": "لا توجد عروض بعد",
-      "noBidsDesc": "تصفح المشاريع المتاحة وقدم عرضك الأول",
+      "title": "مناقصاتي",
+      "subtitle": "تتبع مناقصاتك المقدمة وحالتها",
+      "noBids": "لا توجد مناقصات بعد",
+      "noBidsDesc": "تصفح المشاريع المتاحة وقدم مناقصتك الأولى",
       "browseProjects": "تصفح المشاريع",
+      "viewDeal": "عرض الصفقة",
       "projectName": "المشروع",
       "amount": "القيمة",
       "timeline": "المدة",
@@ -599,12 +749,21 @@
       "statusShortlisted": "في القائمة المختصرة",
       "statusAwarded": "تمت الترسية",
       "statusRejected": "مرفوض",
-      "totalBids": "إجمالي العروض",
+      "totalBids": "إجمالي المناقصات",
       "pendingBids": "قيد المراجعة",
       "awardedBids": "تمت ترسيتها",
-      "editBid": "تعديل العرض",
+      "editBid": "تعديل المناقصة",
       "viewProject": "عرض المشروع",
-      "days": "{count} يوم"
+      "days": "{count} يوم",
+      "sentTab": "مناقصاتي ({count})",
+      "receivedTab": "مناقصات مستلمة ({count})",
+      "contractorName": "المقاول",
+      "noReceivedBids": "لا توجد مناقصات مستلمة",
+      "noReceivedBidsDesc": "ستظهر هنا المناقصات المقدمة على مشاريعك",
+      "receivedBidsTotal": "المناقصات المستلمة",
+      "shortlist": "إضافة للقائمة المختصرة",
+      "award": "ترسية",
+      "reject": "رفض"
     },
     "deals": {
       "title": "الصفقات",
@@ -636,18 +795,22 @@
       "statusDisputed": "متنازع عليها",
       "dealTypeProject": "صفقة مشروع",
       "dealTypeProduct": "صفقة منتج",
-      "triggerBidAward": "ترسية عرض",
+      "triggerBidAward": "ترسية مناقصة",
       "triggerInquiryQuotation": "عرض سعر استفسار",
       "triggerRfqResponse": "رد طلب عروض",
       "triggerDirectHire": "توظيف مباشر",
       "asBuyer": "كمشتري",
       "asSeller": "كبائع",
       "noDealsAsBuyer": "لا توجد صفقات كمشتري",
-      "noDealsAsBuyerDesc": "ستظهر هنا الصفقات عند ترسية العروض أو قبول عروض الأسعار",
+      "noDealsAsBuyerDesc": "ستظهر هنا الصفقات عند ترسية المناقصات أو قبول عروض الأسعار",
       "noDealsAsSeller": "لا توجد صفقات كبائع",
       "noDealsAsSellerDesc": "ستظهر هنا الصفقات عند قبول عروضك",
       "youAreBuyer": "أنت المشتري",
       "youAreSeller": "أنت البائع",
+      "youAreProjectOwner": "صاحب المشروع",
+      "youAreContractor": "مقاول",
+      "youAreSupplier": "مورّد",
+      "youAreBuyerRole": "مشتري",
       "commission": "عمولة",
       "tabOverview": "نظرة عامة",
       "tabMilestones": "المراحل",
@@ -667,7 +830,6 @@
       "dealParties": "أطراف الصفقة",
       "buyer": "المشتري",
       "seller": "البائع",
-      "you": "أنت",
       "pendingCancelRequest": "طلب إلغاء معلق",
       "onDate": "بتاريخ",
       "milestoneStatusPending": "في الانتظار",
@@ -745,7 +907,13 @@
       "dealType": "النوع",
       "triggerSource": "المصدر",
       "viewDailyLog": "السجل اليومي",
+      "writeDailyLog": "كتابة السجل اليومي",
       "viewKanban": "لوحة كانبان",
+      "editKanban": "تعديل الكانبان",
+      "contractorWorkProgress": "تقدم المقاول",
+      "supplierSupplyProgress": "تقدم التوريد",
+      "projectOwnerPaymentProgress": "مدفوعات صاحب المشروع",
+      "buyerPaymentProgress": "مدفوعات المشتري",
       "viewContract": "العقد",
       "quickLinks": "روابط سريعة",
       "requestCancellation": "طلب إلغاء",
@@ -753,6 +921,7 @@
       "startConversation": "ابدأ محادثة حول هذه الصفقة",
       "typeMessage": "اكتب رسالة...",
       "typing": "يكتب",
+      "chat": "المحادثة",
       "chatError": "خطأ في تحميل المحادثة",
       "you": "أنت",
       "attachment": "مرفق",
@@ -763,6 +932,9 @@
       "pendingCount": "{count} معلّقة",
       "suggestChangesHint": "يمكنك اقتراح تغييرات للمشتري",
       "skipToFinish": "تخطي إلى الإنهاء",
+      "skipToFinishModal": "تخطي إلى الإنهاء",
+      "cancelDealModal": "طلب إلغاء الصفقة",
+      "moreActions": "المزيد من الإجراءات",
       "pendingSkipRequests": "طلبات تخطي إلى الإنهاء معلقة",
       "awaitingApproval": "بانتظار الموافقة",
       "cancelRequestedBy": "تم الطلب من {party}",
@@ -777,6 +949,8 @@
       "accountRole": "نوع الحساب",
       "dealOrigin": "أصل الصفقة",
       "linkedContracts": "العقود المرتبطة",
+      "generateContract": "إنشاء عقد",
+      "noContracts": "لا توجد عقود مرتبطة بعد",
       "untitledDeal": "صفقة بدون عنوان",
       "guide": {
         "nextStep": "الخطوة التالية",
@@ -813,7 +987,7 @@
       "noProductsDesc": "أضف منتجاتك لعرضها في سوق المنتجات",
       "newPage": {
         "title": "منتج جديد",
-        "subtitle": "أضف منتجاً جديداً لعرضه في السوق بعد موافقة الإدارة"
+        "subtitle": "أضف منتجاً جديداً لعرضه في السوق"
       },
       "inStock": "متوفر",
       "outOfStock": "غير متوفر",
@@ -830,12 +1004,18 @@
       "byVariants": "حسب المتغيرات",
       "atLimitWarning": "وصلت للحد الأقصى من المنتجات ({max}) في اشتراك",
       "upgradeYourPlan": "ترقية اشتراكك",
+      "unpublished": "غير منشور",
+      "unpublish": "إلغاء النشر",
+      "republish": "إعادة النشر",
+      "editPrice": "تعديل السعر",
+      "editStock": "تعديل المخزون",
+      "export": "تصدير CSV",
+      "cancel": "إلغاء",
       "detail": {
         "backToProducts": "العودة للمنتجات",
         "productDetails": "تفاصيل المنتج",
         "editProduct": "تعديل المنتج",
-        "editProductDesc": "عدّل تفاصيل المنتج ثم أعد إرساله للمراجعة",
-        "submitForReview": "إرسال للمراجعة",
+        "editProductDesc": "عدّل تفاصيل المنتج",
         "fixedPrice": "سعر ثابت",
         "variantBased": "حسب المتغيرات",
         "stockQuantity": "كمية المخزون",
@@ -859,7 +1039,15 @@
         "pending": "قيد الانتظار",
         "responded": "تم الرد",
         "closed": "مغلق"
-      }
+      },
+      "sentTab": "استفسارات مرسلة ({count})",
+      "receivedTab": "استفسارات مستلمة ({count})",
+      "sentTitle": "الاستفسارات المرسلة",
+      "sentDescription": "تتبع الاستفسارات التي أرسلتها حول المنتجات",
+      "noSent": "لا توجد استفسارات مرسلة",
+      "noSentDescription": "ستظهر هنا الاستفسارات التي ترسلها حول المنتجات",
+      "supplier": "المورّد",
+      "browseProducts": "تصفح المنتجات"
     },
     "inquiryDetail": {
       "title": "تفاصيل الاستفسار",
@@ -882,14 +1070,17 @@
     },
     "invitations": {
       "title": "الدعوات",
+      "createInvite": "إنشاء دعوة",
+      "chooseTypeDesc": "اختر ما إذا كنت تريد دعوة مورد لتقديم عرض سعر أو مقاول لتقديم مناقصة.",
+      "noProjectsWarning": "تحتاج إلى مشروع منشور واحد على الأقل لإرسال الدعوات. انشر مشروعاً أولاً.",
       "tabSendQuote": "دعوة لتقديم عرض سعر",
-      "tabSendBid": "دعوة لتقديم عرض",
+      "tabSendBid": "دعوة لتقديم مناقصة",
       "tabSent": "الدعوات المرسلة",
       "tabReceived": "الدعوات المستلمة",
       "inviteToQuoteTitle": "دعوة مورد لتقديم عرض سعر",
       "inviteToQuoteDesc": "اختر مشروعاً منشوراً وادعُ مورداً لتقديم عرض سعر.",
-      "inviteToBidTitle": "دعوة مقاول لتقديم عرض",
-      "inviteToBidDesc": "اختر مشروعاً منشوراً وادعُ مقاولاً لتقديم عرض.",
+      "inviteToBidTitle": "دعوة مقاول لتقديم مناقصة",
+      "inviteToBidDesc": "اختر مشروعاً منشوراً وادعُ مقاولاً لتقديم مناقصة.",
       "selectProject": "المشروع",
       "selectProjectPlaceholder": "اختر مشروعاً...",
       "selectSupplier": "المورد",
@@ -906,22 +1097,22 @@
       "messageEnPlaceholder": "رسالة اختيارية بالإنجليزية...",
       "sending": "جارٍ الإرسال...",
       "sendQuoteInvitation": "إرسال دعوة عرض سعر",
-      "sendBidInvitation": "إرسال دعوة عرض",
+      "sendBidInvitation": "إرسال دعوة مناقصة",
       "quoteInvitationSent": "تم إرسال دعوة عرض السعر بنجاح!",
-      "bidInvitationSent": "تم إرسال دعوة العرض بنجاح!",
+      "bidInvitationSent": "تم إرسال دعوة المناقصة بنجاح!",
       "noSentInvitations": "لا توجد دعوات مرسلة",
       "noSentInvitationsDesc": "ستظهر الدعوات التي ترسلها هنا",
       "noQuoteInvitations": "لا توجد دعوات عروض أسعار",
       "noQuoteInvitationsDesc": "عندما يدعوك صاحب مشروع لتقديم عرض سعر، ستظهر هنا",
-      "noBidInvitations": "لا توجد دعوات عروض",
-      "noBidInvitationsDesc": "عندما يدعوك صاحب مشروع لتقديم عرض، ستظهر هنا",
+      "noBidInvitations": "لا توجد دعوات مناقصات",
+      "noBidInvitationsDesc": "عندما يدعوك صاحب مشروع لتقديم مناقصة، ستظهر هنا",
       "from": "من",
       "to": "إلى",
       "typeQuote": "عرض سعر",
-      "typeBid": "عرض",
+      "typeBid": "مناقصة",
       "acceptAndQuote": "قبول وتقديم عرض سعر",
       "decline": "رفض",
-      "submitBid": "تقديم عرض",
+      "submitBid": "تقديم مناقصة",
       "quotationAmount": "مبلغ عرض السعر (ر.س)",
       "quotationDescAr": "وصف عرض السعر (عربي)",
       "quotationDescArPlaceholder": "صف عرض السعر...",
@@ -937,7 +1128,12 @@
       "status_pending": "قيد الانتظار",
       "status_accepted": "مقبول",
       "status_declined": "مرفوض",
-      "status_cancelled": "ملغي"
+      "status_cancelled": "ملغي",
+      "colType": "النوع",
+      "colProject": "المشروع",
+      "colRecipient": "المستلم",
+      "colDate": "التاريخ",
+      "colStatus": "الحالة"
     },
     "bulkUpload": {
       "title": "رفع المنتجات بالجملة",
@@ -992,7 +1188,20 @@
       "responseAccepted": "مقبول",
       "responseRejected": "مرفوض",
       "linkedProduct": "المنتج المرتبط",
-      "attachments": "المرفقات"
+      "attachments": "المرفقات",
+      "editPage": {
+        "title": "تعديل طلب عرض الأسعار",
+        "subtitle": "تحديث تفاصيل طلب عرض الأسعار"
+      },
+      "colTitle": "العنوان",
+      "colBudget": "الميزانية",
+      "colDeadline": "الموعد النهائي",
+      "colResponses": "الردود",
+      "colRfq": "طلب عرض السعر",
+      "budgetHighSort": "الميزانية: من الأعلى للأقل",
+      "budgetLowSort": "الميزانية: من الأقل للأعلى",
+      "deadlineSoonSort": "الموعد: الأقرب",
+      "deadlineLateSort": "الموعد: الأبعد"
     },
     "quotations": {
       "title": "عروض الأسعار",
@@ -1034,7 +1243,15 @@
       "downloadPdf": "تحميل PDF",
       "unit": "الوحدة",
       "sourceRfq": "من طلب عروض أسعار",
-      "sourceInquiry": "من استفسار"
+      "sourceInquiry": "من استفسار",
+      "viewDeal": "عرض الصفقة",
+      "dealCreated": "تم قبول عرض السعر — تم إنشاء صفقة جديدة.",
+      "sentTab": "مرسلة ({count})",
+      "receivedTab": "مستلمة ({count})",
+      "editPage": {
+        "title": "تعديل عرض الأسعار",
+        "subtitle": "تحديث تفاصيل عرض الأسعار وبنوده"
+      }
     },
     "contracts": {
       "title": "العقود",
@@ -1051,6 +1268,13 @@
       "signaturesLabel": "التوقيعات",
       "signaturesCount": "توقيعات",
       "linkedToDeal": "مرتبط بصفقة",
+      "colStatus": "الحالة",
+      "colTemplate": "النوع",
+      "colParties": "الأطراف",
+      "colCreated": "تاريخ الإنشاء",
+      "colSignatures": "التوقيعات",
+      "colDeal": "الصفقة",
+      "colYourSignature": "توقيعك",
       "contract": "عقد",
       "viewLinkedDeal": "عرض الصفقة المرتبطة",
       "contractDetails": "تفاصيل العقد",
@@ -1088,7 +1312,16 @@
       "unsigned": "غير موقّع",
       "signContract": "توقيع العقد",
       "downloadPdf": "تحميل PDF",
-      "backToContracts": "العودة للعقود"
+      "backToContracts": "العودة للعقود",
+      "createdTab": "عقودي ({count})",
+      "receivedTab": "عقود للتوقيع ({count})",
+      "receivedContracts": "عقود للتوقيع",
+      "noReceivedContracts": "لا توجد عقود للتوقيع",
+      "noReceivedContractsDesc": "ستظهر هنا العقود المرسلة إليك للتوقيع",
+      "awaitingSignature": "بانتظار توقيعك",
+      "creatorName": "أنشأه",
+      "pendingSignature": "بانتظار التوقيع",
+      "alreadySigned": "تم توقيعك"
     },
     "messages": {
       "title": "الرسائل",
@@ -1134,11 +1367,14 @@
       "messageLabel": "الرسالة",
       "timeLabel": "الوقت",
       "markRead": "تحديد كمقروء",
+      "read": "مقروءة",
+      "unread": "غير مقروءة",
+      "filterByType": "النوع",
       "types": {
-        "bid_received": "عرض سعر جديد",
-        "bid_awarded": "ترسية عرض",
-        "bid_shortlisted": "تأهيل عرض",
-        "bid_rejected": "رفض عرض",
+        "bid_received": "مناقصة جديدة",
+        "bid_awarded": "ترسية مناقصة",
+        "bid_shortlisted": "تأهيل مناقصة",
+        "bid_rejected": "رفض مناقصة",
         "inquiry_received": "استفسار جديد",
         "quotation_received": "عرض أسعار جديد",
         "quotation_accepted": "قبول عرض أسعار",
@@ -1169,9 +1405,9 @@
       "prefPage": {
         "title": "تفضيلات الإشعارات",
         "subtitle": "تحكم في الإشعارات التي تصلك عبر البريد الإلكتروني",
-        "criticalNote": "* الإشعارات الحرجة (مثل ترسية العروض وإنشاء الصفقات) لا يمكن إيقافها لضمان عدم فوات معلومات مهمة.",
+        "criticalNote": "* الإشعارات الحرجة (مثل ترسية المناقصات وإنشاء الصفقات) لا يمكن إيقافها لضمان عدم فوات معلومات مهمة.",
         "groups": {
-          "bids": "العروض والمناقصات",
+          "bids": "المناقصات",
           "quotations": "عروض الأسعار",
           "deals": "الصفقات",
           "finance": "المالية",
@@ -1179,6 +1415,17 @@
           "rfqs": "طلبات الأسعار",
           "subscriptionDocs": "الاشتراك والمستندات"
         }
+      },
+      "dropdown": {
+        "viewAll": "عرض جميع الإشعارات",
+        "empty": "لا توجد إشعارات بعد",
+        "emptyDesc": "ستظهر التحديثات المهمة هنا"
+      },
+      "groups": {
+        "today": "اليوم",
+        "yesterday": "أمس",
+        "thisWeek": "هذا الأسبوع",
+        "older": "أقدم"
       }
     },
     "crm": {
@@ -1223,6 +1470,30 @@
         "direct_hire": "توظيف مباشر"
       }
     },
+    "contractorsSuppliers": {
+      "title": "المقاولون والموردون",
+      "subtitle": "عرض المقاولين والموردين الذين تعاملت معهم أو حفظتهم",
+      "workedWithTab": "تعاملت معهم ({count})",
+      "savedTab": "المحفوظون ({count})",
+      "searchPlaceholder": "ابحث بالاسم أو الشركة...",
+      "allRoles": "جميع الأدوار",
+      "contractors": "مقاولون",
+      "suppliers": "موردون",
+      "allRatings": "جميع التقييمات",
+      "sortByDeals": "الأكثر صفقات",
+      "sortByValue": "الأعلى قيمة",
+      "sortByRating": "الأعلى تقييماً",
+      "sortByRecent": "الأحدث",
+      "dealsCount": "صفقات مكتملة",
+      "totalValue": "إجمالي القيمة",
+      "myRating": "تقييمي",
+      "lastDeal": "آخر صفقة",
+      "viewProfile": "عرض الملف الشخصي",
+      "noWorkedWith": "لا يوجد شركاء بعد",
+      "noWorkedWithDesc": "بعد إتمام صفقاتك الأولى ستظهر هنا بيانات المقاولين والموردين",
+      "noSaved": "لا يوجد محفوظون",
+      "noSavedDesc": "يمكنك حفظ المقاولين والموردين من قائمة العملاء"
+    },
     "reviews": {
       "title": "التقييمات",
       "subtitle": "التقييمات التي حصلت عليها ومنحتها",
@@ -1264,6 +1535,11 @@
     "settings": {
       "title": "الإعدادات",
       "subtitle": "إعدادات حسابك وتفضيلاتك",
+      "tabs": {
+        "profile": "الملف الشخصي",
+        "notifications": "الإشعارات",
+        "account": "الحساب"
+      },
       "notificationPreferences": "تفضيلات الإشعارات",
       "notificationPreferencesDesc": "سيتم إضافة إعدادات الإشعارات قريباً.",
       "language": "اللغة",
@@ -1275,6 +1551,11 @@
     "subscription": {
       "title": "الاشتراك",
       "subtitle": "إدارة خطة اشتراكك",
+      "freePlanTitle": "خطة مجانية",
+      "freePlanSubtitle": "حسابك يتمتع بوصول مجاني كامل — لا يلزم اشتراك",
+      "freePlanBadge": "مجاني",
+      "freePlanDescription": "بصفتك {role}، تتمتع بوصول كامل للمنصة بدون تكلفة. لا تطبق رسوم اشتراك أو عمولة.",
+      "freeLimitsTitle": "مميزات خطتك",
       "tiers": {
         "starter": "المبتدئ",
         "pro": "المحترف",
@@ -1289,7 +1570,7 @@
       "expiresOn": "ينتهي في",
       "currentLimits": "حدود خطتك الحالية",
       "limits": {
-        "bidsPerMonth": "العروض/شهر",
+        "bidsPerMonth": "المناقصات/شهر",
         "products": "المنتجات",
         "crmClients": "عملاء CRM",
         "quotationsPerMonth": "عروض الأسعار/شهر",
@@ -1335,6 +1616,7 @@
         "cardDescription": "فيزا/ماستركارد مع 3D Secure",
         "bankTransfer": "تحويل بنكي",
         "bankDescription": "قم بالتحويل وارفع الإيصال",
+        "recommended": "موصى به",
         "couponCode": "كود الخصم",
         "couponPlaceholder": "أدخل كود الخصم",
         "applyCoupon": "تطبيق",
@@ -1443,7 +1725,14 @@
       "dueDate": "موعد الاستحقاق:",
       "disputeReason": "سبب الاعتراض:",
       "paidOn": "تم الدفع:",
-      "downloadInvoice": "تحميل الفاتورة"
+      "downloadInvoice": "تحميل الفاتورة",
+      "colDeal": "الصفقة",
+      "colDealValue": "قيمة الصفقة",
+      "colTotal": "الإجمالي",
+      "colDueDate": "تاريخ الاستحقاق",
+      "colRate": "النسبة:",
+      "amountHighSort": "المبلغ: من الأعلى للأقل",
+      "amountLowSort": "المبلغ: من الأقل للأعلى"
     },
     "analytics": {
       "title": "التحليلات",
@@ -1475,16 +1764,16 @@
       "rolePerformance": "أداء الدور",
       "role": {
         "projects": "المشاريع",
-        "bids": "العروض المقدمة",
-        "bidWinRate": "نسبة الفوز بالعروض",
+        "bids": "المناقصات المقدمة",
+        "bidWinRate": "نسبة الفوز بالمناقصات",
         "avgBidToAward": "متوسط وقت الترسية",
         "products": "المنتجات",
         "quotations": "عروض الأسعار",
         "conversionRate": "نسبة التحويل",
         "inquiries": "الاستفسارات",
         "rfqs": "طلبات الأسعار",
-        "bidsReceived": "العروض المستلمة",
-        "avgBidsPerProject": "متوسط العروض/المشروع",
+        "bidsReceived": "المناقصات المستلمة",
+        "avgBidsPerProject": "متوسط المناقصات/المشروع",
         "deals": "الصفقات"
       },
       "chartsSection": "تحليلات تفصيلية",
@@ -1509,10 +1798,10 @@
         "ratingOverTime": "التقييم عبر الزمن",
         "ratingOverTimeDesc": "اتجاه متوسط التقييم خلال الفترة المحددة",
         "rating": "التقييم",
-        "bidsByStatus": "العروض حسب الحالة",
-        "bidsByStatusDesc": "تصنيف عروضك حسب حالتها الحالية",
+        "bidsByStatus": "المناقصات حسب الحالة",
+        "bidsByStatusDesc": "تصنيف مناقصاتك حسب حالتها الحالية",
         "bidWinRateTrend": "اتجاه نسبة الفوز",
-        "bidWinRateTrendDesc": "نسبة الفوز بعروضك عبر الزمن",
+        "bidWinRateTrendDesc": "نسبة الفوز بمناقصاتك عبر الزمن",
         "winRate": "نسبة الفوز",
         "topProducts": "أفضل المنتجات",
         "topProductsDesc": "أكثر منتجاتك مشاهدة واستفساراً",
@@ -1526,15 +1815,15 @@
         "conversionFunnelDesc": "تقدم مسار العمل من البداية حتى إتمام الصفقة",
         "projectsByStatus": "المشاريع حسب الحالة",
         "projectsByStatusDesc": "توزيع مشاريعك حسب حالاتها",
-        "bidsReceivedByStatus": "العروض المستلمة حسب الحالة",
-        "bidsReceivedByStatusDesc": "تصنيف العروض المستلمة على مشاريعك",
+        "bidsReceivedByStatus": "المناقصات المستلمة حسب الحالة",
+        "bidsReceivedByStatusDesc": "تصنيف المناقصات المستلمة على مشاريعك",
         "ratingCategory": {
           "quality": "الجودة",
           "timeliness": "الالتزام بالمواعيد",
           "communication": "التواصل"
         },
         "funnelStage": {
-          "bids": "العروض",
+          "bids": "المناقصات",
           "shortlisted": "مختارة",
           "awarded": "مُرسى عليها",
           "deals": "الصفقات",
@@ -1544,7 +1833,7 @@
           "accepted": "مقبولة",
           "projects": "المشاريع",
           "rfqs": "طلبات الأسعار",
-          "bidsReceived": "العروض المستلمة"
+          "bidsReceived": "المناقصات المستلمة"
         },
         "roleSpecific": "تحليل النشاط",
         "noData": "لا توجد بيانات لهذه الفترة",
@@ -1618,6 +1907,7 @@
       "posts": "المنشورات",
       "deals": "الصفقات",
       "commissions": "العمولات",
+      "payments": "المدفوعات",
       "subscriptions": "الاشتراكات",
       "reviews": "التقييمات",
       "auditLog": "سجل المراجعة",
@@ -1627,6 +1917,9 @@
       "messages": "المحادثات",
       "groupOverview": "نظرة عامة",
       "groupContent": "المحتوى",
+      "rfqs": "طلبات عروض الأسعار",
+      "bids": "العطاءات",
+      "quotations": "عروض الأسعار",
       "groupFinance": "المالية",
       "groupSystem": "النظام"
     },
@@ -1787,6 +2080,27 @@
       "totalPending": "إجمالي المعلق",
       "colTier": "الباقة",
       "colDocuments": "المستندات",
+      "colPhone": "الهاتف",
+      "colEmail": "البريد الإلكتروني",
+      "colPayment": "الدفع",
+      "colCrVat": "س.ت / ضريبي",
+      "crLabel": "س.ت",
+      "vatLabel": "ضريبي",
+      "pmCard": "بطاقة",
+      "pmBankTransfer": "تحويل بنكي",
+      "pmFree": "مجاني (المبتدئ)",
+      "psPending": "معلق",
+      "psCompleted": "مكتمل",
+      "psFailed": "فشل",
+      "viewReceipt": "عرض الإيصال",
+      "sar": "ر.س",
+      "approvePaymentConfirm": "هل تريد اعتماد هذا التحويل البنكي؟",
+      "rejectPaymentReason": "رفض الدفع",
+      "rejectPaymentReasonLabel": "سبب الرفض",
+      "rejectPaymentReasonPlaceholder": "لماذا يتم رفض هذا الدفع؟",
+      "confirmRejectPayment": "تأكيد الرفض",
+      "actionApprovePayment": "اعتماد الدفع",
+      "actionRejectPayment": "رفض الدفع",
       "noRegistrations": "لا توجد تسجيلات معلقة",
       "noRegistrationsDesc": "تمت معالجة جميع التسجيلات",
       "docVatCertificate": "شهادة ضريبة القيمة المضافة",
@@ -1799,7 +2113,27 @@
       "rejectReasonAr": "السبب (عربي)",
       "rejectReasonEn": "السبب (إنجليزي)",
       "confirmReject": "تأكيد الرفض",
-      "cancel": "إلغاء"
+      "cancel": "إلغاء",
+      "viewDetails": "عرض",
+      "registrationDetail": "تفاصيل التسجيل",
+      "personalInfo": "المعلومات الشخصية",
+      "companyInfo": "معلومات الشركة",
+      "companyAr": "العربية",
+      "companyEn": "الإنجليزية",
+      "legalInfo": "المعلومات القانونية",
+      "cr_label": "رقم السجل التجاري",
+      "vat_label": "الرقم الضريبي",
+      "subscriptionPayment": "الاشتراك والدفع",
+      "col_tier": "الباقة",
+      "col_payment": "الدفع",
+      "paymentStatus": "الحالة",
+      "price": "السعر",
+      "col_documents": "المستندات",
+      "col_created": "تاريخ التسجيل",
+      "noDocs": "لم يتم رفع مستندات",
+      "documentPreview": "معاينة المستند",
+      "openInNewTab": "فتح في نافذة جديدة",
+      "viewFullProfile": "عرض الملف الشخصي كاملاً"
     },
     "postsPage": {
       "title": "إدارة المنشورات",
@@ -1808,12 +2142,90 @@
       "typeLabel": "النوع:",
       "noPosts": "لا توجد منشورات بهذا الفلتر"
     },
+    "bidsPage": {
+      "title": "إدارة العطاءات",
+      "subtitle": "عرض وإدارة جميع العطاءات المقدمة",
+      "noBids": "لا توجد عطاءات بهذا الفلتر"
+    },
+    "rfqsPage": {
+      "title": "إدارة طلبات عروض الأسعار",
+      "subtitle": "عرض وإدارة جميع طلبات عروض الأسعار",
+      "noRfqs": "لا توجد طلبات عروض أسعار بهذا الفلتر"
+    },
+    "quotationsPage": {
+      "title": "إدارة عروض الأسعار",
+      "subtitle": "عرض وإدارة جميع عروض الأسعار",
+      "noQuotations": "لا توجد عروض أسعار بهذا الفلتر"
+    },
+    "bidStatus": {
+      "pending": "قيد المراجعة",
+      "accepted": "مقبول",
+      "rejected": "مرفوض",
+      "withdrawn": "مسحوب"
+    },
+    "quotationStatus": {
+      "draft": "مسودة",
+      "sent": "مرسل",
+      "viewed": "تم العرض",
+      "accepted": "مقبول",
+      "rejected": "مرفوض",
+      "expired": "منتهي الصلاحية"
+    },
+    "bidEdit": {
+      "title": "تعديل العطاء",
+      "subtitle": "تعديل تفاصيل العطاء وحالته",
+      "contractorInfo": "معلومات المقاول",
+      "role": "الدور"
+    },
+    "rfqEdit": {
+      "title": "تعديل طلب عرض الأسعار",
+      "subtitle": "تعديل تفاصيل الطلب وحالته",
+      "posterInfo": "معلومات صاحب الطلب",
+      "role": "الدور"
+    },
+    "quotationEdit": {
+      "title": "تعديل عرض الأسعار",
+      "subtitle": "تعديل تفاصيل عرض الأسعار وحالته",
+      "senderInfo": "معلومات المرسل",
+      "recipientInfo": "معلومات المستلم",
+      "role": "الدور"
+    },
+    "days": "يوم",
     "dealsPage": {
       "title": "إدارة الصفقات",
       "subtitle": "متابعة جميع الصفقات على المنصة",
       "noDeals": "لا توجد صفقات بهذا الفلتر",
       "dealPrefix": "صفقة",
-      "valueLabel": "القيمة:"
+      "valueLabel": "القيمة:",
+      "triggerSource": "مصدر الصفقة",
+      "triggerBidAward": "ترسية عرض سعر",
+      "triggerQuotation": "عرض سعر استفسار",
+      "triggerRfqResponse": "عرض سعر طلب تسعير",
+      "triggerDirectHire": "تعيين مباشر",
+      "sellerProgress": "تقدم البائع",
+      "buyerProgress": "تقدم المشتري",
+      "startedAt": "بدأت",
+      "completedAt": "اكتملت",
+      "cancelledAt": "ألغيت",
+      "disputedAt": "متنازع عليها",
+      "linkedProject": "عرض المشروع المرتبط",
+      "linkedProduct": "عرض المنتج المرتبط",
+      "buyer": "المشتري",
+      "seller": "البائع",
+      "commissionSummary": "ملخص العمولة",
+      "commissionRate": "النسبة",
+      "commissionAmount": "المبلغ",
+      "commissionTotal": "الإجمالي",
+      "milestones": "المراحل",
+      "proofs": "إثباتات الصفقة",
+      "rejectionReason": "سبب الرفض",
+      "file": "ملف",
+      "documents": "المستندات",
+      "siteLogs": "سجلات الموقع اليومية",
+      "requests": "طلبات التخطي والإلغاء",
+      "skipRequest": "طلب تخطي",
+      "cancelRequest": "طلب إلغاء",
+      "activityLog": "سجل النشاط"
     },
     "commissionsPage": {
       "title": "إدارة العمولات",
@@ -1827,14 +2239,80 @@
       "vat": "ض.ق.م",
       "total": "الإجمالي",
       "dueDate": "تاريخ الاستحقاق:",
-      "disputeReason": "سبب الاعتراض:"
+      "disputeReason": "سبب الاعتراض:",
+      "viewDetails": "عرض",
+      "commissionDetail": "تفاصيل العمولة",
+      "amountBreakdown": "تفصيل المبلغ",
+      "commissionRate": "نسبة العمولة",
+      "paymentInfo": "معلومات الدفع",
+      "paymentMethod": "طريقة الدفع",
+      "bankReceipt": "عرض إيصال البنك",
+      "sellerInfo": "معلومات البائع",
+      "sellerCompany": "الشركة",
+      "sellerEmail": "البريد الإلكتروني",
+      "viewUser": "عرض الملف الشخصي",
+      "dealInfo": "معلومات الصفقة",
+      "dealType": "نوع الصفقة",
+      "dealValue": "قيمة الصفقة",
+      "dealStatus": "حالة الصفقة",
+      "viewDeal": "عرض الصفقة",
+      "dates": "التواريخ",
+      "createdAt": "تاريخ الإنشاء"
+    },
+    "paymentsPage": {
+      "title": "إدارة المدفوعات",
+      "subtitle": "مراجعة وإدارة سجلات الدفع للمستخدمين",
+      "noPayments": "لا توجد مدفوعات بهذا الفلتر",
+      "searchPlaceholder": "البحث باسم المستخدم...",
+      "statusPending": "قيد الانتظار",
+      "statusCompleted": "مكتمل",
+      "statusFailed": "فاشل",
+      "paymentMethod": "طريقة الدفع",
+      "date": "التاريخ",
+      "pmCard": "بطاقة ائتمان",
+      "pmBankTransfer": "تحويل بنكي",
+      "pmFree": "مجاني"
+    },
+    "paymentActions": {
+      "approve": "اعتماد الدفع",
+      "reject": "رفض الدفع",
+      "approveConfirm": "اعتماد هذا الدفع وتفعيل الاشتراك؟",
+      "approved": "تم اعتماد الدفع بنجاح",
+      "rejectTitle": "رفض الدفع",
+      "reasonPlaceholder": "سبب الرفض...",
+      "rejected": "تم رفض الدفع — تم إشعار المستخدم",
+      "cancel": "إلغاء"
     },
     "subscriptionsPage": {
       "title": "إدارة الاشتراكات",
       "subtitle": "متابعة اشتراكات المنصة",
       "noSubscriptions": "لا توجد اشتراكات بهذا الفلتر",
       "subscriptionPrefix": "اشتراك",
-      "amountLabel": "المبلغ:"
+      "amountLabel": "المبلغ:",
+      "viewDetails": "عرض",
+      "subscriptionDetail": "تفاصيل الاشتراك",
+      "pricingBreakdown": "تفصيل الأسعار",
+      "basePrice": "السعر الأساسي",
+      "duration": "المدة",
+      "months": "أشهر",
+      "durationDiscount": "خصم المدة",
+      "couponDiscount": "خصم الكوبون",
+      "couponCode": "رمز الكوبون",
+      "finalPrice": "السعر النهائي",
+      "paymentInfo": "معلومات الدفع",
+      "paymentMethod": "طريقة الدفع",
+      "paymentStatus": "حالة الدفع",
+      "moyasarId": "معرّف دفع مويسر",
+      "bankReceipt": "عرض إيصال البنك",
+      "subscriptionDates": "تواريخ الاشتراك",
+      "startDate": "تاريخ البدء",
+      "expiresDate": "تاريخ الانتهاء",
+      "createdAt": "تاريخ الإنشاء",
+      "userInfo": "معلومات المستخدم",
+      "userName": "الاسم",
+      "userEmail": "البريد الإلكتروني",
+      "userRole": "الدور",
+      "viewUser": "عرض الملف الشخصي"
     },
     "reviewsPage": {
       "title": "إدارة التقييمات",
@@ -1842,7 +2320,31 @@
       "totalReviews": "إجمالي التقييمات",
       "hiddenLabel": "مخفية",
       "noReviews": "لا توجد تقييمات",
-      "hiddenBadge": "مخفي"
+      "hiddenBadge": "مخفي",
+      "viewDetails": "عرض",
+      "reviewDetail": "تفاصيل التقييم",
+      "overallRating": "التقييم العام",
+      "subRatings": "التقييمات الفرعية",
+      "qualityRating": "الجودة",
+      "timelinessRating": "الالتزام بالمواعيد",
+      "communicationRating": "التواصل",
+      "wouldRecommend": "ينصح بالتعامل",
+      "wouldRecommendYes": "نعم",
+      "wouldRecommendNo": "لا",
+      "comment": "التعليق",
+      "commentAr": "التعليق (عربي)",
+      "commentEn": "التعليق (إنجليزي)",
+      "reviewer": "المُقيِّم",
+      "reviewerCompany": "الشركة",
+      "reviewee": "المُقيَّم",
+      "revieweeCompany": "الشركة",
+      "dealInfo": "معلومات الصفقة",
+      "dealType": "نوع الصفقة",
+      "dealValue": "قيمة الصفقة",
+      "viewDeal": "عرض الصفقة",
+      "dates": "التواريخ",
+      "createdAt": "تاريخ الإنشاء",
+      "updatedAt": "آخر تحديث"
     },
     "table": {
       "export": "تصدير CSV",
@@ -1884,7 +2386,18 @@
         "adminId": "رقم المشرف",
         "ip": "عنوان IP",
         "details": "التفاصيل",
-        "timestamp": "الوقت"
+        "timestamp": "الوقت",
+        "contractor": "المقاول",
+        "poster": "صاحب الطلب",
+        "sender": "المرسل",
+        "client": "العميل",
+        "budget": "الميزانية",
+        "deadline": "الموعد النهائي",
+        "timeline": "المدة الزمنية",
+        "number": "الرقم",
+        "email": "البريد الإلكتروني",
+        "phone": "الهاتف",
+        "project": "المشروع"
       },
       "sort": {
         "newest": "الأحدث أولاً",
@@ -1920,7 +2433,13 @@
       "announcementEnPlaceholder": "Write announcement in English",
       "announcementActive": "عرض الإعلان للمستخدمين",
       "announcementSaved": "تم حفظ الإعلان",
-      "saveAnnouncement": "حفظ الإعلان"
+      "saveAnnouncement": "حفظ الإعلان",
+      "searchIndex": "فهرس البحث",
+      "reindexTitle": "إعادة فهرسة Typesense",
+      "reindexDesc": "مزامنة بيانات قاعدة البيانات مع فهرس البحث",
+      "reindexNow": "فهرسة الآن",
+      "reindexing": "جاري الفهرسة...",
+      "reindexSuccess": "تمت الفهرسة بنجاح: {count} سجل"
     },
     "auditLogPage": {
       "title": "سجل العمليات",
@@ -1978,6 +2497,11 @@
       "adminNotes": "ملاحظات المشرف",
       "noDocs": "لا توجد مستندات",
       "viewFile": "عرض الملف",
+      "approveDocs": "اعتماد المستندات",
+      "rejectDocs": "رفض المستندات",
+      "rejectReasonAr": "سبب الرفض (عربي) *",
+      "rejectReasonEn": "سبب الرفض (إنجليزي)",
+      "confirmReject": "تأكيد الرفض",
       "actions": "الإجراءات",
       "sendMessage": "إرسال رسالة",
       "sendEmail": "إرسال بريد",
@@ -2049,7 +2573,26 @@
       "unread": "غير مقروء",
       "manageSubscription": "إدارة الاشتراك",
       "currency": "ر.س",
-      "vat": "ضريبة القيمة المضافة"
+      "vat": "ضريبة القيمة المضافة",
+      "paymentRecords": "سجلات الدفع والفواتير",
+      "paymentMethod": "طريقة الدفع",
+      "paymentStatus": "حالة الدفع",
+      "price": "السعر",
+      "tier": "الباقة",
+      "viewReceipt": "عرض الإيصال",
+      "downloadInvoice": "تحميل الفاتورة",
+      "noPayments": "لا توجد سجلات دفع",
+      "noInvoices": "لا توجد فواتير",
+      "invoiceNumber": "فاتورة #",
+      "invoiceDate": "تاريخ الإصدار",
+      "subtotal": "المبلغ قبل الضريبة",
+      "invoiceTotal": "الإجمالي",
+      "pmCard": "بطاقة",
+      "pmBankTransfer": "تحويل بنكي",
+      "pmFree": "مجاني",
+      "psPending": "قيد الانتظار",
+      "psCompleted": "مكتمل",
+      "psFailed": "فشل"
     },
     "analyticsPage": {
       "title": "التحليلات",
@@ -2069,8 +2612,6 @@
       "paid": "الدفع",
       "docsUploaded": "رفع المستندات",
       "approved": "موافق عليه",
-      "revenueOverview": "نظرة على الإيرادات",
-      "revenueByTier": "الإيرادات حسب الباقة",
       "engagementMetrics": "مؤشرات التفاعل",
       "postsPerDay": "المنشورات يومياً",
       "dealsPerWeek": "الصفقات أسبوعياً",
@@ -2112,6 +2653,7 @@
       "unread": "غير مقروء",
       "company": "الشركة:",
       "roleInterest": "الدور المهتم به:",
+      "subject": "الموضوع:",
       "receivedAt": "تاريخ الاستلام:",
       "deleteConfirm": "هل أنت متأكد من حذف هذه الرسالة؟"
     },
@@ -2124,7 +2666,11 @@
       "typeMessage": "اكتب رسالتك...",
       "newConversation": "محادثة جديدة",
       "selectUser": "اختر المستخدم",
-      "unreadCount": "{count} غير مقروءة"
+      "unreadCount": "{count} غير مقروءة",
+      "searchPlaceholder": "ابحث بالاسم أو الشركة...",
+      "startConversation": "بدء المحادثة",
+      "noResults": "لا يوجد مستخدمون",
+      "searchMinChars": "اكتب حرفين على الأقل للبحث"
     },
     "subscriptionManager": {
       "title": "إدارة اشتراك المستخدم",
@@ -2147,6 +2693,9 @@
       "approvePayment": "الموافقة على الدفع",
       "approvePaymentConfirm": "الموافقة على هذا التحويل البنكي وتفعيل الاشتراك؟",
       "paymentApproved": "تمت الموافقة على الدفع وتفعيل الاشتراك",
+      "rejectPayment": "رفض الدفع",
+      "rejectPaymentConfirm": "رفض هذا التحويل البنكي؟ سيتم إشعار المستخدم ويمكنه إعادة رفع إيصال.",
+      "paymentRejected": "تم رفض الدفع — تم إشعار المستخدم",
       "pendingPayment": "بانتظار الدفع"
     },
     "postEdit": {
@@ -2162,6 +2711,51 @@
       "deadline": "الموعد النهائي",
       "success": "تم تحديث المنشور بنجاح",
       "error": "حدث خطأ أثناء تحديث المنشور"
+    },
+    "postDetail": {
+      "untitled": "منشور بدون عنوان",
+      "description": "الوصف",
+      "arabic": "العربية",
+      "english": "الإنجليزية",
+      "details": "التفاصيل",
+      "files": "المرفقات والملفات",
+      "noFiles": "لم يتم رفع ملفات مع هذا المنشور",
+      "viewFile": "عرض",
+      "city": "المدينة",
+      "budget": "الميزانية",
+      "timeline": "الجدول الزمني",
+      "classification": "التصنيف",
+      "class": "فئة",
+      "source": "المصدر",
+      "sourceOwner": "من المالك مباشرة",
+      "sourceSubcontract": "بالباطن",
+      "externalLink": "رابط خارجي",
+      "createdAt": "تاريخ الإنشاء",
+      "updatedAt": "آخر تحديث",
+      "owner": "صاحب المشروع",
+      "viewProfile": "عرض الملف الشخصي",
+      "rejectionReason": "سبب الرفض",
+      "category": "الفئة",
+      "productImages": "صور المنتج",
+      "primaryImage": "رئيسية",
+      "variants": "المتغيرات",
+      "variantName": "الاسم",
+      "variantPrice": "السعر",
+      "variantStock": "المخزون",
+      "specSheets": "أوراق المواصفات",
+      "pricingModel": "نموذج التسعير",
+      "pricing_fixed": "سعر ثابت",
+      "pricing_variant": "حسب المتغيرات",
+      "price": "السعر",
+      "stockStatus": "حالة المخزون",
+      "inStock": "متوفر",
+      "outOfStock": "غير متوفر",
+      "minOrderQty": "أقل كمية طلب",
+      "leadTime": "مدة التوصيل",
+      "days": "أيام",
+      "quantity": "الكمية",
+      "deadline": "الموعد النهائي",
+      "responseCount": "عدد الردود"
     },
     "emailComposer": {
       "title": "إرسال بريد إلكتروني",
@@ -2281,6 +2875,8 @@
       "sendMessage": "أرسل لنا رسالة",
       "email": "البريد الإلكتروني",
       "phone": "الهاتف",
+      "emailValue": "info@muhandeshub.com",
+      "phoneValue": "+966 55 107 0673",
       "address": "العنوان",
       "addressValue": "الرياض، المملكة العربية السعودية",
       "hours": "ساعات العمل",
@@ -2363,6 +2959,8 @@
       "bidCount": "{count} عرض مقدم",
       "submitBid": "تقديم عرض",
       "loginToSubmitBid": "سجل دخولك لتقديم عرض",
+      "alreadyBid": "لقد قدمت عرضًا على هذا المشروع مسبقًا",
+      "contractorsOnly": "يمكن للمقاولين فقط تقديم العروض",
       "projectDetails": "تفاصيل المشروع",
       "city": "المدينة:",
       "budget": "الميزانية:",
@@ -2375,6 +2973,7 @@
       "defaultOwner": "مالك المشروع",
       "publishedAt": "تم النشر: {date}",
       "documentsAndFiles": "المستندات والملفات",
+      "projectImages": "صور المشروع",
       "moreFromOwner": "مزيد من مشاريع هذا المالك",
       "manageListing": "إدارة الإعلان"
     },
@@ -2432,6 +3031,7 @@
   "pricing": {
     "title": "خطط الاشتراك",
     "subtitle": "اختر الخطة المناسبة لنشاطك التجاري. جميع الأسعار شاملة ضريبة القيمة المضافة 15%",
+    "freeRoleCallout": "أصحاب المشاريع والمشترون يتمتعون بوصول غير محدود لجميع ميزات المنصة مجاناً. خطط الاشتراك أدناه تخص المقاولين والموردين فقط.",
     "mostPopular": "الأكثر شيوعاً",
     "startFree": "ابدأ مجاناً",
     "subscribe": "اشترك الآن",
@@ -2467,30 +3067,56 @@
         "description": "للشركات الكبرى والمشاريع الضخمة"
       }
     },
+    "roleSelector": "عرض الميزات حسب الدور",
+    "freeForever": "مجاني دائماً",
+    "roles": {
+      "contractor": "مقاول",
+      "supplier": "مورد",
+      "projectOwner": "صاحب مشروع",
+      "buyer": "مشتري"
+    },
+    "freeRoleTable": {
+      "feature": "الميزة",
+      "availability": "التوفر"
+    },
     "featureSections": {
       "contractor": "المقاولين",
       "supplier": "الموردين",
-      "common": "مشترك"
+      "common": "مشترك",
+      "projectOwner": "ميزات صاحب المشروع",
+      "buyer": "ميزات المشتري"
     },
     "featureLabels": {
-      "bidsMonth": "عروض الأسعار/شهر",
-      "kanban": "كانبان المشاريع",
+      "bidsMonth": "عروض الأسعار / شهر",
+      "kanban": "لوحة ادارة المشاريع",
       "productListings": "المنتجات المعروضة",
       "bulkCsv": "رفع CSV بالجملة",
       "crmClients": "عملاء CRM",
       "quotationsMonth": "عروض الأسعار/شهر",
       "contractsMonth": "العقود/شهر",
+      "contractGenerator": "منشئ العقود",
+      "dailySiteLog": "سجل الموقع اليومي",
       "analyticsFeature": "التحليلات",
       "clauseLibrary": "مكتبة البنود",
       "customContracts": "عقود مخصصة",
-      "commission": "العمولة"
+      "commission": "العمولة على قيمة الصفقة",
+      "projects": "نشر المشاريع",
+      "rfqs": "نشر طلبات الأسعار",
+      "dealWorkspace": "مساحة عمل الصفقة",
+      "messages": "المراسلة",
+      "reviews": "التقييمات",
+      "contracts": "قوالب العقود",
+      "crm": "إدارة العملاء",
+      "hireRequests": "طلبات التوظيف"
     },
     "featureValues": {
       "checklist": "قائمة مهام",
       "full": "كامل",
       "basic": "2 أساسية",
       "summary": "ملخص",
-      "unlimited": "غير محدود"
+      "unlimited": "غير محدود",
+      "allTemplates": "جميع القوالب",
+      "viewOnly": "عرض فقط"
     },
     "sar": "ر.س",
     "durations": {
@@ -2537,10 +3163,22 @@
       "timelineTitle": "الجدول الزمني",
       "startDate": "تاريخ البدء",
       "endDate": "تاريخ الانتهاء",
+      "externalLinkTitle": "رابط خارجي",
+      "externalLink": "رابط المشروع",
+      "externalLinkHint": "أضف رابطاً للإعلان الأصلي للمشروع أو مرجع إضافي (اختياري)",
+      "statusTitle": "الحالة",
+      "statusDraft": "مسودة",
+      "statusPending": "قيد المراجعة",
+      "statusPublished": "منشور",
+      "statusRejected": "مرفوض",
       "createProject": "إنشاء المشروع",
       "saveChanges": "حفظ التعديلات",
       "createSuccess": "تم إنشاء المشروع بنجاح كمسودة",
       "updateSuccess": "تم تحديث المشروع بنجاح",
+      "imagesTitle": "صور المشروع",
+      "imagesHint": "ارفع صورًا لعرض مشروعك. سيتم استخدام الصورة الأولى كصورة مصغرة في بطاقات المشاريع.",
+      "imagesFileLimit": "الحد الأقصى 50 ميجابايت لكل صورة (JPEG، PNG، WebP، GIF)",
+      "existingImages": "الصور الحالية",
       "files": {
         "title": "المستندات والملفات",
         "hint": "ارفع مستندات المشروع مثل جداول الكميات والرسومات والمواصفات والصور",
@@ -2552,7 +3190,7 @@
         "general": "عام",
         "addFiles": "إضافة ملفات",
         "uploading": "جارٍ الرفع...",
-        "fileLimit": "الحد الأقصى 10 ميجابايت لكل ملف (PDF، Word، Excel، أو صور)",
+        "fileLimit": "الحد الأقصى 50 ميجابايت لكل ملف (PDF، Word، Excel، أو صور)",
         "remove": "حذف",
         "existingFiles": "الملفات الحالية",
         "selectCategory": "اختر التصنيف"
@@ -2593,14 +3231,28 @@
       "successMessage": "تم تقديم العرض بنجاح ✓",
       "biddingOn": "تقديم عرض على المشروع",
       "amountLabel": "قيمة العرض (ر.س)",
-      "timelineDaysLabel": "مدة التنفيذ (أيام)",
-      "timelinePlaceholder": "مثال: 90",
+      "timelineLabel": "مدة التنفيذ",
+      "timelineValuePlaceholder": "مثال: 3",
+      "unitDays": "أيام",
+      "unitMonths": "أشهر",
+      "unitYears": "سنوات",
       "methodologyArLabel": "المنهجية (عربي)",
       "methodologyArPlaceholder": "اشرح منهجيتك وخطة العمل...",
       "methodologyEnLabel": "Methodology (English)",
       "methodologyEnPlaceholder": "Describe your methodology and work plan...",
+      "attachmentsLabel": "المرفقات",
+      "addAttachment": "إضافة مرفق",
+      "attachmentsHint": "PDF أو Word أو Excel أو صور (حد أقصى 10 ميجابايت لكل ملف)",
       "submitting": "جاري الإرسال...",
-      "submitBid": "تقديم العرض"
+      "submitBid": "تقديم العرض",
+      "saving": "جاري الحفظ...",
+      "saveChanges": "حفظ التغييرات",
+      "updateSuccess": "تم تحديث العطاء بنجاح",
+      "statusTitle": "الحالة",
+      "statusPending": "قيد المراجعة",
+      "statusAccepted": "مقبول",
+      "statusRejected": "مرفوض",
+      "statusWithdrawn": "مسحوب"
     },
     "contract": {
       "templateType": "نوع القالب",
@@ -2701,14 +3353,20 @@
       "outOfStock": "غير متوفر",
       "minOrderQty": "الحد الأدنى للطلب",
       "leadTimeDays": "مدة التوصيل (بالأيام)",
+      "statusTitle": "الحالة",
+      "statusDraft": "مسودة",
+      "statusPending": "قيد المراجعة",
+      "statusPublished": "منشور",
+      "statusRejected": "مرفوض",
       "createProduct": "إنشاء المنتج",
       "saveChanges": "حفظ التعديلات",
-      "createSuccess": "تم إنشاء المنتج بنجاح كمسودة",
+      "createSuccess": "تم إنشاء ونشر المنتج بنجاح",
       "updateSuccess": "تم تحديث المنتج بنجاح",
       "media": {
         "imagesTitle": "صور المنتج",
         "imagesHint": "ارفع صور المنتج (JPEG، PNG، WebP)",
         "imageHint": "10 صور كحد أقصى، بحجم لا يتجاوز 5 ميغابايت (JPEG، PNG، WebP)",
+        "imageRequired": "يرجى رفع صورة واحدة على الأقل للمنتج",
         "addImages": "إضافة صور",
         "uploading": "جاري الرفع...",
         "primary": "الرئيسية",
@@ -2851,7 +3509,17 @@
       "notesEn": "Notes (EN)",
       "notesEnPlaceholder": "Additional notes...",
       "creating": "جارٍ الإنشاء...",
-      "createQuotation": "إنشاء عرض السعر"
+      "createQuotation": "إنشاء عرض السعر",
+      "saving": "جاري الحفظ...",
+      "saveChanges": "حفظ التغييرات",
+      "updateSuccess": "تم تحديث عرض الأسعار بنجاح",
+      "statusTitle": "الحالة",
+      "statusDraft": "مسودة",
+      "statusSent": "مرسل",
+      "statusViewed": "تم العرض",
+      "statusAccepted": "مقبول",
+      "statusRejected": "مرفوض",
+      "statusExpired": "منتهي الصلاحية"
     },
     "rfq": {
       "successMessage": "تم إنشاء طلب عرض الأسعار بنجاح",
@@ -2871,6 +3539,15 @@
       "allCities": "كل المدن",
       "creating": "جارٍ الإنشاء...",
       "createRfq": "إنشاء طلب عرض الأسعار",
+      "saving": "جاري الحفظ...",
+      "saveChanges": "حفظ التغييرات",
+      "updateSuccess": "تم تحديث طلب عرض الأسعار بنجاح",
+      "statusTitle": "الحالة",
+      "statusDraft": "مسودة",
+      "statusPending": "قيد المراجعة",
+      "statusPublished": "منشور",
+      "statusRejected": "مرفوض",
+      "statusClosed": "مغلق",
       "files": {
         "title": "المرفقات",
         "hint": "ارفع المستندات الداعمة (جداول كميات، رسومات، مواصفات)",
@@ -2881,7 +3558,7 @@
         "general": "عام",
         "addFiles": "إضافة ملفات",
         "uploading": "جارٍ الرفع...",
-        "fileLimit": "الحد الأقصى 10 ميجابايت لكل ملف (PDF، Word، Excel، أو صور)",
+        "fileLimit": "الحد الأقصى 50 ميجابايت لكل ملف (PDF، Word، Excel، أو صور)",
         "remove": "حذف",
         "existingFiles": "الملفات الحالية",
         "selectCategory": "اختر التصنيف"
@@ -2988,8 +3665,8 @@
       "closed": "مغلق"
     },
     "pdpl": {
-      "title": "سياسة الخصوصية وحماية البيانات",
-      "description": "نحن نلتزم بنظام حماية البيانات الشخصية (PDPL) في المملكة العربية السعودية. نستخدم بياناتك فقط لتقديم خدماتنا وتحسين تجربتك. يمكنك الاطلاع على سياسة الخصوصية لمزيد من التفاصيل.",
+      "title": "خصوصيتك تهمّنا",
+      "description": "نستخدم ملفات تعريف الارتباط لتسجيل دخولك وحفظ تفضيلاتك. لا نبيع بياناتك أبداً. بمتابعة التصفح، فإنك توافق على سياسة الخصوصية وملفات تعريف الارتباط.",
       "accept": "موافق",
       "privacyPolicy": "سياسة الخصوصية",
       "cookiePolicy": "سياسة ملفات تعريف الارتباط"
@@ -3089,7 +3766,9 @@
       "startConversation": "ابدأ المحادثة بإرسال رسالة",
       "quickReplies": "ردود سريعة",
       "attachFile": "إرفاق ملف",
-      "typeMessage": "اكتب رسالتك..."
+      "typeMessage": "اكتب رسالتك...",
+      "typing": "يكتب",
+      "dropFiles": "أفلت الملفات هنا"
     },
     "reviewCard": {
       "unknown": "غير معروف",
@@ -3138,7 +3817,9 @@
       "confirmReject": "تأكيد الرفض",
       "cancel": "إلغاء",
       "approve": "اعتماد",
-      "reject": "رفض"
+      "reject": "رفض",
+      "approveSuccess": "تم اعتماد المنشور ونشره",
+      "rejectSuccess": "تم رفض المنشور"
     },
     "adminUser": {
       "approve": "اعتماد",
@@ -3148,7 +3829,8 @@
       "unban": "إلغاء الحظر",
       "unrestrict": "إلغاء التقييد",
       "adminRestriction": "تقييد إداري",
-      "adminBan": "حظر إداري"
+      "adminBan": "حظر إداري",
+      "sendMessage": "إرسال رسالة"
     },
     "couponForm": {
       "codePlaceholder": "رمز الكوبون (مثال: WELCOME50)",
@@ -3257,12 +3939,9 @@
     "crmAddClient": {
       "addClient": "+ إضافة عميل",
       "title": "إضافة عميل جديد",
-      "name": "الاسم",
-      "namePlaceholder": "اسم العميل",
-      "phone": "الهاتف",
-      "email": "البريد الإلكتروني",
-      "company": "الشركة",
-      "companyPlaceholder": "اسم الشركة",
+      "user": "المستخدم",
+      "searchPlaceholder": "ابحث بالاسم أو الشركة أو البريد...",
+      "searchNoResults": "لا توجد نتائج",
       "source": "المصدر",
       "sources": {
         "manual_entry": "إدخال يدوي",
@@ -3378,109 +4057,352 @@
   "legal": {
     "privacy": {
       "title": "سياسة الخصوصية",
-      "lastUpdated": "آخر تحديث: 1 يناير 2025",
-      "intro": "نلتزم في منصة مهندس بحماية خصوصيتك وبياناتك الشخصية وفقاً لنظام حماية البيانات الشخصية (PDPL) في المملكة العربية السعودية.",
+      "lastUpdated": "آخر تحديث: يناير 2025",
+      "intro": "مهندس هب مملوكة ومشغّلة من قبل شركة رمال الماس العالمية. نلتزم في مهندس هب بحماية خصوصيتك وضمان أمان معلوماتك الشخصية. توضح سياسة الخصوصية هذه كيفية جمعنا لبياناتك واستخدامها والإفصاح عنها وحمايتها.",
       "dataCollection": {
-        "title": "البيانات التي نجمعها",
-        "item1": "بيانات التسجيل: الاسم، البريد الإلكتروني، رقم الهاتف، اسم الشركة",
-        "item2": "بيانات التحقق: السجل التجاري، شهادة ضريبة القيمة المضافة",
-        "item3": "بيانات الاستخدام: النشاط على المنصة، التفضيلات، سجل التصفح",
-        "item4": "بيانات المعاملات: تفاصيل الصفقات، المدفوعات، العمولات"
+        "title": "1. المعلومات التي نجمعها",
+        "description": "نجمع الأنواع التالية من المعلومات:",
+        "personal": {
+          "title": "المعلومات الشخصية",
+          "item1": "الاسم والبريد الإلكتروني ورقم الهاتف",
+          "item2": "اسم الشركة وتفاصيل السجل التجاري",
+          "item3": "رقم تسجيل ضريبة القيمة المضافة",
+          "item4": "المعلومات المصرفية (لدفع العمولات)",
+          "item5": "وثائق الهوية الحكومية"
+        },
+        "business": {
+          "title": "معلومات الأعمال",
+          "item1": "تفاصيل الرخصة التجارية",
+          "item2": "شهادات ضريبة القيمة المضافة",
+          "item3": "عنوان الشركة وبيانات الاتصال",
+          "item4": "وصف الأعمال والقدرات"
+        },
+        "usage": {
+          "title": "بيانات الاستخدام",
+          "item1": "بيانات السجل (عنوان IP، نوع المتصفح، الصفحات المزارة)",
+          "item2": "معلومات الجهاز",
+          "item3": "ملفات تعريف الارتباط وتقنيات التتبع المشابهة",
+          "item4": "استعلامات البحث والتفاعل مع المنصة"
+        },
+        "transaction": {
+          "title": "بيانات المعاملات",
+          "item1": "معلومات دفع الاشتراك",
+          "item2": "سجلات دفع العمولات",
+          "item3": "سجل الصفقات وعروض الأسعار",
+          "item4": "بيانات الفواتير والإيصالات"
+        }
       },
       "dataUsage": {
-        "title": "كيف نستخدم بياناتك",
-        "item1": "تقديم خدمات المنصة وإدارة حسابك",
-        "item2": "التحقق من الهوية والمستندات",
-        "item3": "معالجة المدفوعات والعمولات",
-        "item4": "إرسال الإشعارات والتحديثات المتعلقة بنشاطك",
-        "item5": "تحسين تجربة المستخدم وتطوير المنصة"
+        "title": "2. كيف نستخدم معلوماتك",
+        "description": "نستخدم المعلومات المجمعة في:",
+        "item1": "تقديم خدماتنا والحفاظ عليها",
+        "item2": "معالجة التسجيل والتحقق من بيانات الأعمال",
+        "item3": "تسهيل المعاملات وإصدار فواتير متوافقة مع هيئة الزكاة والضريبة والجمارك",
+        "item4": "إرسال إشعارات وتحديثات متعلقة بالخدمة",
+        "item5": "تحسين وظائف المنصة وتجربة المستخدم",
+        "item6": "منع الاحتيال وضمان أمان المنصة",
+        "item7": "الامتثال للالتزامات القانونية واللوائح الضريبية",
+        "item8": "الرد على استفساراتك وطلبات الدعم"
       },
       "dataSharing": {
-        "title": "مشاركة البيانات",
-        "description": "لا نبيع بياناتك الشخصية لأي طرف ثالث. قد نشارك بياناتك في الحالات التالية:",
-        "item1": "مع الأطراف الأخرى في الصفقات (المعلومات الضرورية فقط)",
-        "item2": "مع مزودي الخدمات (بوابة الدفع، خدمة البريد الإلكتروني)",
-        "item3": "عند الطلب من الجهات الرسمية وفقاً للأنظمة السعودية"
-      },
-      "rights": {
-        "title": "حقوقك",
-        "item1": "الوصول إلى بياناتك الشخصية وطلب نسخة منها",
-        "item2": "تصحيح البيانات غير الدقيقة",
-        "item3": "طلب حذف بياناتك (مع مراعاة المتطلبات القانونية)",
-        "item4": "سحب موافقتك على معالجة البيانات",
-        "item5": "تقديم شكوى إلى الجهة المختصة"
+        "title": "3. مشاركة المعلومات والإفصاح عنها",
+        "description": "قد نشارك معلوماتك مع:",
+        "serviceProviders": {
+          "title": "مزودو الخدمات",
+          "description": "موردون من أطراف ثالثة يساعدوننا في تشغيل المنصة (مثل معالجي الدفع، مزودي الاستضافة، خدمات البريد الإلكتروني). هؤلاء المزودون ملزمون باتفاقيات سرية."
+        },
+        "otherUsers": {
+          "title": "مستخدمو المنصة الآخرون",
+          "description": "ملفك التعريفي التجاري، بما في ذلك اسم الشركة والخدمات المقدمة ومعلومات الاتصال، مرئي للمستخدمين الموثقين الآخرين على المنصة."
+        },
+        "legal": {
+          "title": "المتطلبات القانونية",
+          "description": "قد نفصح عن المعلومات عند الطلب بموجب القانون أو أمر المحكمة أو اللوائح الحكومية، بما في ذلك الامتثال لمتطلبات هيئة الزكاة والضريبة والجمارك."
+        },
+        "businessTransfers": {
+          "title": "نقل الأعمال",
+          "description": "في حالة الاندماج أو الاستحواذ أو بيع الأصول، قد يتم نقل معلوماتك إلى الجهة المستحوذة."
+        }
       },
       "security": {
-        "title": "أمان البيانات",
-        "description": "نستخدم تقنيات تشفير متقدمة وإجراءات أمنية صارمة لحماية بياناتك، بما في ذلك تشفير SSL/TLS وسياسات الوصول المحدود."
+        "title": "4. أمان البيانات",
+        "description": "نطبق إجراءات أمان متوافقة مع معايير الصناعة لحماية معلوماتك، بما في ذلك التشفير والخوادم الآمنة وضوابط الوصول. ومع ذلك، لا توجد طريقة نقل عبر الإنترنت آمنة بنسبة 100%، ولا يمكننا ضمان الأمان المطلق."
       },
       "retention": {
-        "title": "الاحتفاظ بالبيانات",
-        "description": "نحتفظ ببياناتك طوال فترة استخدامك للمنصة ولمدة 5 سنوات بعد إغلاق حسابك وفقاً للمتطلبات القانونية والتنظيمية."
+        "title": "5. الاحتفاظ بالبيانات",
+        "description": "نحتفظ بمعلوماتك الشخصية طالما كان ذلك ضرورياً لتقديم خدماتنا والامتثال للالتزامات القانونية وحل النزاعات وتنفيذ اتفاقياتنا. يتم الاحتفاظ بسجلات الأعمال والمعاملات لمدة لا تقل عن 10 سنوات وفقاً لقوانين الضرائب السعودية."
+      },
+      "rights": {
+        "title": "6. حقوقك",
+        "description": "لديك الحق في:",
+        "item1": "الوصول إلى معلوماتك الشخصية",
+        "item2": "تصحيح البيانات غير الدقيقة أو الناقصة",
+        "item3": "طلب حذف بياناتك (مع مراعاة متطلبات الاحتفاظ القانونية)",
+        "item4": "الاعتراض على معالجة معلوماتك",
+        "item5": "سحب الموافقة على الاتصالات التسويقية",
+        "item6": "طلب نسخة من بياناتك بتنسيق قابل للنقل",
+        "contactNote": "لممارسة هذه الحقوق، تواصل معنا عبر info@muhandeshub.com."
+      },
+      "cookies": {
+        "title": "7. ملفات تعريف الارتباط والتتبع",
+        "description": "نستخدم ملفات تعريف الارتباط والتقنيات المشابهة لتحسين تجربتك وتحليل أنماط الاستخدام وتقديم محتوى مخصص. يمكنك التحكم في تفضيلات ملفات تعريف الارتباط من خلال إعدادات المتصفح، علماً بأن تعطيل ملفات تعريف الارتباط قد يؤثر على وظائف المنصة."
+      },
+      "internationalTransfers": {
+        "title": "8. نقل البيانات الدولي",
+        "description": "قد يتم نقل معلوماتك ومعالجتها في دول خارج المملكة العربية السعودية حيث يعمل مزودو خدماتنا. نضمن وجود ضمانات مناسبة لحماية بياناتك وفقاً لسياسة الخصوصية هذه."
+      },
+      "children": {
+        "title": "9. خصوصية الأطفال",
+        "description": "مهندس هب مخصصة للاستخدام التجاري فقط وليست موجهة للأفراد دون 18 عاماً. لا نجمع عن قصد معلومات شخصية من القاصرين."
+      },
+      "changes": {
+        "title": "10. التغييرات على سياسة الخصوصية",
+        "description": "قد نقوم بتحديث سياسة الخصوصية هذه بشكل دوري. سنخطرك بالتغييرات الجوهرية عبر البريد الإلكتروني أو إشعارات المنصة. استمرارك في الاستخدام بعد التغييرات يعني قبولك للسياسة المحدثة."
       },
       "contact": {
-        "title": "التواصل معنا",
-        "description": "لأي استفسارات حول خصوصية بياناتك، يرجى التواصل عبر: privacy@muhandeshub.com"
+        "title": "11. التواصل معنا",
+        "description": "إذا كانت لديك أسئلة أو مخاوف بشأن سياسة الخصوصية هذه أو ممارسات البيانات لدينا، يرجى التواصل معنا على:",
+        "email": "البريد الإلكتروني: info@muhandeshub.com",
+        "phone": "الهاتف: +966 55 107 0673",
+        "address": "العنوان: الرياض، المملكة العربية السعودية"
       },
+      "consent": "باستخدامك لمنصة مهندس هب، فإنك توافق على جمع واستخدام معلوماتك كما هو موضح في سياسة الخصوصية هذه.",
       "seeAlso": "انظر أيضاً",
-      "termsLink": "الشروط والأحكام",
-      "cookiesLink": "سياسة ملفات تعريف الارتباط"
+      "termsLink": "شروط الخدمة",
+      "cookiesLink": "سياسة ملفات تعريف الارتباط",
+      "refundLink": "سياسة الاسترداد"
     },
     "terms": {
-      "title": "الشروط والأحكام",
-      "lastUpdated": "آخر تحديث: 1 يناير 2025",
-      "intro": "باستخدامك لمنصة مهندس، فإنك توافق على الالتزام بهذه الشروط والأحكام. يرجى قراءتها بعناية.",
-      "registration": {
-        "title": "التسجيل والحساب",
-        "item1": "يجب أن يكون عمرك 18 عاماً على الأقل لإنشاء حساب",
-        "item2": "يجب تقديم معلومات دقيقة وصحيحة عند التسجيل",
-        "item3": "أنت مسؤول عن الحفاظ على سرية بيانات حسابك",
-        "item4": "الدور المختار (صاحب مشروع، مقاول، مورد، مشتري) لا يمكن تغييره بعد التسجيل"
+      "title": "شروط الخدمة",
+      "lastUpdated": "آخر تحديث: 2 يناير 2026",
+      "intro": "مرحباً بكم في مهندس هب، منصة سوق إلكتروني للأعمال التجارية بين الشركات مملوكة ومشغّلة من قبل شركة رمال الماس العالمية وتعمل وفقاً لأنظمة المملكة العربية السعودية. تُشكّل شروط الخدمة هذه اتفاقية ملزمة قانونياً بينك وبين مهندس هب. بوصولك أو تسجيلك أو استخدامك لمنصتنا، فإنك تُقر بأنك قد قرأت هذه الشروط وفهمتها ووافقت على الالتزام بها بالكامل. إذا لم توافق، يجب عليك عدم الوصول إلى خدماتنا أو استخدامها.",
+      "definitions": {
+        "title": "1. التعريفات والتفسير",
+        "description": "في هذه الشروط: 'المنصة' تعني موقع مهندس هب وجميع الخدمات ذات الصلة؛ 'المستخدم' يعني أي كيان تجاري مسجل يستخدم المنصة؛ 'المقاول' يعني مستخدم ينشر مشاريع يطلب عروض أسعار لها؛ 'المورد' يعني مستخدم يعرض منتجات؛ 'مزود الخدمة' يعني مستخدم يقدم خدمات؛ 'الصفقة' تعني معاملة مكتملة بين المستخدمين؛ 'العمولة' تعني نسبة الرسوم المستحقة لمهندس هب عند إتمام الصفقة؛ 'رسوم الاشتراك' تعني الرسوم الدورية للوصول إلى المنصة؛ 'ر.س' تعني الريال السعودي؛ 'ضريبة القيمة المضافة' تعني ضريبة القيمة المضافة وفقاً لأنظمة هيئة الزكاة والضريبة والجمارك."
+      },
+      "acceptance": {
+        "title": "2. قبول الشروط والأهلية القانونية",
+        "description": "بتسجيلك أو استخدامك لمهندس هب، فإنك تُقر وتضمن أنك: (أ) لديك الصلاحية القانونية لإلزام كيانك التجاري بهذه الشروط؛ (ب) قد قرأت وفهمت هذه الشروط بالكامل؛ (ج) تقبل هذه الشروط نيابةً عن كيانك التجاري؛ (د) استخدامك للمنصة سيمتثل لجميع الأنظمة المعمول بها في المملكة العربية السعودية، بما في ذلك على سبيل المثال لا الحصر نظام التجارة الإلكترونية (المرسوم الملكي رقم م/126)، ونظام السجل التجاري، وأنظمة ضريبة القيمة المضافة، وأنظمة مكافحة غسل الأموال. تُشكّل هذه الشروط، مع سياسة الخصوصية الخاصة بنا، الاتفاق الكامل بينك وبين مهندس هب."
+      },
+      "eligibility": {
+        "title": "3. متطلبات الأهلية",
+        "description": "لاستخدام مهندس هب، يجب أن تستوفي جميع المتطلبات التالية: (أ) أن تكون كياناً تجارياً مسجلاً قانونياً في المملكة العربية السعودية بسجل تجاري ساري المفعول؛ (ب) أن تمتلك شهادة تسجيل ضريبة القيمة المضافة سارية صادرة من هيئة الزكاة والضريبة والجمارك؛ (ج) أن يكون لديك ممثل مفوض لا يقل عمره عن 18 عاماً ومؤهل قانونياً لإبرام العقود؛ (د) ألا تكون خاضعاً لأي حظر قانوني أو إجراءات إفلاس أو عقوبات تمنعك من ممارسة الأعمال التجارية؛ (هـ) أن تقدم معلومات دقيقة وكاملة وحديثة عند التسجيل والحفاظ على دقتها طوال فترة استخدامك للمنصة. تحتفظ مهندس هب بالحق في التحقق من أهليتك في أي وقت وتعليق أو إنهاء الحسابات التي لا تستوفي هذه المتطلبات."
+      },
+      "accounts": {
+        "title": "4. حسابات المستخدمين والأمان",
+        "item1": "أنت المسؤول الوحيد عن الحفاظ على سرية وأمان بيانات اعتماد حسابك، بما في ذلك كلمات المرور ورموز الوصول.",
+        "item2": "يجب عليك تقديم معلومات تسجيل دقيقة وحديثة وكاملة وتحديثها فوراً عند حدوث أي تغييرات.",
+        "item3": "يجب عليك إبلاغ مهندس هب فوراً عند اكتشاف أي وصول غير مصرح به لحسابك أو أي اختراق أمني.",
+        "item4": "أنت مسؤول مسؤولية كاملة عن جميع الأنشطة التي تتم تحت حسابك، سواء كانت مصرح بها من قبلك أم لا.",
+        "item5": "لا يجوز لك مشاركة حسابك أو نقله أو التنازل عنه لأي طرف ثالث دون موافقة خطية مسبقة من مهندس هب.",
+        "item6": "تحتفظ مهندس هب بالحق في تعليق أو إنهاء الحسابات التي تنتهك هذه الشروط أو تنخرط في نشاط احتيالي أو تشكل خطراً على المنصة أو المستخدمين الآخرين.",
+        "item7": "يُحظر إنشاء حسابات متعددة لنفس الكيان التجاري ما لم يُصرح بذلك صراحةً وكتابياً."
       },
       "subscriptions": {
-        "title": "الاشتراكات والدفع",
-        "item1": "تتوفر أربع خطط اشتراك: المبتدئ (مجاني)، المحترف، الأعمال، المؤسسات",
-        "item2": "جميع الأسعار شاملة ضريبة القيمة المضافة 15%",
-        "item3": "يتم تجديد الاشتراك تلقائياً ما لم يتم الإلغاء",
-        "item4": "المبالغ المدفوعة غير قابلة للاسترداد إلا في حالات محددة"
+        "title": "5. رسوم الاشتراك وشروط الدفع",
+        "item1": "يتطلب الوصول إلى مهندس هب اشتراكاً مدفوعاً، باستثناء فترات تجريبية محدودة قد تُقدم حسب تقديرنا.",
+        "item2": "تُفرض رسوم الاشتراك مقدماً بناءً على دورة الفوترة المختارة (شهرية أو ربعية أو سنوية) ومستوى الاشتراك (المحترف أو الأعمال أو المؤسسات).",
+        "item3": "جميع الرسوم محددة بالريال السعودي وشاملة لضريبة القيمة المضافة بنسبة 15% وفقاً لمتطلبات هيئة الزكاة والضريبة والجمارك.",
+        "item4": "يستحق الدفع فوراً عند تفعيل الاشتراك أو تجديده. قد يؤدي عدم الدفع إلى تعليق الوصول فوراً.",
+        "item5": "رسوم الاشتراك غير قابلة للاسترداد بشكل قاطع. بالاشتراك، فإنك تُقر وتوافق على أن جميع مدفوعات الاشتراك نهائية وغير قابلة للاسترداد، بغض النظر عن استخدامك للمنصة أو إلغائك المبكر أو تعليق حسابك أو إنهائه لأي سبب.",
+        "item6": "تحتفظ مهندس هب بالحق في تعديل أسعار الاشتراك مع إشعار خطي مسبق بثلاثين (30) يوماً. يُعتبر الاستمرار في الاستخدام بعد تغيير الأسعار قبولاً.",
+        "item7": "الأسعار الترويجية والخصومات والفترات التجريبية تخضع لشروط إضافية وقد يتم تعديلها أو إيقافها في أي وقت."
       },
       "commissions": {
-        "title": "العمولات",
-        "item1": "تُحسب العمولة بناءً على خطة اشتراك البائع: المبتدئ 2%، المحترف 1%، الأعمال والمؤسسات 0%",
-        "item2": "تُفرض العمولة عند إتمام الصفقة بنجاح",
-        "item3": "يجب دفع العمولة خلال 14 يوماً من تاريخ الاستحقاق"
+        "title": "6. هيكل العمولات والتزامات الدفع",
+        "item1": "تستحق عمولة قائمة على النجاح لمهندس هب عند إتمام أي صفقة يتم تسهيلها عبر المنصة.",
+        "item2": "تختلف نسب العمولة حسب مستوى الاشتراك: التجريبي (3%)، المحترف (1%)، الأعمال (0%)، المؤسسات (0%).",
+        "item3": "تُحسب العمولات على إجمالي قيمة الصفقة وتستحق خلال ثلاثين (30) يوماً من إتمام الصفقة.",
+        "item4": "العمولات غير قابلة للاسترداد بشكل قاطع. بمجرد وضع علامة إتمام على الصفقة، تصبح العمولة مستحقة وواجبة الدفع فوراً بغض النظر عن أي نزاعات أو إلغاءات أو تراجعات لاحقة بين الأطراف.",
+        "item5": "جميع العمولات تخضع لضريبة القيمة المضافة بنسبة 15%، والتي ستُضاف إلى مبلغ العمولة.",
+        "item6": "قد يؤدي عدم دفع العمولات خلال الفترة المحددة إلى: تعليق الحساب، غرامات تأخير بنسبة 2% شهرياً، إجراءات قانونية لاسترداد المبالغ المستحقة، والإبلاغ لوكالات الائتمان.",
+        "item7": "أي محاولة للتحايل على دفع العمولات بإجراء معاملات خارج المنصة بعد الاتصال الأولي عبر مهندس هب يُعتبر إخلالاً جوهرياً بهذه الشروط وقد يؤدي إلى إنهاء فوري وإجراءات قانونية."
       },
-      "postsAndOffers": {
-        "title": "المنشورات والعروض",
-        "item1": "جميع المنشورات تخضع لمراجعة الإدارة قبل النشر",
-        "item2": "يجب أن يكون المحتوى دقيقاً ولا يحتوي على معلومات مضللة",
-        "item3": "يحق للإدارة رفض أي منشور يخالف سياسات المنصة",
-        "item4": "العروض المقدمة ملزمة ولا يمكن التراجع عنها بعد الترسية"
+      "noRefund": {
+        "title": "7. سياسة عدم الاسترداد",
+        "description": "باستخدامك لمهندس هب، فإنك تُقر وتوافق صراحةً على أن: (أ) جميع رسوم الاشتراك المدفوعة نهائية وغير قابلة للاسترداد تحت أي ظرف؛ (ب) جميع العمولات المدفوعة أو المستحقة نهائية وغير قابلة للاسترداد تحت أي ظرف؛ (ج) تسري سياسة عدم الاسترداد هذه حتى لو تم تعليق أو إنهاء حسابك، سواء بواسطتك أو بواسطة مهندس هب؛ (د) تسري سياسة عدم الاسترداد هذه بغض النظر عن سبب الإلغاء أو عدم استخدام الخدمات؛ (هـ) لن يتم إصدار أي استرداد جزئي أو نسبي أو أرصدة لأي جزء غير مستخدم من فترة الاشتراك؛ (و) هذه السياسة بند جوهري في هذه الاتفاقية، وتتنازل عن أي حق في المطالبة باسترداد أو استرجاع المدفوعات. تتوافق هذه السياسة مع المادة 10 من نظام التجارة الإلكترونية السعودي وتمثل إفصاحاً واضحاً عن شروط الاسترداد قبل اشتراكك."
       },
-      "reviews": {
-        "title": "التقييمات",
-        "item1": "يمكن إضافة التقييم فقط بعد إتمام الصفقة",
-        "item2": "يسمح بتعديل التقييم خلال 48 ساعة فقط",
-        "item3": "يجب أن تكون التقييمات صادقة وموضوعية"
+      "content": {
+        "title": "8. المحتوى الذي ينشئه المستخدم والملكية الفكرية",
+        "item1": "تحتفظ بملكية جميع المحتوى والبيانات والمواد التي تقدمها للمنصة ('محتوى المستخدم').",
+        "item2": "بنشرك لمحتوى المستخدم، تمنح مهندس هب ترخيصاً غير حصري وعالمي ومجاني لاستخدام وعرض ونسخ وتوزيع هذا المحتوى بغرض تشغيل المنصة والترويج لها.",
+        "item3": "تُقر وتضمن أنك تمتلك أو لديك الحقوق اللازمة لجميع محتوى المستخدم وأنه لا ينتهك أي حقوق ملكية فكرية أو حقوق خصوصية أو حقوق قانونية أخرى لأطراف ثالثة.",
+        "item4": "أنت المسؤول الوحيد عن دقة ومشروعية وملاءمة جميع محتوى المستخدم الذي تقدمه.",
+        "item5": "تحتفظ مهندس هب بالحق في إزالة أو تعديل أو رفض نشر أي محتوى مستخدم ينتهك هذه الشروط أو القانون المعمول به، دون إشعار مسبق.",
+        "item6": "توافق على عدم نشر محتوى كاذب أو مضلل أو تشهيري أو فاحش أو مهدد أو مرفوض بأي شكل آخر.",
+        "item7": "قد يؤدي انتهاك حقوق الملكية الفكرية إلى إنهاء الحساب فوراً وإجراءات قانونية."
+      },
+      "prohibited": {
+        "title": "9. الأنشطة المحظورة",
+        "description": "توافق على عدم الانخراط في أي من الأنشطة المحظورة التالية:",
+        "item1": "استخدام المنصة لأي غرض غير مشروع أو بما يُخالف أي أنظمة سعودية معمول بها.",
+        "item2": "انتحال شخصية أي شخص أو كيان، أو التصريح كذباً بانتمائك لأي شخص أو كيان.",
+        "item3": "نشر معلومات كاذبة أو غير دقيقة أو مضللة عن المشاريع أو المنتجات أو الخدمات أو قدراتك التجارية.",
+        "item4": "محاولة التحايل على دفع العمولات أو تجنبها من خلال معاملات خارج المنصة أو بأي وسيلة أخرى.",
+        "item5": "التدخل في عمل المنصة أو تعطيلها أو محاولة الوصول غير المصرح به إلى المنصة أو الخوادم أو الشبكات.",
+        "item6": "استخدام أنظمة آلية أو روبوتات أو أدوات استخراج أو تقنيات مماثلة للوصول إلى بيانات المنصة أو جمعها.",
+        "item7": "التلاعب بالأسعار أو التواطؤ في العطاءات أو أي شكل من أشكال السلوك المنافي للمنافسة.",
+        "item8": "مضايقة أو تهديد أو إساءة معاملة المستخدمين الآخرين أو موظفي مهندس هب.",
+        "item9": "غسل الأموال أو تمويل الإرهاب أو أي نشاط يخالف أنظمة مكافحة غسل الأموال.",
+        "item10": "انتهاك أي عقوبات أو لوائح رقابة صادرات معمول بها."
+      },
+      "verification": {
+        "title": "10. التحقق من المستندات والامتثال",
+        "description": "يجب على جميع المستخدمين تقديم وثائق سارية للتحقق، بما في ذلك على سبيل المثال لا الحصر: شهادة تسجيل ضريبة القيمة المضافة، والسجل التجاري، والهوية الوطنية أو الإقامة للممثل المفوض. تحتفظ مهندس هب بالحق في: طلب وثائق إضافية في أي وقت؛ التحقق من المعلومات مع الجهات الحكومية المعنية؛ رفض الطلبات التي لا تستوفي معايير التحقق؛ إلغاء الحالة الموثقة إذا انتهت صلاحية المستندات أو تبين أنها مزورة أو إذا انتهك المستخدم هذه الشروط. يجب على المستخدمين إبلاغ مهندس هب خلال أربعة عشر (14) يوماً من أي تغييرات في حالة التسجيل أو تسجيل ضريبة القيمة المضافة أو المعلومات الموثقة الأخرى. قد يؤدي عدم الحفاظ على وثائق سارية إلى تعليق الحساب."
+      },
+      "platformRole": {
+        "title": "11. دور المنصة وإخلاء المسؤولية",
+        "description": "تعمل مهندس هب حصرياً كسوق إلكتروني يربط بين الشركات. نحن لا نقوم بـ: المشاركة في أي معاملة بين المستخدمين أو ضمانها؛ التحقق من جودة أو سلامة أو مشروعية أو ملاءمة أي منتجات أو خدمات أو مشاريع مدرجة؛ ضمان دقة أو صحة أي محتوى مستخدم أو قوائم؛ ضمان قدرة أو رغبة أو جدارة أي مستخدم الائتمانية لإتمام المعاملات؛ تقديم حساب ضمان أو معالجة المدفوعات بين المستخدمين أو تأمين المعاملات. جميع المعاملات تتم مباشرة بين المستخدمين على مسؤوليتهم الخاصة. مهندس هب ليست طرفاً في أي عقد يُبرم بين المستخدمين ولا تتحمل أي مسؤولية عن تنفيذ أو عدم تنفيذ هذه العقود."
       },
       "liability": {
-        "title": "حدود المسؤولية",
-        "item1": "المنصة وسيط تقني ولا تتحمل مسؤولية جودة العمل أو المنتجات",
-        "item2": "الأطراف مسؤولون عن التحقق من المعلومات قبل التعامل",
-        "item3": "لا نتحمل مسؤولية الأضرار غير المباشرة أو خسائر الأرباح"
+        "title": "12. تحديد المسؤولية",
+        "description": "إلى أقصى حد يسمح به النظام السعودي: (أ) لن تكون مهندس هب مسؤولة عن أي أضرار غير مباشرة أو عرضية أو خاصة أو تبعية أو عقابية ناتجة عن استخدامك للمنصة؛ (ب) لن تكون مهندس هب مسؤولة عن أي خسارة في الأرباح أو الإيرادات أو البيانات أو الفرص التجارية؛ (ج) لن تكون مهندس هب مسؤولة عن أي نزاعات أو مطالبات أو أضرار ناشئة عن معاملات بين المستخدمين؛ (د) لا يتجاوز إجمالي مسؤوليتنا عن أي مطالبة ناشئة من هذه الشروط أو استخدامك للمنصة إجمالي رسوم الاشتراك التي دفعتها في الاثني عشر (12) شهراً السابقة للمطالبة؛ (هـ) تسري هذه القيود بغض النظر عن النظرية القانونية التي تستند إليها المطالبة."
       },
-      "modifications": {
-        "title": "التعديلات",
-        "description": "نحتفظ بحق تعديل هذه الشروط في أي وقت. سيتم إخطار المستخدمين بأي تغييرات جوهرية."
+      "indemnification": {
+        "title": "13. التعويض",
+        "description": "توافق على تعويض وحماية مهندس هب ومسؤوليها ومديريها وموظفيها ووكلائها والشركات التابعة لها من وضد أي مطالبات أو أضرار أو خسائر أو التزامات أو تكاليف ونفقات (بما في ذلك أتعاب المحاماة المعقولة) ناشئة عن أو متعلقة بـ: (أ) استخدامك للمنصة؛ (ب) انتهاكك لهذه الشروط؛ (ج) انتهاكك لأي نظام أو لائحة معمول بها؛ (د) محتوى المستخدم الخاص بك؛ (هـ) أي معاملة أو نزاع مع مستخدم آخر؛ (و) انتهاكك لأي حقوق أطراف ثالثة. يستمر التزام التعويض هذا بعد إنهاء هذه الشروط واستخدامك للمنصة."
       },
+      "termination": {
+        "title": "14. الإنهاء",
+        "description": "يجوز لمهندس هب تعليق أو إنهاء حسابك فوراً ودون إشعار مسبق بسبب: انتهاك هذه الشروط؛ نشاط احتيالي أو غير قانوني؛ عدم دفع الرسوم أو العمولات؛ تقديم معلومات كاذبة أو مضللة؛ أي سلوك قد يضر بمهندس هب أو المستخدمين الآخرين. يمكنك إلغاء اشتراكك في أي وقت من خلال إعدادات حسابك. عند الإنهاء: (أ) تبقى جميع رسوم الاشتراك المدفوعة غير قابلة للاسترداد؛ (ب) تصبح أي عمولات مستحقة واجبة الدفع فوراً؛ (ج) ينتهي حقك في الوصول إلى المنصة فوراً؛ (د) تستمر أحكام هذه الشروط التي بطبيعتها يجب أن تبقى سارية بعد الإنهاء بكامل قوتها وتأثيرها."
+      },
+      "disputes": {
+        "title": "15. تسوية النزاعات والقانون الحاكم",
+        "description": "تخضع هذه الشروط وتُفسر وفقاً لأنظمة المملكة العربية السعودية. أي نزاع ناشئ عن هذه الشروط أو استخدامك للمنصة يتم حله كالتالي: (أ) يحاول الطرفان أولاً حل النزاع عبر المفاوضات بحسن نية لمدة ثلاثين (30) يوماً؛ (ب) إذا فشلت المفاوضات، يُحال النزاع إلى التحكيم الذي يديره المركز السعودي للتحكيم التجاري في الرياض؛ (ج) يُجرى التحكيم باللغة العربية مع توفر الترجمة الإنجليزية عند الطلب؛ (د) يكون حكم التحكيم نهائياً وملزماً لكلا الطرفين؛ (هـ) تتنازل عن أي حق في المشاركة في دعاوى جماعية أو تحكيم جماعي. تختص محاكم مدينة الرياض حصرياً بأي مسائل غير خاضعة للتحكيم."
+      },
+      "forceMajeure": {
+        "title": "16. القوة القاهرة",
+        "description": "لن تكون مهندس هب مسؤولة عن أي إخفاق أو تأخير في الوفاء بالتزاماتها بموجب هذه الشروط بسبب ظروف خارجة عن سيطرتها المعقولة، بما في ذلك على سبيل المثال لا الحصر: الكوارث الطبيعية، الحروب، الإرهاب، أعمال الشغب، الاضطرابات المدنية، الإجراءات الحكومية، الأوبئة، انقطاع التيار الكهربائي، أعطال الاتصالات، أو أي حدث قوة قاهرة آخر. في هذه الظروف، تُعلق التزامات مهندس هب طوال مدة حدث القوة القاهرة."
+      },
+      "amendments": {
+        "title": "17. تعديلات الشروط",
+        "description": "تحتفظ مهندس هب بالحق في تعديل أو تحديث هذه الشروط في أي وقت وفقاً لتقديرها المطلق. يتم إخطار المستخدمين بالتغييرات الجوهرية عبر البريد الإلكتروني أو إشعار المنصة قبل ثلاثين (30) يوماً على الأقل من سريانها. يُعتبر استمرارك في استخدام المنصة بعد تاريخ سريان أي تغييرات قبولاً للشروط المعدلة. إذا لم توافق على الشروط المعدلة، يجب عليك التوقف عن استخدام المنصة وإلغاء اشتراكك. تقع على عاتقك مسؤولية مراجعة هذه الشروط بشكل دوري."
+      },
+      "severability": {
+        "title": "18. قابلية الفصل والتنازل",
+        "description": "إذا تبين أن أي حكم من هذه الشروط باطل أو غير قانوني أو غير قابل للتنفيذ من قبل محكمة مختصة، فلن يؤثر هذا البطلان على الأحكام المتبقية التي تستمر بكامل قوتها وتأثيرها. يُعدل الحكم الباطل بالحد الأدنى اللازم لجعله صالحاً وقابلاً للتنفيذ مع الحفاظ على النية الأصلية للأطراف. لا يُعتبر التنازل عن أي حكم من هذه الشروط تنازلاً مستمراً عن هذا الحكم أو أي حكم آخر، ولا يُشكل عدم تأكيد أي حق أو حكم تنازلاً عن هذا الحق أو الحكم."
+      },
+      "entireAgreement": {
+        "title": "19. الاتفاق الكامل",
+        "description": "تُشكّل شروط الخدمة هذه، إلى جانب سياسة الخصوصية وأي سياسات أخرى مشار إليها هنا، الاتفاق الكامل بينك وبين مهندس هب فيما يتعلق باستخدامك للمنصة وتحل محل جميع الاتفاقيات والتفاهمات والمفاوضات والمناقشات السابقة، سواء كانت شفهية أو مكتوبة. لا يكون أي تمثيل أو ضمان أو تعهد غير منصوص عليه صراحةً في هذه الشروط ملزماً لأي من الطرفين."
+      },
+      "contactInfo": {
+        "title": "20. معلومات الاتصال",
+        "description": "للأسئلة أو الاستفسارات أو الإشعارات المتعلقة بشروط الخدمة، يرجى التواصل معنا على:",
+        "email": "البريد الإلكتروني: info@muhandeshub.com",
+        "phone": "الهاتف: +966 55 107 0673",
+        "address": "العنوان: الرياض، المملكة العربية السعودية",
+        "notice": "يجب إرسال جميع الإشعارات القانونية كتابياً إلى العنوان أعلاه أو عبر البريد الإلكتروني إلى info@muhandeshub.com."
+      },
+      "acknowledgment": "بتسجيلك أو استخدامك لمهندس هب، فإنك تُقر بأنك قد قرأت شروط الخدمة هذه بالكامل وفهمتها ووافقت على الالتزام بها قانونياً.",
       "seeAlso": "انظر أيضاً",
       "privacyLink": "سياسة الخصوصية",
-      "cookiesLink": "سياسة ملفات تعريف الارتباط"
+      "cookiesLink": "سياسة ملفات تعريف الارتباط",
+      "refundLink": "سياسة الاسترداد"
+    },
+    "refund": {
+      "title": "سياسة الاسترداد",
+      "lastUpdated": "آخر تحديث: 4 يناير 2026",
+      "intro": "هام: جميع المدفوعات المقدمة لمهندس هب (المملوكة والمشغّلة من قبل شركة رمال الماس العالمية) نهائية وغير قابلة للاسترداد. باستخدامك لمنصتنا، فإنك تُقر وتقبل صراحةً سياسة عدم الاسترداد الصارمة هذه. يرجى قراءة هذه السياسة بعناية قبل إجراء أي دفع.",
+      "generalPolicy": {
+        "title": "1. سياسة عدم الاسترداد العامة",
+        "description": "تعمل مهندس هب بموجب سياسة صارمة لعدم الاسترداد لجميع المدفوعات، بما في ذلك على سبيل المثال لا الحصر رسوم الاشتراك والعمولات وأي رسوم أخرى. تسري هذه السياسة دون استثناء، بغض النظر عن الظروف أو سبب الإلغاء أو مستوى استخدام المنصة أو حالة الحساب أو أي نزاعات بين المستخدمين. بإجراء أي دفع لمهندس هب، فإنك تتنازل بشكل لا رجعة فيه عن أي حق في طلب أو المطالبة أو استلام استرداد أو استرجاع مدفوعات أو عكس دفع من أي نوع. هذه السياسة بند جوهري في اتفاقيتك مع مهندس هب ويتم الإفصاح عنها وفقاً للمادة 10 من نظام التجارة الإلكترونية (المرسوم الملكي رقم م/126)."
+      },
+      "subscriptionFees": {
+        "title": "2. رسوم الاشتراك - غير قابلة للاسترداد",
+        "description": "جميع رسوم الاشتراك المدفوعة لمهندس هب غير قابلة للاسترداد بشكل قاطع تحت جميع الظروف، بما في ذلك:",
+        "item1": "الإلغاء الطوعي لاشتراكك في أي وقت ولأي سبب",
+        "item2": "تعليق أو إنهاء حسابك من قبل مهندس هب بسبب انتهاك شروط الخدمة",
+        "item3": "تعليق أو إنهاء حسابك بسبب عدم دفع العمولات أو الرسوم الأخرى",
+        "item4": "عدم استخدام المنصة أو أي من ميزاتها خلال فترة اشتراكك",
+        "item5": "عدم الرضا عن ميزات المنصة أو وظائفها أو أدائها",
+        "item6": "التغييرات في ميزات المنصة أو أسعارها أو شروط الخدمة",
+        "item7": "إغلاق العمل أو الإفلاس أو أي تغيير في ظروفك التجارية",
+        "item8": "المشاكل التقنية أو التوقف أو انقطاع الخدمة (أحداث القوة القاهرة)",
+        "item9": "أي نزاع مع مستخدمين آخرين على المنصة",
+        "item10": "لن يتم إصدار أي استرداد نسبي أو جزئي أو أرصدة لفترات اشتراك غير مستخدمة"
+      },
+      "commissions": {
+        "title": "3. العمولات - غير قابلة للاسترداد",
+        "description": "جميع رسوم العمولة المدفوعة أو المستحقة لمهندس هب غير قابلة للاسترداد بشكل قاطع تحت جميع الظروف، بما في ذلك:",
+        "item1": "إلغاء صفقة بعد وضع علامة إتمام عليها على المنصة",
+        "item2": "النزاعات بين المشتري والبائع بشأن شروط الصفقة أو الجودة أو التسليم",
+        "item3": "التنفيذ الجزئي أو غير المكتمل للصفقة من قبل أي طرف",
+        "item4": "تخلف المشتري عن الدفع أو عدم دفعه بعد إتمام الصفقة",
+        "item5": "أي اتفاق لاحق بين الأطراف لتعديل أو إلغاء الصفقة الأصلية",
+        "item6": "مزاعم الاحتيال أو التحريف أو الإخلال بالعقد بين المستخدمين",
+        "item7": "النزاعات القانونية أو أوامر المحكمة المؤثرة على المعاملة الأساسية",
+        "item8": "تُحسب العمولة على إجمالي قيمة الصفقة وتصبح مستحقة فوراً عند إتمام الصفقة، بغض النظر عن الأحداث اللاحقة"
+      },
+      "dealCancellations": {
+        "title": "4. إلغاء الصفقات بين المستخدمين",
+        "description": "مهندس هب ليست طرفاً في المعاملات بين المستخدمين ولا تتحمل أي مسؤولية عن:",
+        "item1": "المبالغ المستردة بين المشترين والبائعين للمعاملات الملغاة أو المتنازع عليها",
+        "item2": "جودة أو حالة أو ملاءمة المنتجات أو الخدمات أو مخرجات المشاريع",
+        "item3": "تنفيذ أو عدم تنفيذ أو التنفيذ الجزئي لأي اتفاقية بين المستخدمين",
+        "item4": "النزاعات المالية أو مشاكل الدفع أو مسائل التحصيل بين المستخدمين",
+        "item5": "أي مطالبات ناشئة عن معاملات بين المستخدمين تمت عبر المنصة",
+        "item6": "يجب على المستخدمين حل جميع نزاعات المعاملات مباشرة فيما بينهم",
+        "item7": "لن تتوسط مهندس هب أو تحكم أو تتدخل في نزاعات المستخدمين",
+        "item8": "تبقى عمولات المنصة مستحقة وواجبة الدفع بغض النظر عن أي استرداد أو إلغاء بين المستخدمين"
+      },
+      "creditNotes": {
+        "title": "5. إشعارات الائتمان - استثناءات محدودة",
+        "description": "في ظروف نادرة واستثنائية، قد تقوم مهندس هب، وفقاً لتقديرها المطلق، بإصدار إشعارات ائتمان (وليس استردادات) في الحالات التالية فقط:",
+        "item1": "أخطاء نظامية موثقة أدت إلى رسوم مكررة (تتطلب تحققاً تقنياً)",
+        "item2": "تصحيحات إدارية لأخطاء فوترة من قبل مهندس هب (وليس أخطاء المستخدم)",
+        "item3": "مدفوعات زائدة تتجاوز المبلغ الصحيح المستحق (تتطلب توثيقاً)",
+        "item4": "يمكن تطبيق إشعارات الائتمان فقط على رسوم المنصة المستقبلية وليس لها قيمة نقدية",
+        "item5": "إشعارات الائتمان غير قابلة للتحويل وتنتهي خلال 12 شهراً من الإصدار",
+        "item6": "تحتفظ مهندس هب بالحق في رفض أي طلب إشعار ائتمان وفقاً لتقديرها المطلق",
+        "item7": "لا يُشكل إصدار إشعار ائتمان اعترافاً بالمسؤولية أو الخطأ"
+      },
+      "chargebacks": {
+        "title": "6. استرجاع المدفوعات وعكس الدفعات",
+        "description": "محاولة عكس المدفوعات من خلال استرجاع المدفوعات أو وسائل أخرى محظورة تماماً:",
+        "item1": "أي محاولة استرجاع مدفوعات تُشكل إخلالاً جوهرياً بهذه الشروط",
+        "item2": "ستعترض مهندس هب بقوة على جميع عمليات استرجاع المدفوعات لدى معالجي الدفع",
+        "item3": "سيتم تعليق الحسابات المتورطة في محاولات استرجاع المدفوعات فوراً وبشكل دائم",
+        "item4": "تصبح جميع العمولات والرسوم المستحقة واجبة الدفع فوراً عند محاولة استرجاع المدفوعات",
+        "item5": "تحتفظ مهندس هب بالحق في اتخاذ إجراءات قانونية لاسترداد المبالغ المتنازع عليها بالإضافة إلى أتعاب المحاماة",
+        "item6": "قد يتم الإبلاغ عن المستخدمين لوكالات الائتمان وخدمات منع الاحتيال",
+        "item7": "باستخدامك للمنصة، تتنازل عن أي حق في بدء عمليات استرجاع مدفوعات أو عكس دفعات"
+      },
+      "disputeResolution": {
+        "title": "7. تسوية النزاعات",
+        "description": "إذا كنت تعتقد أنه تم تحصيل رسوم خاطئة منك، يجب عليك تقديم نزاع مكتوب إلى info@muhandeshub.com خلال أربعة عشر (14) يوماً من التحصيل. يجب أن تتضمن النزاعات: تفاصيل حسابك، مرجع المعاملة، المبلغ المحدد المتنازع عليه، وشرح مفصل مع مستندات داعمة. ستراجع مهندس هب النزاعات خلال ثلاثين (30) يوم عمل وسيكون قرارها نهائياً وملزماً. لا يؤدي تقديم النزاع إلى تعليق التزامات الدفع الخاصة بك أو يمنحك حق حجب أي مبالغ مستحقة. قد تؤدي تقديمات النزاعات التافهة أو المتكررة إلى تعليق الحساب."
+      },
+      "liabilityLimit": {
+        "title": "8. تحديد مسؤولية المنصة",
+        "item1": "مهندس هب غير مسؤولة عن أي خسائر ناشئة عن معاملات بين المستخدمين",
+        "item2": "لا تضمن مهندس هب نتيجة أو جودة أو نجاح أي صفقة أو معاملة",
+        "item3": "مهندس هب غير مسؤولة عن أي أضرار غير مباشرة أو تبعية أو عقابية",
+        "item4": "لا تتجاوز المسؤولية القصوى الرسوم المدفوعة من قبلك في الـ 12 شهراً السابقة",
+        "item5": "مهندس هب غير مسؤولة عن الأعطال التقنية أو فقدان البيانات أو انقطاع الخدمة",
+        "item6": "يتحمل المستخدمون جميع المخاطر المرتبطة باستخدام المنصة والتعامل مع مستخدمين آخرين",
+        "item7": "توافق على تعويض مهندس هب عن أي مطالبات ناشئة عن استخدامك للمنصة"
+      },
+      "saudiLaw": {
+        "title": "9. الامتثال للنظام السعودي",
+        "description": "تخضع سياسة الاسترداد هذه وتُفسر وفقاً لأنظمة المملكة العربية السعودية. تمتثل هذه السياسة للمادة 10 من نظام التجارة الإلكترونية (المرسوم الملكي رقم م/126)، الذي يتطلب إفصاحاً واضحاً عن سياسات الاسترداد قبل الشراء. باستخدامك لمهندس هب وإجراء أي دفع، فإنك تُقر بأنك قد أُبلغت بوضوح بسياسة عدم الاسترداد هذه ووافقت عليها طوعاً. يتم حل أي نزاعات من خلال المركز السعودي للتحكيم التجاري في الرياض، مع إجراء الجلسات باللغة العربية."
+      },
+      "changes": {
+        "title": "10. التغييرات على هذه السياسة",
+        "description": "تحتفظ مهندس هب بالحق في تعديل سياسة الاسترداد هذه في أي وقت دون إشعار مسبق. تصبح التغييرات سارية فوراً عند نشرها على المنصة. يُعتبر استمرار استخدام المنصة بعد أي تغييرات قبولاً للسياسة المعدلة. تقع على عاتقك مسؤولية مراجعة هذه السياسة بشكل دوري. يُشار إلى تاريخ آخر تحديث في أعلى هذه الصفحة."
+      },
+      "contactInfo": {
+        "title": "11. معلومات الاتصال",
+        "description": "للأسئلة المتعلقة بسياسة الاسترداد هذه أو لتقديم نزاع فوترة، تواصل معنا عبر: البريد الإلكتروني: info@muhandeshub.com. يجب أن تكون جميع الاتصالات كتابية. لن تقبل مهندس هب النزاعات الشفهية أو الاتفاقيات لتعديل هذه السياسة. قد تختلف أوقات الاستجابة حسب حجم الاستفسارات."
+      },
+      "acknowledgment": "باستخدامك لمهندس هب وإجراء أي دفع، فإنك تؤكد أنك قد قرأت وفهمت ووافقت بلا شروط على سياسة الاسترداد هذه. تُقر بأن جميع المدفوعات نهائية وغير قابلة للاسترداد، وتتنازل عن أي حق في المطالبة باسترداد أو استرجاع مدفوعات أو عكس دفعات.",
+      "seeAlso": "انظر أيضاً",
+      "termsLink": "شروط الخدمة",
+      "privacyLink": "سياسة الخصوصية"
     },
     "cookies": {
       "title": "سياسة ملفات تعريف الارتباط",
       "lastUpdated": "آخر تحديث: 1 يناير 2025",
-      "intro": "يوضح هذا المستند كيفية استخدام منصة مهندس لملفات تعريف الارتباط (الكوكيز) والتقنيات المشابهة.",
+      "intro": "يوضح هذا المستند كيفية استخدام منصة مهندس هب (المملوكة والمشغّلة من قبل شركة رمال الماس العالمية) لملفات تعريف الارتباط (الكوكيز) والتقنيات المشابهة.",
       "whatAreCookies": {
         "title": "ما هي ملفات تعريف الارتباط؟",
         "description": "ملفات تعريف الارتباط هي ملفات نصية صغيرة يتم تخزينها على جهازك عند زيارة موقع ويب. تساعد هذه الملفات في تذكر تفضيلاتك وتحسين تجربة الاستخدام."
@@ -3510,7 +4432,7 @@
       },
       "contact": {
         "title": "التواصل معنا",
-        "description": "لأي استفسارات حول ملفات تعريف الارتباط: privacy@muhandeshub.com"
+        "description": "لأي استفسارات حول ملفات تعريف الارتباط: info@muhandeshub.com"
       },
       "seeAlso": "انظر أيضاً",
       "privacyLink": "سياسة الخصوصية",
@@ -3527,6 +4449,42 @@
     "marketplace": {
       "title": "سوق المنتجات — مواد ومستلزمات البناء | منصة مهندس",
       "description": "تصفح منتجات الموردين المعتمدين في قطاع الإنشاءات السعودي — مواد بناء، معدات، وأدوات بأفضل الأسعار."
+    },
+    "pricing": {
+      "title": "خطط الاشتراك والأسعار | منصة مهندس",
+      "description": "قارن بين خطط المبتدئ والمحترف والأعمال والمؤسسات لسوق الإنشاءات السعودي. جميع الأسعار شاملة ضريبة القيمة المضافة 15%. ابدأ مجاناً اليوم."
+    },
+    "partners": {
+      "title": "دليل الشركاء — مقاولون وموردون معتمدون | منصة مهندس",
+      "description": "تصفح المقاولين والموردين المعتمدين في قطاع الإنشاءات السعودي. اعثر على شركاء موثوقين لمشروعك القادم."
+    },
+    "projects": {
+      "title": "تصفح المشاريع الإنشائية | منصة مهندس",
+      "description": "استكشف المشاريع الإنشائية النشطة في المملكة العربية السعودية. اعثر على فرص تقديم عروض وتواصل مع أصحاب المشاريع."
+    },
+    "rfqs": {
+      "title": "طلبات عروض الأسعار — مستلزمات البناء | منصة مهندس",
+      "description": "تصفح طلبات عروض الأسعار المفتوحة من المشترين في قطاع الإنشاءات السعودي. قدم عروضاً تنافسية واكسب عملاء جدد."
+    },
+    "contact": {
+      "title": "اتصل بنا | منصة مهندس",
+      "description": "تواصل مع فريق منصة مهندس. نحن هنا لمساعدتك في أي استفسارات حول سوق الإنشاءات السعودي."
+    },
+    "terms": {
+      "title": "الشروط والأحكام | منصة مهندس",
+      "description": "اقرأ الشروط والأحكام المنظمة لاستخدام منصة مهندس، سوق الإنشاءات السعودي الرقمي."
+    },
+    "privacy": {
+      "title": "سياسة الخصوصية | منصة مهندس",
+      "description": "تعرف على كيفية جمع واستخدام وحماية منصة مهندس لبياناتك الشخصية وفقاً لنظام حماية البيانات الشخصية السعودي."
+    },
+    "cookies": {
+      "title": "سياسة ملفات تعريف الارتباط | منصة مهندس",
+      "description": "تعرف على كيفية استخدام منصة مهندس لملفات تعريف الارتباط والتقنيات المشابهة لتحسين تجربتك."
+    },
+    "refundPolicy": {
+      "title": "سياسة الاسترداد | منصة مهندس",
+      "description": "راجع سياسة الاسترداد والإلغاء لخطط اشتراكات منصة مهندس ورسوم العمولات."
     },
     "default": {
       "title": "Muhandes HUB | منصة مهندس",
@@ -3652,6 +4610,7 @@
       "productLimitReached": "وصلت للحد الأقصى من المنتجات ({limit}). يرجى ترقية اشتراكك",
       "invalidVariants": "صيغة المتغيرات غير صالحة",
       "invalidData": "بيانات غير صالحة",
+      "imageRequired": "يرجى رفع صورة واحدة على الأقل للمنتج",
       "createError": "حدث خطأ أثناء إنشاء المنتج",
       "productNotFound": "المنتج غير موجود",
       "noPermissionEdit": "ليس لديك صلاحية تعديل هذا المنتج",
@@ -3660,7 +4619,9 @@
       "noPermission": "ليس لديك صلاحية",
       "cannotSubmitStatus": "لا يمكن تقديم المنتج للمراجعة في هذه الحالة",
       "submitError": "حدث خطأ أثناء تقديم المنتج",
-      "cannotDeleteNonDraft": "لا يمكن حذف منتج إلا إذا كان في حالة مسودة",
+      "cannotDeleteNonDraft": "لا يمكن حذف هذا المنتج",
+      "cannotDeleteActiveDeals": "لا يمكن حذف منتج له صفقات نشطة",
+      "bulkPriceVariantSkip": "لا يمكن تعديل سعر المنتجات ذات المتغيرات بشكل جماعي",
       "deleteError": "حدث خطأ أثناء حذف المنتج",
       "suppliersOnlyImport": "فقط الموردون يمكنهم استيراد المنتجات",
       "bulkImportTierRequired": "الاستيراد الجماعي متاح فقط لباقة بزنس أو إنتربرايز",
@@ -3797,7 +4758,8 @@
       "mustUpgradeToHigherTier": "يجب اختيار درجة أعلى من الحالية",
       "mustDowngradeToLowerTier": "يجب اختيار درجة أقل من الحالية",
       "noActiveSubscription": "لا يوجد اشتراك فعال",
-      "cannotRenewStarter": "لا يمكن تجديد الباقة المجانية"
+      "cannotRenewStarter": "لا يمكن تجديد الباقة المجانية",
+      "freeRoleNoSubscription": "نوع حسابك يتمتع بوصول مجاني غير محدود ولا يحتاج إلى اشتراك"
     },
     "crm": {
       "mustLogin": "يجب تسجيل الدخول",
@@ -3805,6 +4767,9 @@
       "accessDenied": "غير مصرح لك بالوصول",
       "clientLimitReached": "وصلت الحد الأقصى للعملاء ({limit})",
       "addClientError": "فشل إضافة العميل",
+      "clientAlreadyExists": "هذا المستخدم مضاف مسبقاً كعميل",
+      "userNotFound": "المستخدم غير موجود",
+      "searchError": "فشل البحث عن المستخدمين",
       "updateClientError": "فشل تحديث العميل",
       "invalidStage": "مرحلة غير صالحة",
       "moveClientError": "فشل نقل العميل",
@@ -3905,7 +4870,8 @@
       "markAllReadError": "فشل تحديث الإشعارات",
       "invalidData": "بيانات غير صالحة",
       "cannotMuteCritical": "لا يمكن إيقاف الإشعارات الحرجة",
-      "updatePreferencesError": "فشل تحديث التفضيلات"
+      "updatePreferencesError": "فشل تحديث التفضيلات",
+      "fetchError": "فشل تحميل الإشعارات"
     },
     "profile": {
       "mustLogin": "يجب تسجيل الدخول",
@@ -3982,7 +4948,9 @@
       "allFieldsRequired": "جميع الحقول المطلوبة يجب ملؤها",
       "updateCouponError": "فشل في تحديث الكوبون",
       "createCouponError": "فشل في إنشاء الكوبون",
-      "toggleCouponError": "فشل في تحديث حالة الكوبون"
+      "toggleCouponError": "فشل في تحديث حالة الكوبون",
+      "typesenseNotConfigured": "خدمة البحث غير مضبوطة",
+      "reindexError": "فشل في إعادة فهرسة البيانات"
     },
     "adminUsers": {
       "mustLogin": "يجب تسجيل الدخول",
@@ -4010,7 +4978,8 @@
       "invalidDays": "يجب أن تكون الأيام بين 1 و 365",
       "noSubscription": "لا يوجد اشتراك لهذا المستخدم",
       "alreadyActive": "هذا الاشتراك مفعّل بالفعل",
-      "approveError": "فشل في الموافقة على دفعة الاشتراك"
+      "approveError": "فشل في الموافقة على دفعة الاشتراك",
+      "rejectError": "فشل في رفض دفعة الاشتراك"
     },
     "adminContact": {
       "mustLogin": "يجب تسجيل الدخول",
@@ -4034,7 +5003,13 @@
       "general": "عام",
       "files": "ملفات",
       "noFiles": "لم يتم رفع ملفات",
-      "download": "تحميل"
+      "download": "تحميل",
+      "preview": "معاينة",
+      "close": "إغلاق",
+      "loading": "جاري تحميل الملف...",
+      "noPreview": "المعاينة غير متاحة لهذا النوع من الملفات",
+      "openFile": "فتح الملف",
+      "downloadFile": "تحميل الملف"
     }
   }
 }

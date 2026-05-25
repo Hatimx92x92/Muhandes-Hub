@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabase/server';
 import { ContractSchema, SignContractSchema, ClauseSchema } from '@/schemas/contract';
 import { apiLimiter, checkRateLimit } from '@/lib/rate-limit';
 import type { ActionResult } from '@/types';
-import { TIER_LIMITS } from '@/types';
+import { getEffectiveLimits } from '@/types';
 import { autoTranslateBilingualFields } from '@/lib/translate';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,29 +90,35 @@ export async function createContract(
     .single();
 
   const tier = (sub?.tier as string) || 'starter';
-  const limits = TIER_LIMITS[tier as keyof typeof TIER_LIMITS];
 
-  if (limits) {
-    // Check template access (Starter: only construction_agreement and supply_agreement)
-    if (tier === 'starter' && parsed.data.template_type === 'custom') {
-      return { data: null, error: t('customTemplatesProOnly') };
-    }
+  // Get role for free-role tier limits
+  const { data: contractorProfile } = await db(supabase)
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
 
-    // Check contracts per month
-    if (limits.contractsPerMonth !== Infinity) {
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
+  const limits = getEffectiveLimits(contractorProfile?.role || 'contractor', tier);
 
-      const { count } = await db(supabase)
-        .from('contracts')
-        .select('id', { count: 'exact', head: true })
-        .eq('creator_id', user.id)
-        .gte('created_at', startOfMonth.toISOString());
+  // Check template access (Starter tier contractors/suppliers: only basic templates)
+  if (!limits.hasCustomContracts && parsed.data.template_type === 'custom') {
+    return { data: null, error: t('customTemplatesProOnly') };
+  }
 
-      if ((count ?? 0) >= limits.contractsPerMonth) {
-        return { data: null, error: t('monthlyLimitReached', { limit: limits.contractsPerMonth }) };
-      }
+  // Check contracts per month
+  if (limits.contractsPerMonth !== Infinity) {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const { count } = await db(supabase)
+      .from('contracts')
+      .select('id', { count: 'exact' })
+      .eq('creator_id', user.id)
+      .gte('created_at', startOfMonth.toISOString());
+
+    if ((count ?? 0) >= limits.contractsPerMonth) {
+      return { data: null, error: t('monthlyLimitReached', { limit: limits.contractsPerMonth }) };
     }
   }
 
@@ -197,7 +203,7 @@ export async function signContract(
   // Check if both parties signed
   const { count } = await db(supabase)
     .from('contract_signatures')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'exact' })
     .eq('contract_id', parsed.data.contract_id);
 
   const fullyExecuted = (count ?? 0) >= 2;

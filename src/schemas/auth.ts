@@ -87,7 +87,8 @@ export const RegisterStep3Schema = z
     profile_type: z.enum(['company', 'personal']),
     company_name_ar: z.string().optional(),
     company_name_en: z.string().optional(),
-    cr_number: z.string().optional(),
+    cr_number: z.string().regex(/^[0-9]{10}$/, 'CR number must be exactly 10 digits').optional(),
+    vat_number: z.string().regex(/^[0-9]{15}$/, 'VAT number must be exactly 15 digits').optional(),
     website: z.union([z.url(), z.literal('')]).optional(),
     city: z.string().min(1, 'City is required'),
   })
@@ -107,10 +108,10 @@ export const RegisterStep3Schema = z
           path: ['company_name_en'],
         });
       }
-      if (!data.cr_number || data.cr_number.length < 5) {
+      if (!data.cr_number || !/^[0-9]{10}$/.test(data.cr_number)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Commercial registration number is required',
+          message: 'CR number must be exactly 10 digits',
           path: ['cr_number'],
         });
       }
@@ -157,7 +158,8 @@ export const RegisterSchema = z.object({
   profile_type: z.enum(['company', 'personal']),
   company_name_ar: z.string().optional(),
   company_name_en: z.string().optional(),
-  cr_number: z.string().optional(),
+  cr_number: z.string().regex(/^[0-9]{10}$/, 'CR number must be exactly 10 digits').optional(),
+  vat_number: z.string().regex(/^[0-9]{15}$/, 'VAT number must be exactly 15 digits').optional(),
   website: z.union([z.url(), z.literal('')]).optional(),
   city: z.string().min(1),
   // Step 4 (optional — PO/Buyer skip)
@@ -178,7 +180,8 @@ export const GoogleRegisterSchema = z.object({
   profile_type: z.enum(['company', 'personal']),
   company_name_ar: z.string().optional(),
   company_name_en: z.string().optional(),
-  cr_number: z.string().optional(),
+  cr_number: z.string().regex(/^[0-9]{10}$/, 'CR number must be exactly 10 digits').optional(),
+  vat_number: z.string().regex(/^[0-9]{15}$/, 'VAT number must be exactly 15 digits').optional(),
   website: z.union([z.url(), z.literal('')]).optional(),
   city: z.string().min(1),
   tier: z.enum(['starter', 'pro', 'business', 'enterprise']).optional(),

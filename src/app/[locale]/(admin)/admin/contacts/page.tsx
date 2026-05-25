@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Inbox } from 'lucide-react';
@@ -12,9 +12,10 @@ function db(supabase: any): any {
   return supabase;
 }
 
-export default async function AdminContactsPage() {
+export default async function AdminContactsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('admin.contactsPage');
-  const locale = await getLocale();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -65,6 +66,10 @@ export default async function AdminContactsPage() {
                     {t('receivedAt')} {new Date(sub.created_at as string).toLocaleDateString(locale)}
                   </time>
                 </div>
+
+                {!!sub.subject && (
+                  <p className="text-sm font-medium text-foreground">{t('subject')} {sub.subject as string}</p>
+                )}
 
                 <p className="text-sm">{sub.message as string}</p>
 

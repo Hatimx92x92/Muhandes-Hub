@@ -6,10 +6,11 @@ import { redirect } from 'next/navigation';
 import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
 import { ContractSignForm } from '@/components/features/contracts/contract-sign-form';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 import QRCode from 'qrcode';
@@ -28,12 +29,12 @@ const STATUS_VARIANTS: Record<string, string> = {
 export default async function ContractDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ locale: string; id: string }>;
 }) {
-  const { id } = await params;
+  const { locale, id } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('dashboard.contracts');
   const tCommon = await getTranslations('dashboard.common');
-  const locale = await getLocale();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -76,35 +77,35 @@ export default async function ContractDetailPage({
   return (
     <div className="space-y-6">
       <BreadcrumbOverride segment={id} label={t(`template.${contract.template_type as string}`)} />
-      {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold">
-              {t(`template.${contract.template_type as string}`)}
-            </h1>
-            <Badge variant={statusVariant as 'draft' | 'pending' | 'success' | 'secondary' | 'destructive'}>
-              {t(`status.${(contract.status as string) || 'draft'}`)}
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
+      <PageHeader
+        title={t(`template.${contract.template_type as string}`)}
+        badge={
+          <Badge variant={statusVariant as 'draft' | 'pending' | 'success' | 'secondary' | 'destructive'}>
+            {t(`status.${(contract.status as string) || 'draft'}`)}
+          </Badge>
+        }
+        description={
+          <>
             {tCommon('createdAt')}: {new Date(contract.created_at as string).toLocaleDateString(locale)}
-          </p>
-          {!!contract.deal_id && (
-            <Link
-              href={`/dashboard/deals/${contract.deal_id}`}
-              className="text-sm text-primary hover:underline"
-            >
-              {t('viewLinkedDeal')} ←
-            </Link>
-          )}
-        </div>
-        <a href={`/api/pdf/contract/${contract.id}`} target="_blank" rel="noopener noreferrer">
-          <Button variant="outline" size="sm">
-            {t('downloadPdf')}
-          </Button>
-        </a>
-      </div>
+            {!!contract.deal_id && (
+              <>
+                {' · '}
+                <Link href={`/dashboard/deals/${contract.deal_id}`} className="text-primary hover:underline">
+                  {t('viewLinkedDeal')}
+                </Link>
+              </>
+            )}
+          </>
+        }
+        backHref="/dashboard/contracts"
+        action={
+          <a href={`/api/pdf/contract/${contract.id}`} target="_blank" rel="noopener noreferrer">
+            <Button variant="outline" size="sm">
+              {t('downloadPdf')}
+            </Button>
+          </a>
+        }
+      />
 
       {/* Parties */}
       <div className="grid gap-4 sm:grid-cols-2">

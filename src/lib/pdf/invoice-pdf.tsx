@@ -226,6 +226,33 @@ export function InvoicePdf({ data }: { data: InvoicePdfData }) {
           </View>
         )}
 
+        {/* Bank Details for bank transfer / unpaid invoices */}
+        {(data.status !== 'paid') && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Bank Details / تفاصيل الحساب البنكي</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+              <Text style={{ fontSize: 8, color: colors.textMuted }}>Bank / البنك</Text>
+              <Text style={{ fontSize: 9, color: colors.text }}>
+                {process.env.NEXT_PUBLIC_BANK_NAME || 'مصرف الراجحي - Al Rajhi Bank'}
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+              <Text style={{ fontSize: 8, color: colors.textMuted }}>Account / الحساب</Text>
+              <Text style={{ fontSize: 9, color: colors.text }}>
+                {process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME || 'شركة رمال الماس العالمية'}
+                {' / '}
+                {process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME_EN || 'Rimal Al Mas International Company'}
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 8, color: colors.textMuted }}>IBAN / آيبان</Text>
+              <Text style={{ fontSize: 9, color: colors.text, fontWeight: 700 }}>
+                {process.env.NEXT_PUBLIC_BANK_IBAN || 'SA3580000126608016356809'}
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* ZATCA Notice */}
         <View style={{
           marginTop: 20,

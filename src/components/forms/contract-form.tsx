@@ -107,7 +107,7 @@ export function ContractForm({ dealId, profile, dealInfo, clauses }: ContractFor
 
   // Auto-fill Party A from profile
   const partyA = {
-    name: (profile.full_name_ar as string) || '',
+    name: (profile.full_name_ar as string) || (profile.full_name_en as string) || (profile.display_name as string) || '',
     company_name_ar: (profile.company_name_ar as string) || '',
     company_name_en: (profile.company_name_en as string) || '',
     cr_number: (profile.cr_number as string) || '',

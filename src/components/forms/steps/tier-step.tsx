@@ -183,6 +183,23 @@ export function TierStep({ data, updateData, onNext, onBack }: TierStepProps) {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <button
               type="button"
+              onClick={() => { updateData({ payment_method: 'bank_transfer' }); setError(''); }}
+              className={cn(
+                'relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all hover:border-primary/50',
+                data.payment_method === 'bank_transfer'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border bg-background',
+              )}
+            >
+              <span className="absolute -top-2 start-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
+                {t('paymentBankRecommended')}
+              </span>
+              <Building className={cn('h-6 w-6', data.payment_method === 'bank_transfer' ? 'text-primary' : 'text-muted-foreground')} />
+              <span className="font-medium text-sm">{t('paymentBank')}</span>
+              <span className="text-xs text-muted-foreground">{t('paymentBankDesc')}</span>
+            </button>
+            <button
+              type="button"
               onClick={() => { updateData({ payment_method: 'card' }); setError(''); }}
               className={cn(
                 'flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all hover:border-primary/50',
@@ -194,20 +211,6 @@ export function TierStep({ data, updateData, onNext, onBack }: TierStepProps) {
               <CreditCard className={cn('h-6 w-6', data.payment_method === 'card' ? 'text-primary' : 'text-muted-foreground')} />
               <span className="font-medium text-sm">{t('paymentCard')}</span>
               <span className="text-xs text-muted-foreground">{t('paymentCardDesc')}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => { updateData({ payment_method: 'bank_transfer' }); setError(''); }}
-              className={cn(
-                'flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all hover:border-primary/50',
-                data.payment_method === 'bank_transfer'
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border bg-background',
-              )}
-            >
-              <Building className={cn('h-6 w-6', data.payment_method === 'bank_transfer' ? 'text-primary' : 'text-muted-foreground')} />
-              <span className="font-medium text-sm">{t('paymentBank')}</span>
-              <span className="text-xs text-muted-foreground">{t('paymentBankDesc')}</span>
             </button>
           </div>
           {error && (

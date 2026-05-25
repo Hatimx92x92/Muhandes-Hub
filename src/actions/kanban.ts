@@ -136,7 +136,7 @@ export async function createKanbanCard(
   // Auto sort_order
   const { count } = await db(supabase)
     .from('kanban_cards')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'exact' })
     .eq('column_id', parsed.data.column_id);
 
   const { data: card, error } = await db(supabase)
@@ -236,7 +236,7 @@ export async function initializeKanban(
   // Check if columns already exist
   const { count } = await db(supabase)
     .from('kanban_columns')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'exact' })
     .eq('deal_id', dealId);
 
   if ((count ?? 0) > 0) return { data: { initialized: true }, error: null };

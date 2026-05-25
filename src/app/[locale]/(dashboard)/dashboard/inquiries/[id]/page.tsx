@@ -8,9 +8,10 @@ import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
 import { Package, User, Calendar, Hash, FileText, Send } from 'lucide-react';
 import { formatDate, getLocaleField } from '@/lib/utils';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -26,15 +27,15 @@ const statusBadge: Record<string, BadgeProps['variant']> = {
 export default async function InquiryDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ locale: string; id: string }>;
 }) {
-  const { id } = await params;
+  const { locale, id } = await params;
+  setRequestLocale(locale);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
   const t = await getTranslations('dashboard.inquiryDetail');
-  const locale = await getLocale();
 
   // Fetch inquiry
   const { data: inquiry } = await db(supabase)
@@ -52,8 +53,10 @@ export default async function InquiryDetailPage({
     .eq('id', inquiry.product_id)
     .single();
 
-  // Only product supplier can view
-  if (!product || product.supplier_id !== user.id) redirect('/dashboard/inquiries');
+  // Both the product supplier and the inquiry sender can view
+  const isSupplier = !!product && product.supplier_id === user.id;
+  const isSender = inquiry.sender_id === user.id;
+  if (!isSupplier && !isSender) redirect('/dashboard/inquiries');
 
   // Fetch sender profile
   const { data: senderProfile } = await db(supabase)
@@ -61,8 +64,6 @@ export default async function InquiryDetailPage({
     .select('full_name_ar, full_name_en, company_name_ar, company_name_en')
     .eq('id', inquiry.sender_id)
     .single();
-
-  const isSupplier = product.supplier_id === user.id;
 
   // Fetch linked quotations for this inquiry
   const { data: quotations } = await db(supabase)
@@ -79,22 +80,23 @@ export default async function InquiryDetailPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">{t('title')}</h1>
-          <p className="text-muted-foreground">{t('description')}</p>
-        </div>
-        {isSupplier && inquiry.status !== 'closed' && (
-          <Link
-            href={`/dashboard/quotations/new?inquiry_id=${inquiry.id}&recipient_id=${inquiry.sender_id}&mode=inquiry_response`}
-          >
-            <Button>
-              <Send className="h-4 w-4 me-2" />
-              {t('respondWithQuotation')}
-            </Button>
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title={t('title')}
+        description={t('description')}
+        backHref="/dashboard/inquiries"
+        action={
+          isSupplier && inquiry.status !== 'closed' && (
+            <Link
+              href={`/dashboard/quotations/new?inquiry_id=${inquiry.id}&recipient_id=${inquiry.sender_id}&mode=inquiry_response`}
+            >
+              <Button>
+                <Send className="h-4 w-4 me-2" />
+                {t('respondWithQuotation')}
+              </Button>
+            </Link>
+          )
+        }
+      />
 
       {/* Inquiry Details */}
       <Card className="p-6 space-y-4">

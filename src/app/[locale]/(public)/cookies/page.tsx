@@ -2,10 +2,44 @@
 // Cookie Policy — سياسة ملفات تعريف الارتباط
 // =============================================================================
 
-import { getTranslations } from 'next-intl/server';
+import type { Metadata } from 'next';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 
-export default async function CookiesPage() {
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
+
+// ---------------------------------------------------------------------------
+// SEO — generateMetadata
+// ---------------------------------------------------------------------------
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('metadata.cookies');
+
+  return {
+    title: t('title'),
+    description: t('description'),
+    openGraph: {
+      title: t('title'),
+      description: t('description'),
+      type: 'website',
+      locale: locale === 'ar' ? 'ar_SA' : 'en_US',
+      alternateLocale: locale === 'ar' ? 'en_US' : 'ar_SA',
+      siteName: 'Muhandes HUB',
+    },
+    alternates: {
+      canonical: `${BASE_URL}/${locale}/cookies`,
+      languages: {
+        ar: `${BASE_URL}/ar/cookies`,
+        en: `${BASE_URL}/en/cookies`,
+      },
+    },
+  };
+}
+
+export default async function CookiesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('legal.cookies');
 
   return (

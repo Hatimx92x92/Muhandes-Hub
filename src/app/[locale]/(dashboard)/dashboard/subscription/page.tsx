@@ -5,11 +5,14 @@
 import { redirect } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { requireRole } from '@/lib/auth-guards';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import {
   SUBSCRIPTION_PRICING,
   TIER_LIMITS,
   VAT_RATE,
+  isFreeRole,
+  getEffectiveLimits,
   type SubscriptionTier,
 } from '@/types';
 import { cn } from '@/lib/utils';
@@ -22,11 +25,11 @@ import { InvoiceHistory } from '@/components/features/invoice-history';
 // Tier details
 // ---------------------------------------------------------------------------
 
-const tierColors: Record<string, string> = {
-  starter: 'text-muted-foreground',
-  pro: 'text-tier-pro',
-  business: 'text-tier-business',
-  enterprise: 'text-tier-enterprise',
+const tierColors: Record<string, { text: string; bg: string }> = {
+  starter: { text: 'text-tier-starter-foreground', bg: 'bg-tier-starter' },
+  pro: { text: 'text-tier-pro-foreground', bg: 'bg-tier-pro' },
+  business: { text: 'text-tier-business-foreground', bg: 'bg-tier-business' },
+  enterprise: { text: 'text-tier-enterprise-foreground', bg: 'bg-tier-enterprise' },
 };
 
 const TIER_NAMES_EN: Record<string, string> = {
@@ -79,11 +82,12 @@ function LimitRow({ label, value, unlimitedText }: { label: string; value: strin
 // Page
 // ---------------------------------------------------------------------------
 
-export default async function SubscriptionPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+export default async function SubscriptionPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
 
-  if (!user) redirect('/login');
+  // Role guard — only contractor & supplier have subscriptions
+  const { user, supabase } = await requireRole(['contractor', 'supplier']);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
@@ -102,11 +106,16 @@ export default async function SubscriptionPage() {
     .single();
 
   const userRole = (profile?.role as string) || 'contractor';
+  const isFreeTier = isFreeRole(userRole);
+
+  // Free roles (buyer / project_owner) have no subscription — redirect to dashboard
+  if (isFreeTier) redirect('/dashboard');
+
   const currentTier = (sub?.tier as SubscriptionTier) || 'starter';
   const startsAt = (sub?.starts_at as string) || null;
   const expiresAt = (sub?.expires_at as string) || null;
   const color = tierColors[currentTier] || tierColors.starter;
-  const limits = TIER_LIMITS[currentTier] || TIER_LIMITS.starter;
+  const limits = getEffectiveLimits(userRole, currentTier);
 
   const isExpired = expiresAt ? new Date(expiresAt) < new Date() : false;
   const remainingDays = expiresAt && !isExpired
@@ -115,7 +124,7 @@ export default async function SubscriptionPage() {
 
   const t = await getTranslations('dashboard.subscription');
   const tCommon = await getTranslations('dashboard.common');
-  const locale = await getLocale();
+  const tRole = await getTranslations('dashboard.roleLabels');
   const sarText = tCommon('sar');
   const freeText = tCommon('free');
   const unlimitedText = tCommon('unlimited');
@@ -123,6 +132,9 @@ export default async function SubscriptionPage() {
   // Fetch invoice history
   const { data: invoices } = await getInvoices();
 
+  // =========================================================================
+  // PAID-ROLE VIEW — Contractor & Supplier
+  // =========================================================================
   return (
     <div>
       <h1 className="text-2xl font-bold text-foreground mb-2">{t('title')}</h1>
@@ -135,8 +147,8 @@ export default async function SubscriptionPage() {
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Crown className={`h-5 w-5 ${color}`} />
-              <h2 className="text-xl font-bold text-foreground">{t(`tiers.${currentTier}` as never)}</h2>
+              <Crown className={cn('h-5 w-5', color.text)} />
+              <h2 className={cn('text-xl font-bold', color.text)}>{t(`tiers.${currentTier}` as never)}</h2>
               {locale === 'ar' && (
                 <span className="text-sm text-muted-foreground">({TIER_NAMES_EN[currentTier]})</span>
               )}
@@ -252,9 +264,11 @@ export default async function SubscriptionPage() {
                   : 'border-border bg-card'
               }`}
             >
-              <h3 className={`font-semibold ${tMeta}`}>{t(`tiers.${tierId}` as never)}</h3>
+              <h3 className={cn('inline-block rounded-md px-2.5 py-1 text-sm font-semibold', tMeta.text, tMeta.bg)}>
+                {t(`tiers.${tierId}` as never)}
+              </h3>
               {locale === 'ar' && (
-                <p className="text-xs text-muted-foreground">{TIER_NAMES_EN[tierId]}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{TIER_NAMES_EN[tierId]}</p>
               )}
               <p className="mt-2 text-xl font-bold text-foreground">
                 {price === 0 ? freeText : formatPrice(price * (1 + VAT_RATE), locale, sarText, freeText)}

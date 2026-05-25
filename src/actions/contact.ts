@@ -5,6 +5,9 @@ import { getTranslations } from 'next-intl/server';
 import { ContactFormSchema } from '@/schemas/contact';
 import { contactLimiter, checkRateLimit } from '@/lib/rate-limit';
 import type { ActionResult } from '@/types';
+import { sendEmail } from '@/lib/resend/client';
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'muqawilhub@gmail.com';
 
 // =============================================================================
 // submitContactForm — public contact form submission
@@ -44,13 +47,20 @@ export async function submitContactForm(
     return { data: null, error: t('validationError'), fieldErrors };
   }
 
-  // 2. Store in DB (when Supabase is connected) or send email via Resend
-  // For now, we log and return success. In production:
-  // - Insert into `contact_messages` table
-  // - Send notification email via Resend to admin
-  // - Rate limit by IP
+  // 2. Send email notification to admin
+  const { name, email, subject, company, role_interest, message } = result.data;
+  const companyLine = company ? `\nCompany / الشركة: ${company}` : '';
+  const roleLine = role_interest ? `\nRole Interest / الدور المطلوب: ${role_interest}` : '';
 
-  // TODO: Integrate with Supabase + Resend when accounts are configured
+  void sendEmail({
+    to: ADMIN_EMAIL,
+    subject: { ar: `رسالة جديدة: ${subject}`, en: `New Contact: ${subject}` },
+    heading: { ar: 'رسالة جديدة من نموذج التواصل', en: 'New Contact Form Message' },
+    body: {
+      ar: `الاسم: ${name}\nالبريد: ${email}${companyLine}${roleLine}\n\n${message}`,
+      en: `Name: ${name}\nEmail: ${email}${companyLine}${roleLine}\n\n${message}`,
+    },
+  });
 
   return { data: { sent: true }, error: null };
 }

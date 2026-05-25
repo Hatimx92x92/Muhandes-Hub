@@ -1,60 +1,70 @@
+import { Link } from '@/i18n/navigation';
 import { FadeIn } from '@/components/ui/motion';
 import { Marquee } from '@/components/ui/marquee';
-import { getTranslations } from 'next-intl/server';
-import {
-  Building2,
-  Factory,
-  Warehouse,
-  HardHat,
-  Landmark,
-  Hammer,
-  Layers,
-  Container,
-  Ruler,
-  Cone,
-} from 'lucide-react';
-import { type LucideIcon } from 'lucide-react';
+import { getTranslations, getLocale } from 'next-intl/server';
+import { createClient } from '@/lib/supabase/server';
+import { getLocaleField, getEntitySlug } from '@/lib/utils';
+import { UserAvatar } from '@/components/features/user-avatar';
 
 /* ==========================================================================
-   PartnersSection — Infinite marquee slider of partner logos (Magic UI)
+   PartnersSection — Real verified partners from the database
    ========================================================================== */
 
-interface PartnerEntry {
-  key: string;
-  icon: LucideIcon;
+type PartnerData = {
+  id: string;
+  company_name_ar: string | null;
+  company_name_en: string | null;
+  full_name: string;
+  logo_url: string | null;
+  avatar_url: string | null;
+  slug_ar: string | null;
+  slug_en: string | null;
 }
 
-const partnerEntries: PartnerEntry[] = [
-  { key: 'advancedConstruction', icon: Building2 },
-  { key: 'saudiIronFactory', icon: Factory },
-  { key: 'gulfWarehouses', icon: Warehouse },
-  { key: 'contractorsGroup', icon: HardHat },
-  { key: 'nationalArchitecture', icon: Landmark },
-  { key: 'constructionTools', icon: Hammer },
-  { key: 'layersMaterials', icon: Layers },
-  { key: 'riyadhContainers', icon: Container },
-  { key: 'precisionMeasurement', icon: Ruler },
-  { key: 'safetyExcellence', icon: Cone },
-];
+function PartnerCard({
+  partner,
+  locale,
+}: {
+  partner: PartnerData;
+  locale: string;
+}) {
+  const name = getLocaleField(partner, 'company_name', locale) || partner.full_name;
+  const slug = getEntitySlug(partner, locale);
+  const imageUrl = partner.logo_url || partner.avatar_url;
 
-function LogoCard({ name, icon: Icon }: { name: string; icon: LucideIcon }) {
   return (
-    <div className="flex shrink-0 items-center gap-3 rounded-xl border border-border/50 bg-card px-6 py-4 grayscale opacity-60 transition-all duration-300 hover:grayscale-0 hover:opacity-100 hover:border-primary/30 hover:shadow-md">
-      <Icon className="h-7 w-7 text-primary" />
+    <Link
+      href={`/partners/${slug || partner.id}`}
+      className="flex shrink-0 items-center gap-3 rounded-xl border border-border/50 bg-card px-6 py-4 transition-all duration-300 hover:border-primary/30 hover:shadow-md"
+    >
+      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
+        <UserAvatar
+          src={imageUrl}
+          name={name}
+          size="md"
+        />
+      </div>
       <span className="whitespace-nowrap text-sm font-semibold text-foreground">
         {name}
       </span>
-    </div>
+    </Link>
   );
 }
 
 export async function PartnersSection() {
   const t = await getTranslations('home.partners');
+  const locale = await getLocale();
+  const supabase = await createClient();
 
-  const partners = partnerEntries.map(e => ({
-    name: t(`logos.${e.key}`),
-    icon: e.icon,
-  }));
+  const { data: partners } = await supabase
+    .from('profiles')
+    .select('id, company_name_ar, company_name_en, full_name, logo_url, avatar_url, slug_ar, slug_en')
+    .in('role', ['contractor', 'supplier'])
+    .eq('verification_status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (!partners || partners.length === 0) return null;
 
   // Split into two rows
   const firstHalf = partners.slice(0, Math.ceil(partners.length / 2));
@@ -78,19 +88,21 @@ export async function PartnersSection() {
       <FadeIn direction="up" delay={0.2}>
         <Marquee pauseOnHover className="[--duration:35s]">
           {firstHalf.map((p) => (
-            <LogoCard key={p.name} name={p.name} icon={p.icon} />
+            <PartnerCard key={p.id} partner={p} locale={locale} />
           ))}
         </Marquee>
       </FadeIn>
 
       {/* Row 2 — scrolls in reverse direction */}
-      <FadeIn direction="up" delay={0.3}>
-        <Marquee reverse pauseOnHover className="mt-4 [--duration:40s]">
-          {secondHalf.map((p) => (
-            <LogoCard key={p.name} name={p.name} icon={p.icon} />
-          ))}
-        </Marquee>
-      </FadeIn>
+      {secondHalf.length > 0 && (
+        <FadeIn direction="up" delay={0.3}>
+          <Marquee reverse pauseOnHover className="mt-4 [--duration:40s]">
+            {secondHalf.map((p) => (
+              <PartnerCard key={p.id} partner={p} locale={locale} />
+            ))}
+          </Marquee>
+        </FadeIn>
+      )}
     </section>
   );
 }

@@ -13,7 +13,15 @@ import { Card } from '@/components/ui/card';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { UserAvatar } from '@/components/features/user-avatar';
 import {
   Tooltip,
   TooltipTrigger,
@@ -45,7 +53,7 @@ import {
   ListChecks, ShieldCheck, FolderOpen, Activity, MessageSquare,
   Wrench, Truck, Key, CheckCircle, Clock, ArrowRight,
   XCircle, AlertTriangle, BookOpen, LayoutGrid,
-  Send, ChevronRight, Info, SkipForward,
+  Send, ChevronRight, ChevronLeft, Info, SkipForward, MoreHorizontal,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -76,6 +84,7 @@ interface DealDocument {
 export interface DealWorkspaceProps {
   deal: Record<string, unknown>;
   userRole: 'buyer' | 'seller';
+  userPlatformRole: string;
   userId: string;
   milestones: Array<Record<string, unknown>>;
   suggestions: Array<Record<string, unknown>>;
@@ -206,6 +215,7 @@ const ROLE_I18N_KEYS: Record<string, string> = {
 export function DealWorkspace({
   deal,
   userRole,
+  userPlatformRole,
   userId,
   milestones,
   suggestions,
@@ -234,6 +244,12 @@ export function DealWorkspace({
   const isProject = deal.deal_type === 'deal_project';
   const stepIndex = getStepIndex(status);
 
+  // Role-aware progress labels
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sellerProgressLabel = isProject ? t('contractorWorkProgress' as any) : t('supplierSupplyProgress' as any);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const buyerProgressLabel = isProject ? t('projectOwnerPaymentProgress' as any) : t('buyerPaymentProgress' as any);
+
   const pendingProofs = proofs.filter(p => p.status === 'pending');
   const confirmedProofs = proofs.filter(p => p.status === 'confirmed');
   const rejectedProofs = proofs.filter(p => p.status === 'rejected');
@@ -245,218 +261,92 @@ export function DealWorkspace({
   const skipIsFromCounterparty = pendingSkipRequests.some(s => s.requester_id !== userId);
 
   const [activeTab, setActiveTab] = useState(initialTab);
-  const [showCancelForm, setShowCancelForm] = useState(false);
-  const [showSkipToFinishForm, setShowSkipToFinishForm] = useState(false);
+  const [openDialog, setOpenDialog] = useState<'cancel' | 'skip' | null>(null);
   const hasPendingSkip = pendingSkipRequests.length > 0;
 
   return (
     <DealRealtimeWrapper dealId={dealId}>
       <div className="space-y-6">
         {/* ============================================================== */}
-        {/* HEADER                                                         */}
+        {/* HEADER — back link + title + status + ⋯ menu                  */}
         {/* ============================================================== */}
         <FadeIn direction="down" duration={0.4}>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-bold text-foreground truncate">
-                  {getLocaleField(deal, 'title', locale) || (deal.title_slug as string) || `${t('dealPrefix')} #${dealId.slice(0, 8)}`}
-                </h1>
-                <Badge variant={STATUS_BADGE[status] ?? 'secondary'}>
+          <div>
+            <Link
+              href="/dashboard/deals"
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-3 transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
+              {t('backToDeals')}
+            </Link>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-2xl font-bold text-foreground truncate">
+                    {getLocaleField((deal.project as Record<string, unknown>) ?? {}, 'title', locale) || sourceInfo?.label || getLocaleField(deal, 'title', locale) || `${t('dealPrefix')} #${dealId.slice(0, 8)}`}
+                  </h1>
+                  <Badge variant={STATUS_BADGE[status] ?? 'secondary'}>
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                    {t((STATUS_KEYS[status] ?? status) as any)}
+                  </Badge>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground flex flex-wrap items-center gap-1.5">
                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  {t((STATUS_KEYS[status] ?? status) as any)}
-                </Badge>
+                  {t((DEAL_TYPE_KEYS[deal.deal_type as string] ?? deal.deal_type) as any)}
+                  {' · '}
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {t((TRIGGER_KEYS[deal.trigger_source as string] ?? deal.trigger_source) as any)}
+                  {' · '}
+                  <Badge variant="outline" className="text-[10px]">
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                    {t(getDealRoleKey(deal.deal_type as string, userRole) as any)}
+                  </Badge>
+                </p>
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                {t((DEAL_TYPE_KEYS[deal.deal_type as string] ?? deal.deal_type) as any)} · {t((TRIGGER_KEYS[deal.trigger_source as string] ?? deal.trigger_source) as any)}
-              </p>
-            </div>
 
-            {/* Action buttons */}
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="text-xs">
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                {t(getDealRoleKey(deal.deal_type as string, userRole) as any)}
-              </Badge>
-              {isProject && (
-                <>
-                  <Link href={`/dashboard/deals/${displaySlug}/daily-log`}>
-                    <Button variant="outline" size="sm">
-                      <BookOpen className="h-4 w-4 me-1.5" />
-                      {t('viewDailyLog')}
-                    </Button>
-                  </Link>
-                  <Link href={`/dashboard/deals/${displaySlug}/kanban`}>
-                    <Button variant="outline" size="sm">
-                      <LayoutGrid className="h-4 w-4 me-1.5" />
-                      {t('viewKanban')}
-                    </Button>
-                  </Link>
-                </>
-              )}
-              {isActive && !pendingCancelRequest && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => setShowCancelForm(v => !v)}
-                >
-                  <XCircle className="h-4 w-4 me-1.5" />
-                  {t('requestCancellation')}
-                </Button>
-              )}
-              {isActive && !hasPendingSkip && (
-                <Button
-                  size="sm"
-                  className="bg-success text-success-foreground hover:bg-success/90"
-                  onClick={() => setShowSkipToFinishForm(v => !v)}
-                >
-                  <SkipForward className="h-4 w-4 me-1.5" />
-                  {t('skipToFinish')}
-                </Button>
-              )}
+              {/* ⋯ more actions */}
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="shrink-0" />}>
+                  <MoreHorizontal className="h-5 w-5" />
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  <span className="sr-only">{t('moreActions' as any)}</span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" sideOffset={6} className="w-52">
+                  {isProject && (
+                    <>
+                      <DropdownMenuItem render={<Link href={`/dashboard/deals/${displaySlug}/daily-log`} />}>
+                        <BookOpen className="h-4 w-4" />
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                        {userRole === 'seller' ? t('writeDailyLog' as any) : t('viewDailyLog')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem render={<Link href={`/dashboard/deals/${displaySlug}/kanban`} />}>
+                        <LayoutGrid className="h-4 w-4" />
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                        {userRole === 'seller' ? t('editKanban' as any) : t('viewKanban')}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  {isActive && !hasPendingSkip && (
+                    <DropdownMenuItem onClick={() => setOpenDialog('skip')}>
+                      <SkipForward className="h-4 w-4" />
+                      {t('skipToFinish')}
+                    </DropdownMenuItem>
+                  )}
+                  {isActive && !pendingCancelRequest && (
+                    <DropdownMenuItem variant="destructive" onClick={() => setOpenDialog('cancel')}>
+                      <XCircle className="h-4 w-4" />
+                      {t('requestCancellation')}
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </FadeIn>
 
-        {/* Inline Cancel Form */}
-        {showCancelForm && isActive && !pendingCancelRequest && (
-          <FadeIn direction="down" duration={0.3}>
-            <Card className="p-5 border-destructive/50">
-              <h3 className="text-sm font-semibold text-destructive mb-3">{t('requestCancellation')}</h3>
-              <CancelRequestForm dealId={dealId} />
-            </Card>
-          </FadeIn>
-        )}
-
-        {/* Inline Skip-to-Finish Form */}
-        {showSkipToFinishForm && isActive && !hasPendingSkip && (
-          <FadeIn direction="down" duration={0.3}>
-            <Card className="p-5 border-success/50">
-              <h3 className="text-sm font-semibold text-success mb-3">{t('skipToFinish')}</h3>
-              <SkipToFinishForm dealId={dealId} onCancel={() => setShowSkipToFinishForm(false)} />
-            </Card>
-          </FadeIn>
-        )}
-
-        {/* Pending Skip-to-Finish Requests */}
-        {hasPendingSkip && (
-          <FadeIn direction="down" duration={0.3}>
-            <Card className="border-success/50 p-5 space-y-4">
-              <h3 className="text-sm font-semibold text-success flex items-center gap-2">
-                <SkipForward className="h-4 w-4" />
-                {t('pendingSkipRequests')} ({pendingSkipRequests.length})
-              </h3>
-              <div className="space-y-3">
-                {pendingSkipRequests.map(sr => (
-                  <div key={sr.id as string} className="rounded-lg border border-border p-4 space-y-2">
-                    <p className="text-sm text-muted-foreground">{sr.reason as string}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t('onDate')} {formatDate(sr.created_at as string, locale)}
-                    </p>
-                    {sr.requester_id !== userId ? (
-                      <div className="flex items-center gap-2">
-                        <ApproveSkipButton requestId={sr.id as string} />
-                        <RejectSkipButton requestId={sr.id as string} />
-                      </div>
-                    ) : (
-                      <Badge variant="pending" className="text-[10px]">
-                        {t('awaitingApproval')}
-                      </Badge>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </FadeIn>
-        )}
-
         {/* ============================================================== */}
-        {/* STATUS STEPPER                                                 */}
-        {/* ============================================================== */}
-        {status !== 'cancelled' && status !== 'disputed' && (
-          <FadeIn direction="up" delay={0.1} duration={0.4}>
-            <div className="flex items-center gap-0 overflow-x-auto">
-              {STEPS.map((step, idx) => {
-                const isCurrent = step === status;
-                const isCompleted = stepIndex > idx;
-                return (
-                  <div key={step} className="flex items-center">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={cn(
-                          'flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-colors',
-                          isCompleted
-                            ? 'bg-success text-success-foreground'
-                            : isCurrent
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted text-muted-foreground',
-                        )}
-                      >
-                        {isCompleted ? (
-                          <CheckCircle className="h-4 w-4" />
-                        ) : (
-                          idx + 1
-                        )}
-                      </div>
-                      <span
-                        className={cn(
-                          'text-xs font-medium whitespace-nowrap',
-                          isCurrent ? 'text-foreground' : 'text-muted-foreground',
-                        )}
-                      >
-                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                        {t((STEP_KEYS[step] ?? step) as any)}
-                      </span>
-                    </div>
-                    {idx < STEPS.length - 1 && (
-                      <div
-                        className={cn(
-                          'mx-3 h-0.5 w-8 sm:w-12 rounded-full',
-                          isCompleted ? 'bg-success' : 'bg-muted',
-                        )}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </FadeIn>
-        )}
-
-        {/* Cancelled / Disputed banner */}
-        {(status === 'cancelled' || status === 'disputed') && (
-          <Card className={cn(
-            'p-4 flex items-center gap-3',
-            status === 'cancelled' ? 'border-destructive/50 bg-destructive/5' : 'border-warning/50 bg-warning/5',
-          )}>
-            {status === 'cancelled' ? (
-              <XCircle className="h-5 w-5 text-destructive shrink-0" />
-            ) : (
-              <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
-            )}
-            <div>
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              <p className="text-sm font-semibold">{t((STATUS_KEYS[status] ?? status) as any)}</p>
-              <p className="text-xs text-muted-foreground">
-                {status === 'cancelled' ? t('stepCancelled') : t('statusDisputed')}
-              </p>
-            </div>
-          </Card>
-        )}
-
-        {/* ============================================================== */}
-        {/* DUAL PROGRESS                                                  */}
-        {/* ============================================================== */}
-        <FadeIn direction="up" delay={0.15} duration={0.4}>
-          <DualProgress
-            sellerProgress={Number(deal.seller_progress) || 0}
-            buyerProgress={Number(deal.buyer_progress) || 0}
-          />
-        </FadeIn>
-
-        {/* ============================================================== */}
-        {/* DEAL GUIDE — Next Action Panel                                 */}
+        {/* DEAL GUIDE — first visible action panel                        */}
         {/* ============================================================== */}
         <DealGuide
           dealStatus={status}
@@ -474,6 +364,88 @@ export function DealWorkspace({
           canReview={canReview}
           onSwitchTab={setActiveTab}
         />
+
+        {/* ============================================================== */}
+        {/* COMPACT PROGRESS / TERMINAL BANNER                            */}
+        {/* ============================================================== */}
+        {(status === 'cancelled' || status === 'disputed') ? (
+          <Card className={cn(
+            'p-4 flex items-center gap-3',
+            status === 'cancelled' ? 'border-destructive/50 bg-destructive/5' : 'border-warning/50 bg-warning/5',
+          )}>
+            {status === 'cancelled' ? (
+              <XCircle className="h-5 w-5 text-destructive shrink-0" />
+            ) : (
+              <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
+            )}
+            <div>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <p className="text-sm font-semibold">{t((STATUS_KEYS[status] ?? status) as any)}</p>
+              <p className="text-xs text-muted-foreground">
+                {status === 'cancelled' ? t('stepCancelled') : t('statusDisputed')}
+              </p>
+            </div>
+          </Card>
+        ) : (
+          <FadeIn direction="up" delay={0.1} duration={0.4}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6 rounded-xl border border-border bg-card p-4">
+              {/* Mini stepper pill */}
+              <div className="flex items-center gap-1 shrink-0">
+                {STEPS.map((step, idx) => {
+                  const isCurrent = step === status;
+                  const isCompleted = stepIndex > idx;
+                  return (
+                    <div key={step} className="flex items-center">
+                      <div
+                        className={cn(
+                          'flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold transition-colors',
+                          isCompleted
+                            ? 'bg-success text-success-foreground'
+                            : isCurrent
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted text-muted-foreground',
+                        )}
+                      >
+                        {isCompleted ? '✓' : idx + 1}
+                      </div>
+                      {idx < STEPS.length - 1 && (
+                        <div className={cn('mx-1 h-0.5 w-4 rounded-full', isCompleted ? 'bg-success' : 'bg-muted')} />
+                      )}
+                    </div>
+                  );
+                })}
+                <span className="ms-2 text-xs font-medium text-muted-foreground whitespace-nowrap">
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {t((STEP_KEYS[status] ?? status) as any)}
+                </span>
+              </div>
+
+              {/* Compact dual progress bars */}
+              <div className="flex flex-1 flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground w-24 truncate shrink-0">{sellerProgressLabel}</span>
+                  <div className="flex-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all"
+                      style={{ width: `${Number(deal.seller_progress) || 0}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-medium w-8 text-end shrink-0">{Number(deal.seller_progress) || 0}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground w-24 truncate shrink-0">{buyerProgressLabel}</span>
+                  <div className="flex-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-success transition-all"
+                      style={{ width: `${Number(deal.buyer_progress) || 0}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-medium w-8 text-end shrink-0">{Number(deal.buyer_progress) || 0}%</span>
+                </div>
+              </div>
+            </div>
+          </FadeIn>
+        )}
 
         {/* ============================================================== */}
         {/* TABS                                                           */}
@@ -529,6 +501,101 @@ export function DealWorkspace({
               <div className="grid gap-6 lg:grid-cols-3">
                 {/* Main area */}
                 <div className="space-y-6 lg:col-span-2">
+                  {/* Parties Card — most important context, shown first */}
+                  <Card className="p-5 space-y-4">
+                    <h3 className="text-sm font-semibold flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      {t('dealParties')}
+                    </h3>
+                    <div className="space-y-3">
+                      {/* Buyer */}
+                      <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+                        <UserAvatar
+                          src={buyerProfile?.avatar_url}
+                          name={buyerProfile?.full_name}
+                          size="md"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-muted-foreground">
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            {t(getDealRoleKey(deal.deal_type as string, 'buyer') as any)}
+                          </p>
+                          {buyerProfile ? (() => {
+                            const slug = getEntitySlug(buyerProfile, locale);
+                            return slug ? (
+                              <Link
+                                href={`/partners/${slug}`}
+                                className="text-sm font-medium truncate text-primary hover:underline block"
+                              >
+                                {buyerProfile.full_name}
+                              </Link>
+                            ) : (
+                              <p className="text-sm font-medium truncate">{buyerProfile.full_name}</p>
+                            );
+                          })() : (
+                            <p className="text-sm font-medium truncate">
+                              {(deal.buyer_id as string).slice(0, 8)}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          {userRole === 'buyer' && (
+                            <Badge variant="default" className="shrink-0 text-[10px]">{t('you')}</Badge>
+                          )}
+                          {buyerProfile?.role && ROLE_I18N_KEYS[buyerProfile.role as string] && (
+                            <Badge variant="outline" className="shrink-0 text-[10px]">
+                              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                              {t(ROLE_I18N_KEYS[buyerProfile.role as string] as any)}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Seller */}
+                      <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+                        <UserAvatar
+                          src={sellerProfile?.avatar_url}
+                          name={sellerProfile?.full_name}
+                          size="md"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-muted-foreground">
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            {t(getDealRoleKey(deal.deal_type as string, 'seller') as any)}
+                          </p>
+                          {sellerProfile ? (() => {
+                            const slug = getEntitySlug(sellerProfile, locale);
+                            return slug ? (
+                              <Link
+                                href={`/partners/${slug}`}
+                                className="text-sm font-medium truncate text-primary hover:underline block"
+                              >
+                                {sellerProfile.full_name}
+                              </Link>
+                            ) : (
+                              <p className="text-sm font-medium truncate">{sellerProfile.full_name}</p>
+                            );
+                          })() : (
+                            <p className="text-sm font-medium truncate">
+                              {(deal.seller_id as string).slice(0, 8)}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          {userRole === 'seller' && (
+                            <Badge variant="default" className="shrink-0 text-[10px]">{t('you')}</Badge>
+                          )}
+                          {sellerProfile?.role && ROLE_I18N_KEYS[sellerProfile.role as string] && (
+                            <Badge variant="outline" className="shrink-0 text-[10px]">
+                              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                              {t(ROLE_I18N_KEYS[sellerProfile.role as string] as any)}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+
                   {/* Value + Commission Card */}
                   <Card className="p-5">
                     <div className="flex items-center gap-3 mb-4">
@@ -540,11 +607,11 @@ export function DealWorkspace({
                         <p className="text-2xl font-bold text-foreground">{formatSAR(Number(deal.value) || 0)}</p>
                       </div>
                     </div>
-                    {Number(deal.commission_rate) > 0 && (
+                    {userRole === 'seller' && Number(deal.commission_rate) > 0 && (
                       <div className="space-y-2 rounded-lg bg-muted/50 p-4 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">{t('commissionRate')}</span>
-                          <span className="font-medium">{(Number(deal.commission_rate) * 100).toFixed(0)}%</span>
+                          <span className="font-medium">{Number(deal.commission_rate).toFixed(2)}%</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">{t('commissionAmount')}</span>
@@ -562,33 +629,35 @@ export function DealWorkspace({
                     )}
                   </Card>
 
-                  {/* Summary Card */}
-                  <Card className="p-5">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10">
-                        <TrendingUp className="h-5 w-5 text-success" />
+                  {/* Pending Skip Requests — moved from above-fold */}
+                  {hasPendingSkip && (
+                    <Card className="border-success/50 p-5 space-y-4">
+                      <h3 className="text-sm font-semibold text-success flex items-center gap-2">
+                        <SkipForward className="h-4 w-4" />
+                        {t('pendingSkipRequests')} ({pendingSkipRequests.length})
+                      </h3>
+                      <div className="space-y-3">
+                        {pendingSkipRequests.map(sr => (
+                          <div key={sr.id as string} className="rounded-lg border border-border p-4 space-y-2">
+                            <p className="text-sm text-muted-foreground">{sr.reason as string}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {t('onDate')} {formatDate(sr.created_at as string, locale)}
+                            </p>
+                            {sr.requester_id !== userId ? (
+                              <div className="flex items-center gap-2">
+                                <ApproveSkipButton requestId={sr.id as string} />
+                                <RejectSkipButton requestId={sr.id as string} />
+                              </div>
+                            ) : (
+                              <Badge variant="pending" className="text-[10px]">
+                                {t('awaitingApproval')}
+                              </Badge>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                      <h3 className="font-semibold">{t('summary')}</h3>
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="flex items-center justify-between rounded-lg border border-border p-3">
-                        <span className="text-sm text-muted-foreground">{t('milestones')}</span>
-                        <span className="text-lg font-bold">{milestones.length}</span>
-                      </div>
-                      <div className="flex items-center justify-between rounded-lg border border-border p-3">
-                        <span className="text-sm text-muted-foreground">{t('proofs')}</span>
-                        <span className="text-lg font-bold">{proofs.length}</span>
-                      </div>
-                      <div className="flex items-center justify-between rounded-lg border border-border p-3">
-                        <span className="text-sm text-muted-foreground">{t('sellerProgress')}</span>
-                        <span className="text-lg font-bold text-primary">{Number(deal.seller_progress) || 0}%</span>
-                      </div>
-                      <div className="flex items-center justify-between rounded-lg border border-border p-3">
-                        <span className="text-sm text-muted-foreground">{t('buyerProgress')}</span>
-                        <span className="text-lg font-bold text-success">{Number(deal.buyer_progress) || 0}%</span>
-                      </div>
-                    </div>
-                  </Card>
+                    </Card>
+                  )}
 
                   {/* Pending Cancel Request */}
                   {pendingCancelRequest && (
@@ -607,7 +676,6 @@ export function DealWorkspace({
                       <p className="text-sm text-muted-foreground mb-4">
                         {pendingCancelRequest.reason as string}
                       </p>
-                      {/* Show actions if the current user is NOT the one who requested */}
                       {pendingCancelRequest.requester_id !== userId && (
                         <div className="flex items-center gap-2">
                           <ApproveCancellationButton requestId={pendingCancelRequest.id as string} />
@@ -666,112 +734,7 @@ export function DealWorkspace({
                     </dl>
                   </Card>
 
-                  {/* Parties Card */}
-                  <Card className="p-5 space-y-4">
-                    <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      {t('dealParties')}
-                    </h3>
-                    <div className="space-y-3">
-                      {/* Buyer */}
-                      <div className="flex items-center gap-3 rounded-lg border border-border p-3">
-                        <Avatar size="default">
-                          {buyerProfile?.avatar_url ? (
-                            <AvatarImage src={buyerProfile.avatar_url} />
-                          ) : null}
-                          <AvatarFallback>
-                            {buyerProfile
-                              ? buyerProfile.full_name.charAt(0)
-                              : 'B'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs text-muted-foreground">
-                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                            {t(getDealRoleKey(deal.deal_type as string, 'buyer') as any)}
-                          </p>
-                          {buyerProfile ? (() => {
-                            const slug = getEntitySlug(buyerProfile, locale);
-                            return slug ? (
-                              <Link
-                                href={`/partners/${slug}`}
-                                className="text-sm font-medium truncate text-primary hover:underline block"
-                              >
-                                {buyerProfile.full_name}
-                              </Link>
-                            ) : (
-                              <p className="text-sm font-medium truncate">{buyerProfile.full_name}</p>
-                            );
-                          })() : (
-                            <p className="text-sm font-medium truncate">
-                              {(deal.buyer_id as string).slice(0, 8)}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          {userRole === 'buyer' && (
-                            <Badge variant="default" className="shrink-0 text-[10px]">{t('you')}</Badge>
-                          )}
-                          {buyerProfile?.role && ROLE_I18N_KEYS[buyerProfile.role as string] && (
-                            <Badge variant="outline" className="shrink-0 text-[10px]">
-                              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                              {t(ROLE_I18N_KEYS[buyerProfile.role as string] as any)}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Seller */}
-                      <div className="flex items-center gap-3 rounded-lg border border-border p-3">
-                        <Avatar size="default">
-                          {sellerProfile?.avatar_url ? (
-                            <AvatarImage src={sellerProfile.avatar_url} />
-                          ) : null}
-                          <AvatarFallback>
-                            {sellerProfile
-                              ? sellerProfile.full_name.charAt(0)
-                              : 'S'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs text-muted-foreground">
-                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                            {t(getDealRoleKey(deal.deal_type as string, 'seller') as any)}
-                          </p>
-                          {sellerProfile ? (() => {
-                            const slug = getEntitySlug(sellerProfile, locale);
-                            return slug ? (
-                              <Link
-                                href={`/partners/${slug}`}
-                                className="text-sm font-medium truncate text-primary hover:underline block"
-                              >
-                                {sellerProfile.full_name}
-                              </Link>
-                            ) : (
-                              <p className="text-sm font-medium truncate">{sellerProfile.full_name}</p>
-                            );
-                          })() : (
-                            <p className="text-sm font-medium truncate">
-                              {(deal.seller_id as string).slice(0, 8)}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          {userRole === 'seller' && (
-                            <Badge variant="default" className="shrink-0 text-[10px]">{t('you')}</Badge>
-                          )}
-                          {sellerProfile?.role && ROLE_I18N_KEYS[sellerProfile.role as string] && (
-                            <Badge variant="outline" className="shrink-0 text-[10px]">
-                              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                              {t(ROLE_I18N_KEYS[sellerProfile.role as string] as any)}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-
-                  {/* Quick Links */}
+                  {/* Project Tools — project deals only */}
                   {isProject && (
                     <Card className="p-5 space-y-3">
                       <h3 className="text-sm font-semibold flex items-center gap-2">
@@ -785,7 +748,8 @@ export function DealWorkspace({
                         >
                           <span className="flex items-center gap-2">
                             <BookOpen className="h-4 w-4 text-muted-foreground" />
-                            {t('viewDailyLog')}
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            {userRole === 'seller' ? t('writeDailyLog' as any) : t('viewDailyLog')}
                           </span>
                           <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
                         </Link>
@@ -795,7 +759,8 @@ export function DealWorkspace({
                         >
                           <span className="flex items-center gap-2">
                             <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-                            {t('viewKanban')}
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            {userRole === 'seller' ? t('editKanban' as any) : t('viewKanban')}
                           </span>
                           <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
                         </Link>
@@ -821,12 +786,21 @@ export function DealWorkspace({
                   )}
 
                   {/* Linked Contracts */}
-                  {contracts.length > 0 && (
-                    <Card className="p-5 space-y-3">
+                  <Card className="p-5 space-y-3">
+                    <div className="flex items-center justify-between">
                       <h3 className="text-sm font-semibold flex items-center gap-2">
                         <FileText className="h-4 w-4 text-muted-foreground" />
                         {t('linkedContracts')}
                       </h3>
+                      {userRole === 'seller' && (
+                        <Link href={`/dashboard/contracts/new?deal_id=${deal.id as string}`}>
+                          <Button variant="outline" size="sm">
+                            {t('generateContract')}
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
+                    {contracts.length > 0 ? (
                       <div className="space-y-2">
                         {contracts.map((c) => (
                           <Link
@@ -847,8 +821,10 @@ export function DealWorkspace({
                           </Link>
                         ))}
                       </div>
-                    </Card>
-                  )}
+                    ) : (
+                      <p className="text-xs text-muted-foreground">{t('noContracts')}</p>
+                    )}
+                  </Card>
                 </div>
               </div>
             </FadeIn>
@@ -995,7 +971,7 @@ export function DealWorkspace({
                                 {progress > 0 && (
                                   <div className="mt-2">
                                     <div className="flex items-center justify-between text-xs mb-1">
-                                      <span className="text-muted-foreground">{t('sellerProgress')}</span>
+                                      <span className="text-muted-foreground">{sellerProgressLabel}</span>
                                       <span className="font-medium">{progress}%</span>
                                     </div>
                                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
@@ -1116,6 +1092,8 @@ export function DealWorkspace({
                 buyerName={buyerProfile?.full_name || 'Buyer'}
                 sellerName={sellerProfile?.full_name || 'Seller'}
                 buyerId={String(deal.buyer_id || '')}
+                dealStatus={deal.status as import('@/types/enums').DealStatus}
+                dealValue={Number(deal.value) || 0}
               />
             </FadeIn>
           </TabsContent>
@@ -1138,6 +1116,29 @@ export function DealWorkspace({
             </FadeIn>
           </TabsContent>
         </Tabs>
+
+        {/* ============================================================== */}
+        {/* MODALS — Cancel Request & Skip to Finish                      */}
+        {/* ============================================================== */}
+        <Dialog open={openDialog === 'cancel'} onOpenChange={(open) => !open && setOpenDialog(null)}>
+          <DialogContent>
+            <DialogHeader>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <DialogTitle>{t('cancelDealModal' as any)}</DialogTitle>
+            </DialogHeader>
+            <CancelRequestForm dealId={dealId} />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={openDialog === 'skip'} onOpenChange={(open) => !open && setOpenDialog(null)}>
+          <DialogContent>
+            <DialogHeader>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <DialogTitle>{t('skipToFinishModal' as any)}</DialogTitle>
+            </DialogHeader>
+            <SkipToFinishForm dealId={dealId} onCancel={() => setOpenDialog(null)} />
+          </DialogContent>
+        </Dialog>
       </div>
     </DealRealtimeWrapper>
   );
@@ -1179,10 +1180,12 @@ function ProofCard({
     <div className={cn('flex items-end gap-2', isSubmitter ? 'justify-end' : 'justify-start')}>
       {/* Avatar — counterparty side (start) */}
       {!isSubmitter && (
-        <Avatar size="sm" className="shrink-0 mb-1">
-          {submitterProfile?.avatar_url ? <AvatarImage src={submitterProfile.avatar_url} /> : null}
-          <AvatarFallback>{submitterName.charAt(0)}</AvatarFallback>
-        </Avatar>
+        <UserAvatar
+          src={submitterProfile?.avatar_url}
+          name={submitterName}
+          size="sm"
+          className="shrink-0 mb-1"
+        />
       )}
 
       {/* Chat bubble */}
@@ -1246,10 +1249,12 @@ function ProofCard({
 
       {/* Avatar — submitter side (end) */}
       {isSubmitter && (
-        <Avatar size="sm" className="shrink-0 mb-1">
-          {submitterProfile?.avatar_url ? <AvatarImage src={submitterProfile.avatar_url} /> : null}
-          <AvatarFallback>{submitterName.charAt(0)}</AvatarFallback>
-        </Avatar>
+        <UserAvatar
+          src={submitterProfile?.avatar_url}
+          name={submitterName}
+          size="sm"
+          className="shrink-0 mb-1"
+        />
       )}
     </div>
   );

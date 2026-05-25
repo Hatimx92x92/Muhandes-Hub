@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { ProjectForm } from '@/components/forms/project-form';
+import { PageHeader } from '@/components/ui/page-header';
 import { getTranslations } from 'next-intl/server';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,12 +34,7 @@ export default async function NewProjectPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t('subtitle')}
-        </p>
-      </div>
+      <PageHeader title={t('title')} description={t('subtitle')} backHref="/dashboard/projects" />
 
       <Card className="p-6">
         <ProjectForm mode="create" />

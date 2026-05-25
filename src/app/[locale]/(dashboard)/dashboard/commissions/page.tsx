@@ -1,245 +1,172 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { Link } from '@/i18n/navigation';
-import { getTranslations, getLocale } from 'next-intl/server';
-import { Banknote, Clock, AlertTriangle, CheckCircle, Download } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/features/empty-state';
-import { CommissionActions } from '@/components/features/commissions/commission-actions';
+import { requireRole } from '@/lib/auth-guards';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { Banknote, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { StatCard } from '@/components/features/stat-card';
+import { PageHeader } from '@/components/ui/page-header';
+import { formatSAR, getLocaleField } from '@/lib/utils';
+import { CommissionsTableClient, type CommissionRow } from './commissions-table-client';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
   return supabase;
 }
 
-const STATUS_VARIANTS: Record<string, 'pending' | 'success' | 'warning' | 'destructive' | 'info'> = {
-  pending: 'pending',
-  approved: 'info',
-  paid: 'success',
-  disputed: 'warning',
-  overdue: 'destructive',
-};
-
-function formatSAR(amount: number, locale: string): string {
-  return new Intl.NumberFormat(locale, { style: 'currency', currency: 'SAR' }).format(amount);
-}
-
 export default async function CommissionsPage({
+  params: routeParams,
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ status?: string; page?: string; search?: string; sort?: string }>;
 }) {
-  const { status: filterStatus } = await searchParams;
+  const { locale } = await routeParams;
+  setRequestLocale(locale);
+  const params = await searchParams;
 
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  // Role guard — only contractor & supplier have commissions
+  const { user, supabase } = await requireRole(['contractor', 'supplier']);
 
   const t = await getTranslations('dashboard.commissions');
   const tCommon = await getTranslations('dashboard.common');
-  const locale = await getLocale();
 
-  // Fetch commissions for seller
+  const page = Math.max(1, Number(params.page) || 1);
+  const perPage = 20;
+  const sort = params.sort || '';
+
+  const sortMap: Record<string, { column: string; ascending: boolean }> = {
+    newest: { column: 'created_at', ascending: false },
+    oldest: { column: 'created_at', ascending: true },
+    amountHigh: { column: 'total', ascending: false },
+    amountLow: { column: 'total', ascending: true },
+  };
+  const sortConfig = sortMap[sort] ?? sortMap.newest;
+
+  // Paginated query
   let query = db(supabase)
     .from('commissions')
-    .select('*, deal:deal_id(title_ar, title_en)')
+    .select('*, deal:deal_id(title_ar, title_en)', { count: 'exact' })
     .eq('seller_id', user.id)
-    .order('created_at', { ascending: false });
+    .order(sortConfig.column, { ascending: sortConfig.ascending });
 
-  if (filterStatus && ['pending', 'approved', 'paid', 'disputed', 'overdue'].includes(filterStatus)) {
-    query = query.eq('status', filterStatus);
+  if (params.status && ['pending', 'approved', 'paid', 'disputed', 'overdue'].includes(params.status)) {
+    query = query.eq('status', params.status);
   }
 
-  const { data: commissions } = await query;
-  const items = (commissions ?? []) as Record<string, unknown>[];
+  const { data: commissions, count } = await query.range((page - 1) * perPage, page * perPage - 1);
+  const rawItems = (commissions ?? []) as Record<string, unknown>[];
+  const totalCount = count ?? 0;
+  const totalPages = Math.ceil(totalCount / perPage);
 
-  // Calculate stats
-  const totalPending = items
+  // Stats (unfiltered)
+  const { data: allCommissions } = await db(supabase)
+    .from('commissions')
+    .select('status, total')
+    .eq('seller_id', user.id);
+
+  const allItems = (allCommissions ?? []) as { status: string; total: number }[];
+  const totalPending = allItems
     .filter((c) => c.status === 'pending' || c.status === 'overdue')
     .reduce((sum, c) => sum + Number(c.total ?? 0), 0);
-  const totalPaid = items
+  const totalPaid = allItems
     .filter((c) => c.status === 'paid')
     .reduce((sum, c) => sum + Number(c.total ?? 0), 0);
-  const overdueCount = items.filter((c) => c.status === 'overdue').length;
-  const paidCount = items.filter((c) => c.status === 'paid').length;
+  const overdueCount = allItems.filter((c) => c.status === 'overdue').length;
+  const paidCount = allItems.filter((c) => c.status === 'paid').length;
 
-  const statuses = ['pending', 'approved', 'paid', 'disputed', 'overdue'];
+  // Map rows
+  const items: CommissionRow[] = rawItems.map((commission) => {
+    const deal = commission.deal as Record<string, unknown> | null;
+    const dealTitle = deal ? getLocaleField(deal, 'title', locale) : t('dealNumber', { id: (commission.deal_id as string).slice(0, 8) });
+    const dueDate = commission.due_date ? new Date(commission.due_date as string) : null;
+    const isOverdue = !!dueDate && dueDate < new Date() && commission.status === 'pending';
+    const canPay = commission.status === 'pending' || commission.status === 'overdue';
+    const canDispute =
+      (commission.status === 'pending' || commission.status === 'overdue') &&
+      new Date(commission.created_at as string).getTime() + 7 * 24 * 60 * 60 * 1000 > Date.now();
+
+    return {
+      id: commission.id as string,
+      deal_id: commission.deal_id as string,
+      deal_title: dealTitle,
+      rate: commission.rate as number,
+      deal_value: Number(commission.deal_value),
+      amount: Number(commission.amount),
+      vat_amount: Number(commission.vat_amount),
+      total: Number(commission.total),
+      status: commission.status as string,
+      due_date: commission.due_date as string | null,
+      paid_at: commission.paid_at as string | null,
+      dispute_reason: commission.dispute_reason as string | null,
+      created_at: commission.created_at as string,
+      is_overdue: isOverdue,
+      can_pay: canPay,
+      can_dispute: canDispute,
+    };
+  });
+
+  const filterGroups = [
+    {
+      key: 'status',
+      label: tCommon('status'),
+      options: [
+        { value: 'pending', label: t('status.pending') },
+        { value: 'approved', label: t('status.approved') },
+        { value: 'paid', label: t('status.paid') },
+        { value: 'disputed', label: t('status.disputed') },
+        { value: 'overdue', label: t('status.overdue') },
+      ],
+    },
+  ];
+
+  const sortOptions = [
+    { value: 'newest', label: tCommon('createdAt') + ' ↓' },
+    { value: 'oldest', label: tCommon('createdAt') + ' ↑' },
+    { value: 'amountHigh', label: t('amountHighSort') },
+    { value: 'amountLow', label: t('amountLowSort') },
+  ];
+
+  const translations: Record<string, string> = {
+    colDeal: t('colDeal'),
+    colStatus: tCommon('status'),
+    colDealValue: t('dealValue'),
+    colTotal: t('total'),
+    colDueDate: t('colDueDate'),
+    commissionRate: t('colRate'),
+    downloadInvoice: t('downloadInvoice'),
+    noCommissions: t('noCommissions'),
+    noCommissionsDesc: t('noCommissionsDesc'),
+    viewDeals: t('viewDeals'),
+    status_pending: t('status.pending'),
+    status_approved: t('status.approved'),
+    status_paid: t('status.paid'),
+    status_disputed: t('status.disputed'),
+    status_overdue: t('status.overdue'),
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-foreground sm:text-3xl">{t('title')}</h1>
-        <p className="text-muted-foreground">{t('subtitle')}</p>
-      </div>
+      <PageHeader title={t('title')} description={t('subtitle')} />
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4">
-        <Card>
-          <CardContent className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-status-pending/10">
-              <Clock className="h-5 w-5 text-status-pending" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">{t('pendingAmount')}</p>
-              <p className="text-xl font-extrabold">{formatSAR(totalPending, locale)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-status-completed/10">
-              <CheckCircle className="h-5 w-5 text-status-completed" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">{t('paidAmount')}</p>
-              <p className="text-xl font-extrabold">{formatSAR(totalPaid, locale)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
-              <Banknote className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">{t('paidCount')}</p>
-              <p className="text-xl font-extrabold">{paidCount}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-destructive/10">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">{t('overdueCount')}</p>
-              <p className="text-xl font-extrabold">{overdueCount}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard icon={<Clock className="h-5 w-5 text-status-pending" />} label={t('pendingAmount')} value={formatSAR(totalPending, locale)} color="yellow" />
+        <StatCard icon={<CheckCircle className="h-5 w-5 text-status-completed" />} label={t('paidAmount')} value={formatSAR(totalPaid, locale)} color="green" />
+        <StatCard icon={<Banknote className="h-5 w-5 text-primary" />} label={t('paidCount')} value={paidCount} />
+        <StatCard icon={<AlertTriangle className="h-5 w-5 text-destructive" />} label={t('overdueCount')} value={overdueCount} color="red" />
       </div>
 
-      {/* Filter badges */}
-      <div className="flex flex-wrap gap-2">
-        <Link href="/dashboard/commissions">
-          <Badge variant={!filterStatus ? 'default' : 'outline'}>{tCommon('all')} ({items.length})</Badge>
-        </Link>
-        {statuses.map((s) => {
-          const count = items.filter((c) => c.status === s).length;
-          return (
-            <Link key={s} href={`/dashboard/commissions?status=${s}`}>
-              <Badge variant={filterStatus === s ? 'default' : 'outline'}>
-                {t(`status.${s}` as never)} ({count})
-              </Badge>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Commission list */}
-      {items.length === 0 ? (
-        <EmptyState
-          icon={<Banknote className="h-12 w-12" />}
-          title={t('noCommissions')}
-          description={t('noCommissionsDesc')}
-          actionLabel={t('viewDeals')}
-          actionHref="/dashboard/deals"
-        />
-      ) : (
-        <div className="space-y-4">
-          {items.map((commission) => {
-            const dealTitle = (commission.deal as Record<string, unknown> | null)?.title_ar as string | undefined;
-            const dueDate = commission.due_date ? new Date(commission.due_date as string) : null;
-            const isOverdue = dueDate && dueDate < new Date() && commission.status === 'pending';
-            const canPay = commission.status === 'pending' || commission.status === 'overdue';
-            const canDispute =
-              (commission.status === 'pending' || commission.status === 'overdue') &&
-              new Date(commission.created_at as string).getTime() + 7 * 24 * 60 * 60 * 1000 > Date.now();
-
-            return (
-              <Card key={commission.id as string} className={isOverdue ? 'border-destructive/50' : ''}>
-                <CardContent className="space-y-3">
-                  {/* Header row */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">
-                        {dealTitle ?? t('dealNumber', { id: (commission.deal_id as string).slice(0, 8) })}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {t('commissionRate', { rate: commission.rate as number })}
-                      </p>
-                    </div>
-                    <Badge variant={STATUS_VARIANTS[commission.status as string] ?? 'secondary'}>
-                      {t(`status.${commission.status}` as never) ?? commission.status}
-                    </Badge>
-                  </div>
-
-                  {/* Amounts */}
-                  <div className="grid grid-cols-2 gap-4 rounded-lg bg-muted/50 p-3 text-sm sm:grid-cols-4">
-                    <div>
-                      <p className="text-muted-foreground">{t('dealValue')}</p>
-                      <p className="font-semibold">{formatSAR(Number(commission.deal_value), locale)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">{t('commission')}</p>
-                      <p className="font-semibold">{formatSAR(Number(commission.amount), locale)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">{t('vat15')}</p>
-                      <p className="font-semibold">{formatSAR(Number(commission.vat_amount), locale)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">{t('total')}</p>
-                      <p className="font-bold text-primary">{formatSAR(Number(commission.total), locale)}</p>
-                    </div>
-                  </div>
-
-                  {/* Due date + dispute info */}
-                  <div className="flex flex-wrap items-center gap-4 text-sm">
-                    {dueDate && (
-                      <span className={isOverdue ? 'text-destructive font-medium' : 'text-muted-foreground'}>
-                        {isOverdue ? `${t('paymentOverdue')} ` : `${t('dueDate')} `}
-                        {dueDate.toLocaleDateString(locale)}
-                      </span>
-                    )}
-                    {!!commission.dispute_reason && (
-                      <span className="text-warning">
-                        {t('disputeReason')} {commission.dispute_reason as string}
-                      </span>
-                    )}
-                    {!!commission.paid_at && (
-                      <span className="text-success">
-                        {t('paidOn')} {new Date(commission.paid_at as string).toLocaleDateString(locale)}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2">
-                    <a href={`/api/pdf/invoice/${commission.id}`} target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline" size="sm">
-                        <Download className="h-4 w-4" />
-                        {t('downloadInvoice')}
-                      </Button>
-                    </a>
-                    {(canPay || canDispute) && (
-                      <CommissionActions
-                        commissionId={commission.id as string}
-                        canPay={canPay}
-                        canDispute={canDispute}
-                      />
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+      {/* Commission Table */}
+      <CommissionsTableClient
+        items={items}
+        locale={locale}
+        totalCount={totalCount}
+        currentPage={page}
+        totalPages={totalPages}
+        filterGroups={filterGroups}
+        sortOptions={sortOptions}
+        translations={translations}
+      />
     </div>
   );
 }

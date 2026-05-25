@@ -8,10 +8,10 @@ import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { BidForm } from '@/components/forms/bid-form';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getLocaleField, isUUID, getEntitySlug } from '@/lib/utils';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
-import { TIER_LIMITS } from '@/types';
+import { getEffectiveLimits } from '@/types';
 import { TierGate } from '@/components/features/tier-gate';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,13 +22,15 @@ function db(supabase: any): any {
 export default async function SubmitBidPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug: rawSlug } = await params;
+  setRequestLocale(locale);
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
-  const locale = await getLocale();
 
   // Verify user is a contractor
   const { data: profile } = await db(supabase)
@@ -61,15 +63,15 @@ export default async function SubmitBidPage({
     .eq('is_active', true)
     .single();
 
-  const tier = (sub?.tier || 'starter') as keyof typeof TIER_LIMITS;
-  const maxBids = TIER_LIMITS[tier]?.bidsPerMonth ?? 10;
+  const tier = (sub?.tier || 'starter') as string;
+  const maxBids = getEffectiveLimits('contractor', tier).bidsPerMonth ?? 10;
 
   if (maxBids !== Infinity) {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const { count: bidCount } = await db(supabase)
       .from('bids')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .eq('contractor_id', user.id)
       .gte('submitted_at', startOfMonth);
 

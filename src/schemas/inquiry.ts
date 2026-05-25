@@ -7,9 +7,7 @@ import { z } from 'zod/v4';
 // -- Product Inquiry ----------------------------------------------------------
 export const ProductInquirySchema = z.object({
   product_id: z.string().uuid(),
-  message_ar: z.string().min(10, 'Message must be at least 10 characters'),
-  message_en: z.string().optional(),
-  quantity: z.coerce.number().min(1, 'Quantity is required').optional(),
+  quantity: z.coerce.number().min(1, 'Quantity is required'),
 });
 
 export type ProductInquiryInput = z.infer<typeof ProductInquirySchema>;

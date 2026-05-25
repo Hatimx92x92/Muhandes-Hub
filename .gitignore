@@ -33,9 +33,29 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# vscode secrets
+.vscode/mcp.json
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel
+.env*.local
+
+# claude local settings
+.claude/settings.local.json
+
+# playwright session data
+.playwright-mcp/
+
+# debug screenshots (root-level test artifacts)
+*.png
+*.jpg
+!public/**/*.png
+!public/**/*.jpg
+!src/**/*.png
+!src/**/*.jpg

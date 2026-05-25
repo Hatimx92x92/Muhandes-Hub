@@ -2,6 +2,7 @@
 // Public — Partner Profile Page (redesigned with hero + tabs + reviews)
 // =============================================================================
 
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound, redirect } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
@@ -10,11 +11,15 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/features/empty-state';
+import { UserAvatar } from '@/components/features/user-avatar';
 import { PartnerProfileTabs } from '@/components/features/partners/partner-profile-tabs';
 import { ReviewsDisplay } from '@/components/features/reviews/reviews-display';
 import { cn, formatSAR, getLocaleField, isUUID, getEntitySlug } from '@/lib/utils';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
+import { FileActions } from '@/components/features/file-actions';
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
 import {
   Building2,
   Shield,
@@ -24,7 +29,6 @@ import {
   Calendar,
   MessageSquare,
   FileText,
-  Download,
   Linkedin,
   Instagram,
   Wrench,
@@ -51,15 +55,77 @@ function XIcon({ className }: { className?: string }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// SEO — generateMetadata
+// ---------------------------------------------------------------------------
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug: rawSlug } = await params;
+  setRequestLocale(locale);
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
+  const supabase = await createClient();
+
+  if (isUUID(slug)) return {};
+
+  const slugCol = locale === 'ar' ? 'slug_ar' : 'slug_en';
+  let { data: partner } = await db(supabase)
+    .from('profiles')
+    .select('full_name, company_name_ar, company_name_en, bio_ar, bio_en, role, slug_ar, slug_en, avatar_url, logo_url')
+    .eq(slugCol, slug)
+    .in('role', ['contractor', 'supplier'])
+    .single();
+
+  if (!partner) {
+    const fallbackCol = locale === 'ar' ? 'slug_en' : 'slug_ar';
+    ({ data: partner } = await db(supabase)
+      .from('profiles')
+      .select('full_name, company_name_ar, company_name_en, bio_ar, bio_en, role, slug_ar, slug_en, avatar_url, logo_url')
+      .eq(fallbackCol, slug)
+      .in('role', ['contractor', 'supplier'])
+      .single());
+  }
+
+  if (!partner) return {};
+
+  const companyName = getLocaleField(partner, 'company_name', locale) || partner.full_name;
+  const bio = getLocaleField(partner, 'bio', locale)?.slice(0, 160) || '';
+  const arSlug = partner.slug_ar || partner.slug_en || slug;
+  const enSlug = partner.slug_en || partner.slug_ar || slug;
+  const image = partner.logo_url || partner.avatar_url;
+
+  return {
+    title: companyName,
+    description: bio,
+    openGraph: {
+      title: companyName,
+      description: bio,
+      type: 'profile',
+      locale: locale === 'ar' ? 'ar_SA' : 'en_US',
+      alternateLocale: locale === 'ar' ? 'en_US' : 'ar_SA',
+      siteName: 'Muhandes HUB',
+      ...(image ? { images: [{ url: image }] } : {}),
+    },
+    alternates: {
+      canonical: `${BASE_URL}/${locale}/partners/${slug}`,
+      languages: {
+        ar: `${BASE_URL}/ar/partners/${arSlug}`,
+        en: `${BASE_URL}/en/partners/${enSlug}`,
+      },
+    },
+  };
+}
+
 export default async function PartnerProfilePage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug: rawSlug } = await params;
+  setRequestLocale(locale);
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
   const supabase = await createClient();
   const t = await getTranslations('public.partnerDetail');
-  const locale = await getLocale();
 
   // UUID redirect
   if (isUUID(slug)) {
@@ -170,7 +236,7 @@ export default async function PartnerProfilePage({
     // Completed deals count
     db(supabase)
       .from('deals')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .or(`seller_id.eq.${partner.id},buyer_id.eq.${partner.id}`)
       .eq('status', 'completed'),
 
@@ -178,7 +244,7 @@ export default async function PartnerProfilePage({
     partner.role === 'contractor'
       ? db(supabase)
           .from('projects')
-          .select('id', { count: 'exact', head: true })
+          .select('id', { count: 'exact' })
           .eq('owner_id', partner.id)
           .eq('status', 'published')
       : Promise.resolve({ count: 0 }),
@@ -187,7 +253,7 @@ export default async function PartnerProfilePage({
     partner.role === 'supplier'
       ? db(supabase)
           .from('products')
-          .select('id', { count: 'exact', head: true })
+          .select('id', { count: 'exact' })
           .eq('supplier_id', partner.id)
           .eq('status', 'published')
       : Promise.resolve({ count: 0 }),
@@ -342,20 +408,16 @@ export default async function PartnerProfilePage({
           <div className="space-y-2">
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {companyDocs.map((doc: any) => (
-              <a
+              <div
                 key={doc.id}
-                href={doc.file_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                download
-                className="flex items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted/50"
+                className="flex items-center gap-3 rounded-lg border border-border p-3"
               >
                 <FileText className="h-5 w-5 shrink-0 text-destructive/70" />
                 <span className="flex-1 truncate text-sm font-medium text-foreground">
                   {doc.display_name}
                 </span>
-                <Download className="h-4 w-4 shrink-0 text-muted-foreground" />
-              </a>
+                <FileActions url={doc.file_url} fileName={doc.file_name} compact />
+              </div>
             ))}
           </div>
         </Card>
@@ -477,8 +539,41 @@ export default async function PartnerProfilePage({
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: locale === 'ar' ? 'الرئيسية' : 'Home', item: `${BASE_URL}/${locale}` },
+      { '@type': 'ListItem', position: 2, name: locale === 'ar' ? 'الشركاء' : 'Partners', item: `${BASE_URL}/${locale}/partners` },
+      { '@type': 'ListItem', position: 3, name: companyName, item: `${BASE_URL}/${locale}/partners/${slug}` },
+    ],
+  };
+
+  const partnerJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: companyName,
+    url: `${BASE_URL}/${locale}/partners/${slug}`,
+    ...(partner.logo_url || partner.avatar_url
+      ? { image: partner.logo_url || partner.avatar_url }
+      : {}),
+    ...(avgRating > 0 && totalReviews > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: avgRating.toFixed(1),
+            reviewCount: totalReviews,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
+  };
+
   return (
     <div className="py-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(partnerJsonLd) }} />
       <BreadcrumbOverride segment={slug} label={companyName} />
 
       {/* ===== HERO SECTION ===== */}
@@ -487,14 +582,8 @@ export default async function PartnerProfilePage({
           {/* Left: Logo + Info */}
           <div className="flex items-start gap-4 sm:gap-5">
             {/* Logo / Avatar */}
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary/10 ring-2 ring-primary/20">
-              {partner.logo_url ? (
-                <Image src={partner.logo_url} alt="" width={80} height={80} className="h-20 w-20 rounded-xl object-cover" />
-              ) : partner.avatar_url ? (
-                <Image src={partner.avatar_url} alt="" width={80} height={80} className="h-20 w-20 rounded-xl object-cover" />
-              ) : (
-                <Building2 className="h-10 w-10 text-primary" />
-              )}
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl ring-2 ring-primary/20">
+              <UserAvatar src={partner.logo_url || partner.avatar_url} name={companyName} size="2xl" square />
             </div>
 
             <div className="min-w-0 flex-1">
@@ -502,7 +591,7 @@ export default async function PartnerProfilePage({
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{companyName}</h1>
                 {partner.logo_url && partner.avatar_url && (
-                  <Image src={partner.avatar_url} alt="" width={32} height={32} className="h-8 w-8 rounded-full border-2 border-background object-cover" />
+                  <UserAvatar src={partner.avatar_url} name={companyName} size="sm" />
                 )}
               </div>
 

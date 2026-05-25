@@ -4,21 +4,28 @@
 
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { requireRole } from '@/lib/auth-guards';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { CreditCard, Receipt, Banknote, FileText } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { StatCard } from '@/components/features/stat-card';
+import { PageHeader } from '@/components/ui/page-header';
 import { formatSAR } from '@/lib/utils';
 import { getInvoices } from '@/actions/subscriptions';
 import { PaymentsTable } from '@/components/features/payments-table';
 
-export default async function PaymentsPage() {
+export default async function PaymentsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  // Role guard — only contractor & supplier have payments
+  await requireRole(['contractor', 'supplier']);
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) redirect('/login');
 
   const t = await getTranslations('dashboard.payments');
-  const locale = await getLocale();
 
   const { data: invoices } = await getInvoices();
   const items = invoices ?? [];
@@ -35,58 +42,14 @@ export default async function PaymentsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-foreground sm:text-3xl">{t('title')}</h1>
-        <p className="text-muted-foreground">{t('subtitle')}</p>
-      </div>
+      <PageHeader title={t('title')} description={t('subtitle')} />
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
-              <CreditCard className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">{t('totalPaid')}</p>
-              <p className="text-xl font-extrabold">{formatSAR(totalPaid, locale)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-tier-pro/10">
-              <Receipt className="h-5 w-5 text-tier-pro" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">{t('subscriptionPayments')}</p>
-              <p className="text-xl font-extrabold">{formatSAR(subscriptionTotal, locale)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-orange/10">
-              <Banknote className="h-5 w-5 text-accent-orange-foreground" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">{t('commissionPayments')}</p>
-              <p className="text-xl font-extrabold">{formatSAR(commissionTotal, locale)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted">
-              <FileText className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">{t('invoiceCount')}</p>
-              <p className="text-xl font-extrabold">{invoiceCount}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard icon={<CreditCard className="h-5 w-5 text-primary" />} label={t('totalPaid')} value={formatSAR(totalPaid, locale)} color="blue" />
+        <StatCard icon={<Receipt className="h-5 w-5 text-primary" />} label={t('subscriptionPayments')} value={formatSAR(subscriptionTotal, locale)} />
+        <StatCard icon={<Banknote className="h-5 w-5 text-warning" />} label={t('commissionPayments')} value={formatSAR(commissionTotal, locale)} color="yellow" />
+        <StatCard icon={<FileText className="h-5 w-5 text-muted-foreground" />} label={t('invoiceCount')} value={invoiceCount} />
       </div>
 
       {/* Payments Table */}

@@ -9,8 +9,10 @@ import { getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { PayCommissionSchema, DisputeCommissionSchema } from '@/schemas/review';
 import type { ActionResult } from '@/types';
-import { VAT_RATE } from '@/types';
+import { VAT_RATE, isFreeRole } from '@/types';
 import { notifyCommissionDue } from '@/actions/notification-triggers';
+import { createPaymentSession } from '@/lib/moyasar';
+import { createNotification } from '@/actions/notifications';
 
 const COMMISSION_RATES: Record<string, number> = {
   starter: 0.02,
@@ -82,28 +84,30 @@ export async function payCommission(
 
   // 5. Process by payment method
   if (data.method === 'card') {
-    // TODO: Integrate Moyasar payment gateway
-    // 1. Create Moyasar payment session with commission.total
-    // 2. Return payment URL for client redirect
-    // 3. Moyasar webhook will confirm payment and update status
+    const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
+    let paymentUrl: string;
+    try {
+      const session = await createPaymentSession({
+        amount: commission.total,
+        description: `Commission payment for deal`,
+        callbackUrl: `${APP_URL}/dashboard/commissions`,
+        metadata: {
+          type: 'commission',
+          commission_id: data.commission_id,
+          user_id: user.id,
+        },
+      });
+      paymentUrl = session.paymentUrl;
+    } catch {
+      return { data: null, error: t('paymentSessionError') };
+    }
 
-    // Placeholder: mark as approved (awaiting Moyasar integration)
     await db(supabase)
       .from('commissions')
-      .update({
-        payment_method: 'card',
-        status: 'approved',
-      })
+      .update({ payment_method: 'card' })
       .eq('id', data.commission_id);
 
-    revalidatePath('/dashboard/commissions');
-    return {
-      data: {
-        status: 'approved',
-        // paymentUrl: moyasarSession.url  // TODO: real URL from Moyasar
-      },
-      error: null,
-    };
+    return { data: { status: 'pending_payment', paymentUrl }, error: null };
   }
 
   if (data.method === 'bank_transfer') {
@@ -193,8 +197,29 @@ export async function disputeCommission(
     return { data: null, error: t('disputeError') };
   }
 
-  // 7. Side effects: notify admin
-  // TODO: createNotification for admin about dispute
+  // 7. Side effects: notify all admins about dispute
+  void (async () => {
+    try {
+      const { data: admins } = await db(supabase).from('profiles').select('id').eq('is_admin', true);
+      if (admins?.length) {
+        await Promise.all(
+          admins.map((admin: { id: string }) =>
+            createNotification({
+              user_id: admin.id,
+              type: 'deal_flagged_review',
+              title_ar: 'نزاع عمولة جديد',
+              title_en: 'New Commission Dispute',
+              body_ar: `تم رفع نزاع على عمولة بقيمة ${commission.total} ريال`,
+              body_en: `A dispute was raised on a commission of SAR ${commission.total}`,
+              link: '/admin/commissions',
+              entity_type: 'commission',
+              entity_id: data.commission_id,
+            }),
+          ),
+        );
+      }
+    } catch { /* non-critical */ }
+  })();
 
   revalidatePath('/dashboard/commissions');
 
@@ -211,6 +236,17 @@ export async function createCommissionForDeal(params: {
   dealValue: number;
 }): Promise<ActionResult<{ commissionId: string; amount: number }>> {
   const supabase = await createClient();
+
+  // Free roles (project_owner, buyer) never pay commission
+  const { data: sellerProfile } = await db(supabase)
+    .from('profiles')
+    .select('role')
+    .eq('id', params.sellerId)
+    .single();
+
+  if (sellerProfile && isFreeRole(sellerProfile.role)) {
+    return { data: { commissionId: '', amount: 0 }, error: null };
+  }
 
   // Get seller tier
   const { data: sellerSub } = await db(supabase)
@@ -241,8 +277,9 @@ export async function createCommissionForDeal(params: {
     .insert({
       deal_id: params.dealId,
       seller_id: params.sellerId,
+      deal_value: params.dealValue,
       rate: rate * 100,
-      net_amount: commissionNet,
+      amount: commissionNet,
       vat_amount: commissionVat,
       total: commissionTotal,
       due_date: dueDate.toISOString(),

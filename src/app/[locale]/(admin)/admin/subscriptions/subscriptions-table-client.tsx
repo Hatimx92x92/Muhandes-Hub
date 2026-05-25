@@ -6,8 +6,11 @@ import { AdminTableShell, type FilterGroup } from '@/components/features/admin/a
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/features/empty-state';
 import { SubscriptionManagerButton } from '@/components/features/admin/subscription-manager';
+import { SubscriptionDetailModal } from '@/components/features/admin/subscription-detail-modal';
 import { CreditCard, FileImage } from 'lucide-react';
+import { LocaleDate } from '@/components/ui/locale-date';
 import { formatSAR } from '@/lib/utils';
+import { getProxyUrl } from '@/lib/file-utils';
 import { useRouter } from '@/i18n/navigation';
 import type { AdminSubscriptionRow } from '@/actions/admin/queries';
 
@@ -88,7 +91,7 @@ export function SubscriptionsTableClient({ data, totalCount, currentPage, totalP
           if (!row.bank_receipt_url) return <span className="text-xs text-muted-foreground">—</span>;
           return (
             <a
-              href={row.bank_receipt_url}
+              href={getProxyUrl(row.bank_receipt_url)}
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
@@ -110,14 +113,22 @@ export function SubscriptionsTableClient({ data, totalCount, currentPage, totalP
         ),
       },
       {
+        id: 'paymentMethod',
+        header: t['col_paymentMethod'] ?? 'Payment',
+        hiddenOnMobile: true,
+        cell: (row) => (
+          <span className="text-xs">
+            {row.payment_method ? (t[`pm_${row.payment_method}`] ?? row.payment_method) : '—'}
+          </span>
+        ),
+      },
+      {
         id: 'startDate',
         header: t['col_startDate'],
         sortKey: 'created_at',
         hiddenOnMobile: true,
         cell: (row) => (
-          <span className="text-xs text-muted-foreground">
-            {new Date(row.created_at).toLocaleDateString()}
-          </span>
+          <LocaleDate date={row.created_at} className="text-xs text-muted-foreground" />
         ),
       },
       {
@@ -126,16 +137,15 @@ export function SubscriptionsTableClient({ data, totalCount, currentPage, totalP
         sortKey: 'expires_at',
         hiddenOnMobile: true,
         cell: (row) => (
-          <span className="text-xs text-muted-foreground">
-            {row.expires_at ? new Date(row.expires_at).toLocaleDateString() : '—'}
-          </span>
+          <LocaleDate date={row.expires_at} className="text-xs text-muted-foreground" />
         ),
       },
       {
         id: 'actions',
         header: t['col_actions'],
         cell: (row) => (
-          <div onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+            <SubscriptionDetailModal subscription={row} translations={t} />
             <SubscriptionManagerButton
               userId={row.user_id}
               currentTier={row.tier}
@@ -210,8 +220,8 @@ export function SubscriptionsTableClient({ data, totalCount, currentPage, totalP
           tier: t[`tier_${row.tier}`] ?? row.tier,
           status: row.is_active ? (t['subStatus_active'] ?? 'active') : (t['subStatus_expired'] ?? 'expired'),
           final_price: Number(row.final_price ?? 0),
-          created_at: new Date(row.created_at).toLocaleDateString(),
-          expires_at: row.expires_at ? new Date(row.expires_at).toLocaleDateString() : '',
+          created_at: new Date(row.created_at).toLocaleDateString('en-GB'),
+          expires_at: row.expires_at ? new Date(row.expires_at).toLocaleDateString('en-GB') : '',
         })),
       }}
     >

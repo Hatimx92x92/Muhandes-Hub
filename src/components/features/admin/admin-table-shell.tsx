@@ -173,12 +173,12 @@ export function AdminTableShell({
 
         {/* Sort */}
         {sortOptions && sortOptions.length > 0 && (
-          <Select value={currentSort} onValueChange={handleSortChange}>
+          <Select value={currentSort || '__none__'} onValueChange={(v) => handleSortChange(v === '__none__' ? null : v)}>
             <SelectTrigger size="sm">
               <SelectValue placeholder={tc('sort')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">{tc('sort')}</SelectItem>
+              <SelectItem value="__none__">{tc('sort')}</SelectItem>
               {sortOptions.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
                   {opt.label}

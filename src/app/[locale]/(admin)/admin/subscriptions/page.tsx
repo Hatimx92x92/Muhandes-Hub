@@ -47,7 +47,7 @@ export default async function AdminSubscriptionsPage({
     tier_enterprise: t('subscriptionTier.enterprise'),
     subStatus_active: t('subscriptionStatus.active'),
     subStatus_expired: t('subscriptionStatus.expired'),
-    subStatus_pending_payment: t('subscriptionStatus.pending_payment'),
+    subStatus_pending: t('subscriptionStatus.pending_payment'),
     noSubscriptions: t('subscriptionsPage.noSubscriptions'),
     searchPlaceholder: t('subscriptionsPage.title'),
   };

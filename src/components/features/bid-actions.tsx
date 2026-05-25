@@ -33,6 +33,8 @@ export function BidActions({ bidId, status }: BidActionsProps) {
       const result = await awardBid(bidId);
       if (result.error) {
         setError(result.error);
+      } else if (result.data?.dealId) {
+        router.push(`/dashboard/deals/${result.data.dealId}`);
       } else {
         router.push('/dashboard/deals');
       }
@@ -48,16 +50,16 @@ export function BidActions({ bidId, status }: BidActionsProps) {
   };
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex flex-wrap items-center gap-2">
       {status === 'pending' && (
         <Button
           size="sm"
           variant="outline"
           onClick={handleShortlist}
           disabled={isPending}
-          title={t('shortlist')}
         >
-          <Star className="h-3.5 w-3.5" />
+          <Star className="me-1.5 h-3.5 w-3.5" />
+          {t('shortlist')}
         </Button>
       )}
       <Button
@@ -65,18 +67,18 @@ export function BidActions({ bidId, status }: BidActionsProps) {
         variant="primary"
         onClick={handleAward}
         disabled={isPending}
-        title={t('award')}
       >
-        <Trophy className="h-3.5 w-3.5" />
+        <Trophy className="me-1.5 h-3.5 w-3.5" />
+        {t('award')}
       </Button>
       <Button
         size="sm"
         variant="destructive"
         onClick={handleReject}
         disabled={isPending}
-        title={t('reject')}
       >
-        <XCircle className="h-3.5 w-3.5" />
+        <XCircle className="me-1.5 h-3.5 w-3.5" />
+        {t('reject')}
       </Button>
       {error && (
         <span className="text-xs text-destructive">{error}</span>

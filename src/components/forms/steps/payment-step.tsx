@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { CreditCard, Building, Upload, FileText, Copy, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -80,10 +80,13 @@ export function PaymentStep({ data, updateData, submitting, onSubmit, onBack }: 
     setTimeout(() => setCopiedField(''), 2000);
   };
 
-  // Bank details from environment (fallback to placeholders)
-  const bankName = process.env.NEXT_PUBLIC_BANK_NAME || 'Al Rajhi Bank';
-  const accountName = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME || 'Muhandes HUB Platform';
-  const iban = process.env.NEXT_PUBLIC_BANK_IBAN || 'SA0000000000000000000000';
+  // Bank details from environment
+  const locale = useLocale();
+  const bankName = process.env.NEXT_PUBLIC_BANK_NAME || 'مصرف الراجحي - Al Rajhi Bank';
+  const accountName = locale === 'en'
+    ? (process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME_EN || 'Rimal Al Mas International Company')
+    : (process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME || 'شركة رمال الماس العالمية');
+  const iban = process.env.NEXT_PUBLIC_BANK_IBAN || 'SA3580000126608016356809';
 
   return (
     <div className="space-y-4">

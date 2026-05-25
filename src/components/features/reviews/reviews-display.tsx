@@ -9,6 +9,7 @@ import { Star } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
 import { formatRelativeTime } from '@/lib/utils';
+import { UserAvatar } from '@/components/features/user-avatar';
 
 interface ReviewData {
   id: string;
@@ -119,9 +120,11 @@ export function ReviewCard({ review }: { review: ReviewData }) {
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-sm font-medium text-zinc-600 dark:text-zinc-300">
-            {reviewerName.charAt(0)}
-          </div>
+          <UserAvatar
+            src={review.reviewer?.avatar_url}
+            name={reviewerName}
+            size="md"
+          />
           <div>
             <p className="font-medium text-zinc-900 dark:text-zinc-100">{reviewerName}</p>
             <p className="text-xs text-zinc-500">{dealTypeLabel}</p>

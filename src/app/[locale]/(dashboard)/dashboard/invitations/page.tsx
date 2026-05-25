@@ -4,60 +4,47 @@
 
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { requireRole } from '@/lib/auth-guards';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getLocaleField, getEntitySlug } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
-import { InviteToQuoteForm } from '@/components/features/invitations/invite-to-quote-form';
-import { InviteToBidForm } from '@/components/features/invitations/invite-to-bid-form';
+import { CreateInviteModal } from '@/components/features/invitations/create-invite-modal';
 import { ReceivedQuoteInvitations } from '@/components/features/invitations/received-quote-invitations';
 import { ReceivedBidInvitations } from '@/components/features/invitations/received-bid-invitations';
-import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { EmptyState } from '@/components/features/empty-state';
-import { Send, FileText } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
+import { AlertCircle } from 'lucide-react';
+import { InvitationsTableClient, type SentInvitationRow } from './invitations-table-client';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
   return supabase;
 }
 
-const statusBadge: Record<string, BadgeProps['variant']> = {
-  pending: 'pending',
-  accepted: 'published',
-  declined: 'rejected',
-  cancelled: 'secondary',
-};
-
 export default async function InvitationsPage({
+  params: routeParams,
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ status?: string; page?: string; search?: string; sort?: string }>;
 }) {
+  const { locale } = await routeParams;
+  setRequestLocale(locale);
   const params = await searchParams;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+
+  // Role guard — buyer excluded from invitations
+  const { user, profile, supabase } = await requireRole(['project_owner', 'contractor', 'supplier']);
 
   const t = await getTranslations('dashboard.invitations');
-  const locale = await getLocale();
+  const tCommon = await getTranslations('dashboard.common');
 
-  const { data: profile } = await db(supabase)
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  const role = profile?.role as string;
+  const role = profile.role as string;
   const isPO = role === 'project_owner';
   const isSupplier = role === 'supplier';
   const isContractor = role === 'contractor';
 
-  // Default tab based on role
-  const tab = params.tab || (isPO ? 'send-quote' : 'received');
+  // ── Data fetching based on role ────────────────────────────────────────
 
-  // ── Data fetching based on role & tab ──────────────────────────────────
-
-  // PO: fetch published projects for selectors
+  // PO: fetch published projects for modal selectors
   let myProjects: { id: string; title: string }[] = [];
   if (isPO) {
     const { data: projects } = await db(supabase)
@@ -75,7 +62,7 @@ export default async function InvitationsPage({
 
   // PO: fetch suppliers for invite-to-quote
   let suppliers: { id: string; companyName: string }[] = [];
-  if (isPO && tab === 'send-quote') {
+  if (isPO) {
     const { data: supplierProfiles } = await db(supabase)
       .from('profiles')
       .select('id, company_name_ar, company_name_en')
@@ -92,7 +79,7 @@ export default async function InvitationsPage({
 
   // PO: fetch contractors for invite-to-bid
   let contractors: { id: string; companyName: string }[] = [];
-  if (isPO && tab === 'send-bid') {
+  if (isPO) {
     const { data: contractorProfiles } = await db(supabase)
       .from('profiles')
       .select('id, company_name_ar, company_name_en')
@@ -107,7 +94,7 @@ export default async function InvitationsPage({
     }));
   }
 
-  // PO: sent invitations
+  // PO: sent invitations (always shown for PO)
   interface SentInvitation {
     id: string;
     supplier_id: string;
@@ -120,15 +107,31 @@ export default async function InvitationsPage({
     projects: { title_ar: string; title_en: string | null } | null;
   }
   let sentInvitations: SentInvitation[] = [];
-  if (isPO && tab === 'sent') {
-    const { data } = await db(supabase)
-      .from('hire_requests')
-      .select('id, supplier_id, project_id, description_ar, description_en, status, created_at, profiles!hire_requests_supplier_id_fkey(company_name_ar, company_name_en, role), projects(title_ar, title_en)')
-      .eq('requester_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(100);
+  let sentTotalCount = 0;
+  let sentTotalPages = 0;
 
+  const page = Math.max(1, Number(params.page) || 1);
+  const perPage = 20;
+  const sort = params.sort || '';
+  const sortMap: Record<string, { column: string; ascending: boolean }> = {
+    newest: { column: 'created_at', ascending: false },
+    oldest: { column: 'created_at', ascending: true },
+  };
+  const sortConfig = sortMap[sort] ?? sortMap.newest;
+
+  if (isPO) {
+    let query = db(supabase)
+      .from('hire_requests')
+      .select('id, supplier_id, project_id, description_ar, description_en, status, created_at, profiles!hire_requests_supplier_id_fkey(company_name_ar, company_name_en, role), projects(title_ar, title_en)', { count: 'exact' })
+      .eq('requester_id', user.id)
+      .order(sortConfig.column, { ascending: sortConfig.ascending });
+
+    if (params.status) query = query.eq('status', params.status);
+
+    const { data, count } = await query.range((page - 1) * perPage, page * perPage - 1);
     sentInvitations = (data ?? []) as SentInvitation[];
+    sentTotalCount = count ?? 0;
+    sentTotalPages = Math.ceil(sentTotalCount / perPage);
   }
 
   // Supplier: received quote invitations
@@ -155,7 +158,7 @@ export default async function InvitationsPage({
     receivedQuoteInvitations = (data ?? []) as ReceivedInvitation[];
   }
 
-  // Contractor: received bid invitations (stored in hire_requests where supplier_id = contractor)
+  // Contractor: received bid invitations
   let receivedBidInvitations: ReceivedInvitation[] = [];
   if (isContractor) {
     const { data } = await db(supabase)
@@ -168,104 +171,90 @@ export default async function InvitationsPage({
     receivedBidInvitations = (data ?? []) as ReceivedInvitation[];
   }
 
-  // ── Tab definitions per role ───────────────────────────────────────────
-  const poTabs = [
-    { key: 'send-quote', label: t('tabSendQuote') },
-    { key: 'send-bid', label: t('tabSendBid') },
-    { key: 'sent', label: t('tabSent') },
+  const hasPublishedProjects = myProjects.length > 0;
+
+  const filterGroups = [
+    {
+      key: 'status',
+      label: tCommon('status'),
+      options: [
+        { value: 'pending', label: t('status_pending') },
+        { value: 'accepted', label: t('status_accepted') },
+        { value: 'declined', label: t('status_declined') },
+        { value: 'cancelled', label: t('status_cancelled') },
+      ],
+    },
   ];
 
-  const supplierTabs = [
-    { key: 'received', label: t('tabReceived') },
+  const sortOptions = [
+    { value: 'newest', label: tCommon('createdAt') + ' ↓' },
+    { value: 'oldest', label: tCommon('createdAt') + ' ↑' },
   ];
-
-  const contractorTabs = [
-    { key: 'received', label: t('tabReceived') },
-  ];
-
-  const tabs = isPO ? poTabs : isSupplier ? supplierTabs : isContractor ? contractorTabs : [];
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
+      {/* Header with Create Invite CTA for PO */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
+        {isPO && (
+          <CreateInviteModal
+            projects={myProjects}
+            suppliers={suppliers}
+            contractors={contractors}
+            hasPublishedProjects={hasPublishedProjects}
+          />
+        )}
+      </div>
 
-      {/* Tab navigation */}
-      {tabs.length > 1 && (
-        <div className="flex gap-1 rounded-lg bg-muted p-1">
-          {tabs.map((tabDef) => (
-            <a
-              key={tabDef.key}
-              href={`?tab=${tabDef.key}`}
-              className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                tab === tabDef.key
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {tabDef.label}
-            </a>
-          ))}
-        </div>
-      )}
-
-      {/* ── PO: Send Quote Invitation ──────────────────────────────────── */}
-      {isPO && tab === 'send-quote' && (
-        <Card className="p-6">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">{t('inviteToQuoteTitle')}</h2>
-          <p className="mb-6 text-sm text-muted-foreground">{t('inviteToQuoteDesc')}</p>
-          <InviteToQuoteForm projects={myProjects} suppliers={suppliers} />
+      {/* PO: No published projects warning */}
+      {isPO && !hasPublishedProjects && (
+        <Card className="flex items-center gap-3 border-warning/30 bg-warning/5 p-4">
+          <AlertCircle className="h-5 w-5 shrink-0 text-warning" />
+          <p className="text-sm text-muted-foreground">{t('noProjectsWarning')}</p>
         </Card>
       )}
 
-      {/* ── PO: Send Bid Invitation ────────────────────────────────────── */}
-      {isPO && tab === 'send-bid' && (
-        <Card className="p-6">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">{t('inviteToBidTitle')}</h2>
-          <p className="mb-6 text-sm text-muted-foreground">{t('inviteToBidDesc')}</p>
-          <InviteToBidForm projects={myProjects} contractors={contractors} />
-        </Card>
-      )}
-
-      {/* ── PO: Sent Invitations ───────────────────────────────────────── */}
-      {isPO && tab === 'sent' && (
+      {/* ── PO: Sent Invitations Table ──────────────────────────────────── */}
+      {isPO && (
         <div className="space-y-4">
-          {sentInvitations.length === 0 ? (
-            <EmptyState
-              icon={<Send className="h-12 w-12" />}
-              title={t('noSentInvitations')}
-              description={t('noSentInvitationsDesc')}
-            />
-          ) : (
-            sentInvitations.map((inv) => {
+          <h2 className="text-lg font-semibold text-foreground">{t('tabSent')}</h2>
+          <InvitationsTableClient
+            items={sentInvitations.map((inv) => {
               const inviteeName = getLocaleField(inv.profiles ?? {}, 'company_name', locale);
               const projectTitle = getLocaleField(inv.projects ?? {}, 'title', locale);
               const isContractorInvite = (inv.profiles as SentInvitation['profiles'])?.role === 'contractor';
 
-              return (
-                <Card key={inv.id} className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">
-                          {isContractorInvite ? t('typeBid') : t('typeQuote')}
-                        </Badge>
-                        <p className="text-sm font-medium text-foreground">{projectTitle}</p>
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {t('to')}: {inviteeName}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {formatDate(inv.created_at, locale)}
-                      </p>
-                    </div>
-                    <Badge variant={statusBadge[inv.status] || 'secondary'}>
-                      {t(`status_${inv.status}`)}
-                    </Badge>
-                  </div>
-                </Card>
-              );
-            })
-          )}
+              return {
+                id: inv.id,
+                type: isContractorInvite ? 'bid' : 'quote',
+                project_title: projectTitle,
+                recipient_name: inviteeName,
+                created_at: inv.created_at,
+                status: inv.status,
+              } satisfies SentInvitationRow;
+            })}
+            locale={locale}
+            totalCount={sentTotalCount}
+            currentPage={page}
+            totalPages={sentTotalPages}
+            filterGroups={filterGroups}
+            sortOptions={sortOptions}
+            translations={{
+              colType: t('colType'),
+              colProject: t('colProject'),
+              colRecipient: t('colRecipient'),
+              colDate: t('colDate'),
+              colStatus: t('colStatus'),
+              typeBid: t('typeBid'),
+              typeQuote: t('typeQuote'),
+              noSentInvitations: t('noSentInvitations'),
+              noSentInvitationsDesc: t('noSentInvitationsDesc'),
+              status_pending: t('status_pending'),
+              status_accepted: t('status_accepted'),
+              status_declined: t('status_declined'),
+              status_cancelled: t('status_cancelled'),
+            }}
+          />
         </div>
       )}
 

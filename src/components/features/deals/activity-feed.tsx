@@ -6,7 +6,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Card } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/features/user-avatar';
 import { formatRelativeTime } from '@/lib/utils';
 import {
   Activity, CheckCircle, XCircle, Plus, Send, Ban, Edit, Flag,
@@ -78,10 +78,7 @@ export function ActivityFeed({ activities, locale }: ActivityFeedProps) {
             <div className="min-w-0 flex-1 pb-3">
               <div className="flex items-center gap-2">
                 {actor && (
-                  <Avatar size="sm">
-                    {actorAvatar ? <AvatarImage src={actorAvatar} /> : null}
-                    <AvatarFallback>{actorName?.charAt(0) ?? '?'}</AvatarFallback>
-                  </Avatar>
+                  <UserAvatar src={actorAvatar} name={actorName} size="xs" />
                 )}
                 <p className="text-sm font-medium text-foreground">
                   {t.has(`actions.${action}`) ? t(`actions.${action}` as 'actions.deal_created') : action}

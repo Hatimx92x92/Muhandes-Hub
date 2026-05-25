@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { isUUID, getLocaleField, getEntitySlug } from '@/lib/utils';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 import { DealWorkspace } from '@/components/features/deals/deal-workspace';
 
@@ -19,18 +19,22 @@ export default async function DealDetailPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
   searchParams: Promise<{ tab?: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug: rawSlug } = await params;
+  setRequestLocale(locale);
   const { tab = 'overview' } = await searchParams;
+
+  // Decode URI-encoded slugs (Arabic characters get percent-encoded by browsers)
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
   const t = await getTranslations('dashboard.deals');
-  const locale = await getLocale();
 
   // -----------------------------------------------------------------------
   // Resolve deal by UUID or title_slug
@@ -38,7 +42,6 @@ export default async function DealDetailPage({
   let deal;
   if (isUUID(slug)) {
     const { data } = await db(supabase).from('deals').select('*').eq('id', slug).single();
-    if (data?.title_slug) redirect(`/dashboard/deals/${data.title_slug}`);
     deal = data;
   } else {
     const { data } = await db(supabase).from('deals').select('*').eq('title_slug', slug).single();
@@ -69,6 +72,7 @@ export default async function DealDetailPage({
     { data: buyerProfile },
     { data: sellerProfile },
     { data: documents },
+    { data: dealProject },
   ] = await Promise.all([
     db(supabase)
       .from('deal_milestones')
@@ -112,7 +116,16 @@ export default async function DealDetailPage({
       .select('id, category, file_url, file_name, file_size, mime_type, notes, created_at, uploader:profiles!deal_documents_uploader_id_fkey(full_name)')
       .eq('deal_id', id)
       .order('created_at', { ascending: false }),
+    deal.project_id
+      ? db(supabase).from('projects').select('title_ar, title_en').eq('id', deal.project_id).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
+
+  // Actual platform role of the current user (contractor/supplier/buyer/project_owner)
+  const userPlatformRole: string =
+    userRole === 'buyer'
+      ? (buyerProfile?.role ?? 'buyer')
+      : (sellerProfile?.role ?? 'contractor');
 
   // -----------------------------------------------------------------------
   // Review eligibility (completed deals only)
@@ -152,7 +165,16 @@ export default async function DealDetailPage({
       sourceInfo = { type: 'project', label: projectName, href: `/dashboard/projects/${projectSlug || bid.project_id}` };
     }
   } else if (triggerSource === 'inquiry_quotation' && deal.quotation_id) {
-    sourceInfo = { type: 'quotation', label: `#${(deal.quotation_id as string).slice(0, 8)}`, href: `/dashboard/quotations/${deal.quotation_id}` };
+    const { data: qtn } = await db(supabase)
+      .from('quotations')
+      .select('number')
+      .eq('id', deal.quotation_id)
+      .single();
+    sourceInfo = {
+      type: 'quotation',
+      label: qtn?.number ?? `#${(deal.quotation_id as string).slice(0, 8)}`,
+      href: `/dashboard/quotations/${deal.quotation_id}`,
+    };
   } else if (triggerSource === 'rfq_response' && deal.rfq_response_id) {
     const { data: resp } = await db(supabase)
       .from('rfq_responses')
@@ -187,10 +209,11 @@ export default async function DealDetailPage({
 
   return (
     <>
-      <BreadcrumbOverride segment={displaySlug} label={getLocaleField(deal, 'title', locale) || `${t('dealPrefix')} #${id.slice(0, 8)}`} />
+      <BreadcrumbOverride segment={slug} label={getLocaleField(dealProject as Record<string, unknown> ?? {}, 'title', locale) || sourceInfo?.label || deal.title_slug || `${t('dealPrefix')} #${id.slice(0, 8)}`} />
       <DealWorkspace
-        deal={deal}
+        deal={{ ...deal, project: dealProject }}
         userRole={userRole as 'buyer' | 'seller'}
+        userPlatformRole={userPlatformRole}
         userId={user.id}
         milestones={realMilestones}
         suggestions={suggestions}

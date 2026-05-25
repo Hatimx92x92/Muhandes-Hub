@@ -2,8 +2,11 @@
 
 import { useState, useMemo, useTransition } from 'react';
 import { useRouter } from '@/i18n/navigation';
+import { useLocale } from 'next-intl';
+import { useRealtime } from '@/hooks';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { BulkActionBar, type BulkAction } from '@/components/features/bulk-action-bar';
+import { DashboardTableShell, type FilterGroup } from '@/components/features/dashboard-table-shell';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/features/empty-state';
 import { Bell, CheckCheck, Trash2 } from 'lucide-react';
@@ -27,6 +30,11 @@ export interface NotificationRow {
 
 interface NotificationsTableClientProps {
   items: NotificationRow[];
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+  filterGroups: FilterGroup[];
+  sortOptions: { value: string; label: string }[];
   translations: Record<string, string>;
   onBulkMarkRead?: (ids: string[]) => Promise<void>;
   onBulkDelete?: (ids: string[]) => Promise<void>;
@@ -38,11 +46,21 @@ interface NotificationsTableClientProps {
 
 export function NotificationsTableClient({
   items,
+  totalCount,
+  currentPage,
+  totalPages,
+  filterGroups,
+  sortOptions,
   translations: t,
   onBulkMarkRead,
   onBulkDelete,
 }: NotificationsTableClientProps) {
   const router = useRouter();
+  const locale = useLocale();
+
+  // Live updates when notifications change
+  useRealtime({ channel: 'rt-notifications', table: 'notifications' });
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
 
@@ -90,7 +108,7 @@ export function NotificationsTableClient({
         header: t.time || 'Time',
         cell: (row) => (
           <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {formatRelativeTime(row.created_at)}
+            {formatRelativeTime(row.created_at, locale)}
           </span>
         ),
         hiddenOnMobile: true,
@@ -132,39 +150,43 @@ export function NotificationsTableClient({
     return actions;
   }, [onBulkMarkRead, onBulkDelete, t, startTransition]);
 
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={<Bell className="h-12 w-12" />}
-        title={t.noNotifications || 'No notifications'}
-        description={t.noNotificationsDesc || ''}
-      />
-    );
-  }
-
   return (
-    <div className={isPending ? 'opacity-60 pointer-events-none' : ''}>
-      <DataTable
-        columns={columns}
-        data={items}
-        getRowId={(row) => row.id}
-        selectable
-        onSelectionChange={setSelectedIds}
-        onRowClick={(row) => {
-          if (!row.is_read) {
-            startTransition(async () => {
-              await markNotificationRead(row.id);
-            });
+    <DashboardTableShell
+      totalCount={totalCount}
+      currentPage={currentPage}
+      totalPages={totalPages}
+      filterGroups={filterGroups}
+      sortOptions={sortOptions}
+      searchable
+      selectedIds={selectedIds}
+      selectedCount={selectedIds.length}
+      bulkActions={bulkActions}
+      onSelectionClear={() => setSelectedIds([])}
+    >
+      <div className={isPending ? 'opacity-60 pointer-events-none' : ''}>
+        <DataTable
+          columns={columns}
+          data={items}
+          getRowId={(row) => row.id}
+          selectable
+          onSelectionChange={setSelectedIds}
+          onRowClick={(row) => {
+            if (!row.is_read) {
+              startTransition(async () => {
+                await markNotificationRead(row.id);
+              });
+            }
+            if (row.link) router.push(row.link);
+          }}
+          emptyState={
+            <EmptyState
+              icon={<Bell className="h-12 w-12" />}
+              title={t.noNotifications || 'No notifications'}
+              description={t.noNotificationsDesc || ''}
+            />
           }
-          if (row.link) router.push(row.link);
-        }}
-      />
-      <BulkActionBar
-        selectedCount={selectedIds.length}
-        selectedIds={selectedIds}
-        actions={bulkActions}
-        onClear={() => setSelectedIds([])}
-      />
-    </div>
+        />
+      </div>
+    </DashboardTableShell>
   );
 }

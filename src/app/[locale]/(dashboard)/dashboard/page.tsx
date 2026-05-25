@@ -1,167 +1,28 @@
 // =============================================================================
-// Dashboard Overview Page — role-specific stat cards + quick actions
+// Dashboard Overview Page — dispatches to role-specific dashboard components
 // =============================================================================
 
 import { redirect } from 'next/navigation';
-import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getTranslations } from 'next-intl/server';
-import {
-  LayoutDashboard,
-  FolderKanban,
-  Package,
-  Handshake,
-  Receipt,
-  ShoppingCart,
-  Star,
-  FileText,
-  ArrowUpLeft,
-} from 'lucide-react';
 import type { UserRole } from '@/types';
 import { OnboardingChecklist } from '@/components/features/onboarding/onboarding-checklist';
-import { DashboardActivityFeed } from '@/components/features/dashboard-activity-feed';
+import {
+  BuyerDashboard,
+  ProjectOwnerDashboard,
+  ContractorDashboard,
+  SupplierDashboard,
+} from '@/components/features/dashboard';
 import { getDashboardActivity } from '@/actions/analytics';
-import { getLocale } from 'next-intl/server';
-
-// ---------------------------------------------------------------------------
-// Stat card component
-// ---------------------------------------------------------------------------
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  href,
-}: {
-  label: string;
-  value: string | number;
-  icon: React.ElementType;
-  href: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors duration-300 group-hover:bg-primary/15">
-          <Icon className="h-5 w-5" />
-        </div>
-        <ArrowUpLeft className="h-4 w-4 text-muted-foreground opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
-      </div>
-      <p className="mt-4 text-2xl font-extrabold text-foreground">{value}</p>
-      <p className="mt-1 text-sm font-medium text-muted-foreground">{label}</p>
-    </Link>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Quick action button
-// ---------------------------------------------------------------------------
-
-function QuickAction({
-  label,
-  href,
-  icon: Icon,
-}: {
-  label: string;
-  href: string;
-  icon: React.ElementType;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:border-primary/30 hover:shadow-sm"
-    >
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors duration-200 group-hover:bg-primary/15">
-        <Icon className="h-4 w-4" />
-      </div>
-      <span className="text-sm font-semibold text-foreground">{label}</span>
-    </Link>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Role-specific config
-// ---------------------------------------------------------------------------
-
-interface DashboardConfig {
-  stats: { label: string; value: string | number; icon: React.ElementType; href: string }[];
-  quickActions: { label: string; href: string; icon: React.ElementType }[];
-}
-
-function getDashboardConfig(
-  role: UserRole,
-  tStats: (key: string) => string,
-  tActions: (key: string) => string,
-  counts: Record<string, number>,
-): DashboardConfig {
-  switch (role) {
-    case 'project_owner':
-      return {
-        stats: [
-          { label: tStats('activeProjects'), value: counts.projects ?? 0, icon: FolderKanban, href: '/dashboard/projects' },
-          { label: tStats('activeDeals'), value: counts.deals ?? 0, icon: Handshake, href: '/dashboard/deals' },
-          { label: tStats('rfqs'), value: counts.rfqs ?? 0, icon: ShoppingCart, href: '/dashboard/rfqs' },
-          { label: tStats('reviews'), value: counts.reviews ?? 0, icon: Star, href: '/dashboard/reviews' },
-        ],
-        quickActions: [
-          { label: tActions('newProject'), href: '/dashboard/projects/new', icon: FolderKanban },
-          { label: tActions('newRfq'), href: '/dashboard/rfqs/new', icon: ShoppingCart },
-          { label: tActions('viewContracts'), href: '/dashboard/contracts', icon: FileText },
-        ],
-      };
-    case 'contractor':
-      return {
-        stats: [
-          { label: tStats('projects'), value: counts.projects ?? 0, icon: FolderKanban, href: '/dashboard/projects' },
-          { label: tStats('submittedBids'), value: counts.bids ?? 0, icon: Receipt, href: '/dashboard/quotations' },
-          { label: tStats('activeDealsShort'), value: counts.deals ?? 0, icon: Handshake, href: '/dashboard/deals' },
-          { label: tStats('reviews'), value: counts.reviews ?? 0, icon: Star, href: '/dashboard/reviews' },
-        ],
-        quickActions: [
-          { label: tActions('postProject'), href: '/dashboard/projects/new', icon: FolderKanban },
-          { label: tActions('browseProjects'), href: '/projects', icon: FolderKanban },
-          { label: tActions('newQuotation'), href: '/dashboard/quotations/new', icon: Receipt },
-        ],
-      };
-    case 'supplier':
-      return {
-        stats: [
-          { label: tStats('products'), value: counts.products ?? 0, icon: Package, href: '/dashboard/products' },
-          { label: tStats('quotations'), value: counts.quotations ?? 0, icon: Receipt, href: '/dashboard/quotations' },
-          { label: tStats('deals'), value: counts.deals ?? 0, icon: Handshake, href: '/dashboard/deals' },
-          { label: tStats('reviews'), value: counts.reviews ?? 0, icon: Star, href: '/dashboard/reviews' },
-        ],
-        quickActions: [
-          { label: tActions('newProduct'), href: '/dashboard/products/new', icon: Package },
-          { label: tActions('browseRfqs'), href: '/dashboard/rfqs', icon: ShoppingCart },
-          { label: tActions('newQuotation'), href: '/dashboard/quotations/new', icon: Receipt },
-        ],
-      };
-    case 'buyer':
-      return {
-        stats: [
-          { label: tStats('rfqs'), value: counts.rfqs ?? 0, icon: ShoppingCart, href: '/dashboard/rfqs' },
-          { label: tStats('deals'), value: counts.deals ?? 0, icon: Handshake, href: '/dashboard/deals' },
-          { label: tStats('reviews'), value: counts.reviews ?? 0, icon: Star, href: '/dashboard/reviews' },
-          { label: tStats('contracts'), value: counts.contracts ?? 0, icon: FileText, href: '/dashboard/contracts' },
-        ],
-        quickActions: [
-          { label: tActions('newRfq'), href: '/dashboard/rfqs/new', icon: ShoppingCart },
-          { label: tActions('browseProducts'), href: '/marketplace', icon: Package },
-        ],
-      };
-    default:
-      return { stats: [], quickActions: [] };
-  }
-}
+import { setRequestLocale } from 'next-intl/server';
 
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -175,19 +36,19 @@ export default async function DashboardPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
 
-  const { data: profile } = await db
-    .from('profiles')
-    .select('role, full_name, subscription_tier, onboarding_progress')
-    .eq('id', user.id)
-    .single();
+  const [{ data: profile }, { data: subscription }] = await Promise.all([
+    db.from('profiles').select('role, full_name, onboarding_progress').eq('id', user.id).single(),
+    db.from('subscriptions').select('tier').eq('user_id', user.id).eq('is_active', true).maybeSingle(),
+  ]);
 
   const role = (profile?.role as UserRole) || 'buyer';
+  const subscriptionTier = subscription?.tier ?? null;
 
-  // Fetch real counts for stat cards
+  // Fetch real counts for stat cards — role-specific queries
   const counts: Record<string, number> = {};
 
   const countQuery = async (table: string, filter?: Record<string, string>) => {
-    let q = db.from(table).select('id', { count: 'exact', head: true });
+    let q = db.from(table).select('id', { count: 'exact' });
     if (filter) {
       for (const [k, v] of Object.entries(filter)) {
         q = q.eq(k, v);
@@ -197,53 +58,91 @@ export default async function DashboardPage() {
     return count ?? 0;
   };
 
+  const dealsCount = () =>
+    db.from('deals').select('id', { count: 'exact' })
+      .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+      .then((r: { count: number | null }) => r.count ?? 0);
+
+  const reviewsCount = () =>
+    db.from('reviews').select('id', { count: 'exact' })
+      .or(`reviewer_id.eq.${user.id},reviewee_id.eq.${user.id}`)
+      .then((r: { count: number | null }) => r.count ?? 0);
+
   if (role === 'project_owner') {
-    const [projects, deals, rfqs, reviews] = await Promise.all([
+    const [projects, bids, deals, rfqs, reviews] = await Promise.all([
       countQuery('projects', { owner_id: user.id }),
-      db.from('deals').select('id', { count: 'exact', head: true }).or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
+      (async () => {
+        const { data: myProjects } = await db.from('projects').select('id').eq('owner_id', user.id);
+        if (!myProjects?.length) return 0;
+        const { count } = await db.from('bids').select('id', { count: 'exact' })
+          .in('project_id', myProjects.map((p: { id: string }) => p.id));
+        return count ?? 0;
+      })(),
+      dealsCount(),
       countQuery('rfqs', { poster_id: user.id }),
-      db.from('reviews').select('id', { count: 'exact', head: true }).or(`reviewer_id.eq.${user.id},reviewee_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
+      reviewsCount(),
     ]);
-    Object.assign(counts, { projects, deals, rfqs, reviews });
+    Object.assign(counts, { projects, bids, deals, rfqs, reviews });
   } else if (role === 'contractor') {
-    const [projects, bids, deals, reviews] = await Promise.all([
+    const [projects, bids, deals, reviews, sentInquiries] = await Promise.all([
       countQuery('projects', { owner_id: user.id }),
       countQuery('bids', { contractor_id: user.id }),
-      db.from('deals').select('id', { count: 'exact', head: true }).or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
-      db.from('reviews').select('id', { count: 'exact', head: true }).or(`reviewer_id.eq.${user.id},reviewee_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
+      dealsCount(),
+      reviewsCount(),
+      countQuery('inquiries', { sender_id: user.id }),
     ]);
-    Object.assign(counts, { projects, bids, deals, reviews });
+    Object.assign(counts, { projects, bids, deals, reviews, sentInquiries });
   } else if (role === 'supplier') {
-    const [products, quotations, deals, reviews] = await Promise.all([
+    const [products, quotations, inquiries, deals, reviews] = await Promise.all([
       countQuery('products', { supplier_id: user.id }),
       countQuery('quotations', { sender_id: user.id }),
-      db.from('deals').select('id', { count: 'exact', head: true }).or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
-      db.from('reviews').select('id', { count: 'exact', head: true }).or(`reviewer_id.eq.${user.id},reviewee_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
+      countQuery('inquiries', { recipient_id: user.id }),
+      dealsCount(),
+      reviewsCount(),
     ]);
-    Object.assign(counts, { products, quotations, deals, reviews });
+    Object.assign(counts, { products, quotations, inquiries, deals, reviews });
   } else if (role === 'buyer') {
-    const [rfqs, deals, reviews, contracts] = await Promise.all([
+    const [rfqs, deals, quotations, inquiries] = await Promise.all([
       countQuery('rfqs', { poster_id: user.id }),
-      db.from('deals').select('id', { count: 'exact', head: true }).or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
-      db.from('reviews').select('id', { count: 'exact', head: true }).or(`reviewer_id.eq.${user.id},reviewee_id.eq.${user.id}`).then((r: { count: number | null }) => r.count ?? 0),
-      countQuery('contracts', { creator_id: user.id }),
+      dealsCount(),
+      (async () => {
+        const { data: myRfqs } = await db.from('rfqs').select('id').eq('poster_id', user.id);
+        if (!myRfqs?.length) return 0;
+        const { count } = await db.from('quotations').select('id', { count: 'exact' })
+          .in('rfq_id', myRfqs.map((r: { id: string }) => r.id));
+        return count ?? 0;
+      })(),
+      countQuery('inquiries', { sender_id: user.id }),
     ]);
-    Object.assign(counts, { rfqs, deals, reviews, contracts });
+    Object.assign(counts, { rfqs, deals, quotations, inquiries });
   }
 
-  const config = getDashboardConfig(role, tStats, tActions, counts);
-  const locale = await getLocale();
   const activityResult = await getDashboardActivity();
   const activities = activityResult.data ?? [];
   const greeting = profile?.full_name
     ? t('greeting', { name: profile.full_name })
     : t('greetingDefault');
 
+  // Shared props for all role dashboards
+  const sharedProps = {
+    counts,
+    activities,
+    locale,
+    t: (key: string) => t(key),
+    tStats: (key: string) => tStats(key),
+    tActions: (key: string) => tActions(key),
+  };
+
   return (
     <div>
       {/* Greeting */}
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold text-foreground sm:text-3xl">{greeting}</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-extrabold text-foreground sm:text-3xl">{greeting}</h1>
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            {t(`role.${role}`)}
+          </span>
+        </div>
         <p className="mt-1 text-sm text-muted-foreground">
           {t('overview')}
         </p>
@@ -258,51 +157,14 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {/* Stat cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        {config.stats.map((stat) => (
-          <StatCard
-            key={stat.label}
-            label={stat.label}
-            value={stat.value}
-            icon={stat.icon}
-            href={stat.href}
-          />
-        ))}
-      </div>
-
-      {/* Quick actions + Activity feed */}
-      <div className="grid gap-6 lg:grid-cols-2 mb-8">
-        <div>
-          <h2 className="text-lg font-bold text-foreground mb-4">{t('quickActions')}</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {config.quickActions.map((action) => (
-              <QuickAction
-                key={action.label}
-                label={action.label}
-                href={action.href}
-                icon={action.icon}
-              />
-            ))}
-          </div>
-        </div>
-        <DashboardActivityFeed activities={activities} locale={locale} />
-      </div>
-
-      {/* Subscription tier badge */}
-      {profile?.subscription_tier && (
-        <div className="mt-8 rounded-2xl border border-border bg-card p-5 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{t('currentSubscription')}</p>
-            <p className="font-bold text-foreground capitalize">{profile.subscription_tier}</p>
-          </div>
-          <Link
-            href="/dashboard/subscription"
-            className="text-sm font-semibold text-primary hover:underline"
-          >
-            {t('manageSubscription')}
-          </Link>
-        </div>
+      {/* Role-specific dashboard content */}
+      {role === 'buyer' && <BuyerDashboard {...sharedProps} />}
+      {role === 'project_owner' && <ProjectOwnerDashboard {...sharedProps} />}
+      {role === 'contractor' && (
+        <ContractorDashboard {...sharedProps} subscriptionTier={subscriptionTier} />
+      )}
+      {role === 'supplier' && (
+        <SupplierDashboard {...sharedProps} subscriptionTier={subscriptionTier} />
       )}
     </div>
   );

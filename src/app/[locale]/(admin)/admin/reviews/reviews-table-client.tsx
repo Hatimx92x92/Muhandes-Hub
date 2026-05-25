@@ -6,7 +6,9 @@ import { AdminTableShell, type FilterGroup } from '@/components/features/admin/a
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/features/empty-state';
 import { AdminReviewActions } from '@/components/features/admin/review-actions';
+import { ReviewDetailModal } from '@/components/features/admin/review-detail-modal';
 import { Star, EyeOff } from 'lucide-react';
+import { LocaleDate } from '@/components/ui/locale-date';
 import { toggleReviewVisibility } from '@/actions/admin/moderation';
 import type { AdminReviewRow } from '@/actions/admin/queries';
 import type { BulkAction } from '@/components/features/bulk-action-bar';
@@ -41,6 +43,28 @@ export function ReviewsTableClient({ data, totalCount, currentPage, totalPages, 
         ),
       },
       {
+        id: 'reviewer',
+        header: t['col_reviewer'] ?? 'Reviewer',
+        hiddenOnMobile: true,
+        cell: (row) => (
+          <div className="min-w-0">
+            <p className="truncate text-sm">{row.reviewer_name ?? '—'}</p>
+            {row.reviewer_company && <p className="truncate text-xs text-muted-foreground">{row.reviewer_company}</p>}
+          </div>
+        ),
+      },
+      {
+        id: 'reviewee',
+        header: t['col_reviewee'] ?? 'Reviewee',
+        hiddenOnMobile: true,
+        cell: (row) => (
+          <div className="min-w-0">
+            <p className="truncate text-sm">{row.reviewee_name ?? '—'}</p>
+            {row.reviewee_company && <p className="truncate text-xs text-muted-foreground">{row.reviewee_company}</p>}
+          </div>
+        ),
+      },
+      {
         id: 'comment',
         header: t['col_comment'],
         cell: (row) => (
@@ -64,16 +88,15 @@ export function ReviewsTableClient({ data, totalCount, currentPage, totalPages, 
         sortKey: 'created_at',
         hiddenOnMobile: true,
         cell: (row) => (
-          <span className="text-xs text-muted-foreground">
-            {new Date(row.created_at).toLocaleDateString()}
-          </span>
+          <LocaleDate date={row.created_at} className="text-xs text-muted-foreground" />
         ),
       },
       {
         id: 'actions',
         header: t['col_actions'],
         cell: (row) => (
-          <div onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+            <ReviewDetailModal review={row} translations={t} />
             <AdminReviewActions reviewId={row.id} isHidden={row.is_hidden} />
           </div>
         ),
@@ -152,7 +175,7 @@ export function ReviewsTableClient({ data, totalCount, currentPage, totalPages, 
           rating: row.overall_rating,
           comment: row.comment_ar || row.comment_en || '',
           visibility: row.is_hidden ? (t['visibility_hidden'] ?? 'hidden') : (t['visibility_visible'] ?? 'visible'),
-          created_at: new Date(row.created_at).toLocaleDateString(),
+          created_at: new Date(row.created_at).toLocaleDateString('en-GB'),
         })),
       }}
     >

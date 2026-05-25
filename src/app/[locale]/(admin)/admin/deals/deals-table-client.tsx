@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/features/empty-state';
 import { useRouter } from '@/i18n/navigation';
 import { Handshake } from 'lucide-react';
 import { formatSAR } from '@/lib/utils';
+import { LocaleDate } from '@/components/ui/locale-date';
 import type { AdminDealRow } from '@/actions/admin/queries';
 
 // =============================================================================
@@ -76,9 +77,7 @@ export function DealsTableClient({ data, totalCount, currentPage, totalPages, tr
         sortKey: 'created_at',
         hiddenOnMobile: true,
         cell: (row) => (
-          <span className="text-xs text-muted-foreground">
-            {new Date(row.created_at).toLocaleDateString()}
-          </span>
+          <LocaleDate date={row.created_at} className="text-xs text-muted-foreground" />
         ),
       },
     ],
@@ -140,7 +139,7 @@ export function DealsTableClient({ data, totalCount, currentPage, totalPages, tr
           deal_type: t[`dealType_${row.deal_type}`] ?? row.deal_type,
           status: t[`dealStatus_${row.status}`] ?? row.status,
           value: Number(row.value ?? 0),
-          created_at: new Date(row.created_at).toLocaleDateString(),
+          created_at: new Date(row.created_at).toLocaleDateString('en-GB'),
         })),
       }}
     >

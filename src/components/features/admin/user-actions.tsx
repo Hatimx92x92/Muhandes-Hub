@@ -4,7 +4,9 @@ import { useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { approveUserDocuments, banUser, unbanUser, restrictUser, unrestrictUser } from '@/actions/admin/users';
+import { adminStartConversation } from '@/actions/messages';
 import { Button } from '@/components/ui/button';
+import { MessageSquare } from 'lucide-react';
 
 interface AdminUserActionsProps {
   userId: string;
@@ -17,7 +19,24 @@ export function AdminUserActions({ userId, currentStatus, isAdmin }: AdminUserAc
   const router = useRouter();
   const t = useTranslations('features.adminUser');
 
-  if (isAdmin) return null; // Can't modify admin accounts
+  const handleSendMessage = () => {
+    startTransition(async () => {
+      const res = await adminStartConversation(userId);
+      if (res.data) {
+        router.push(`/admin/messages/${res.data.conversationId}` as Parameters<typeof router.push>[0]);
+      }
+    });
+  };
+
+  if (isAdmin) {
+    return (
+      <div className="flex flex-wrap gap-1" onClick={(e) => e.stopPropagation()}>
+        <Button size="sm" variant="ghost" loading={isPending} onClick={handleSendMessage}>
+          <MessageSquare className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
 
   const handleAction = (action: () => Promise<unknown>) => {
     startTransition(async () => {
@@ -81,6 +100,16 @@ export function AdminUserActions({ userId, currentStatus, isAdmin }: AdminUserAc
           {t('unrestrict')}
         </Button>
       )}
+
+      <Button
+        size="sm"
+        variant="ghost"
+        loading={isPending}
+        onClick={handleSendMessage}
+        title={t('sendMessage')}
+      >
+        <MessageSquare className="h-4 w-4" />
+      </Button>
     </div>
   );
 }

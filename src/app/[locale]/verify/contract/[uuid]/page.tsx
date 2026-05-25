@@ -4,17 +4,17 @@
 
 import { Card } from '@/components/ui/card';
 import { verifyContract } from '@/actions/contracts';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 export default async function VerifyContractPage({
   params,
 }: {
-  params: Promise<{ uuid: string }>;
+  params: Promise<{ locale: string; uuid: string }>;
 }) {
-  const { uuid } = await params;
+  const { locale, uuid } = await params;
+  setRequestLocale(locale);
   const result = await verifyContract(uuid);
   const t = await getTranslations('verify.contract');
-  const locale = await getLocale();
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">

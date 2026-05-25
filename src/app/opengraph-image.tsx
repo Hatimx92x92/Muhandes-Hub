@@ -4,13 +4,19 @@
 // =============================================================================
 
 import { ImageResponse } from 'next/og';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 export const alt = 'Muhandes HUB | منصة مهندس';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 export default async function Image() {
+  const logoData = await readFile(join(process.cwd(), 'public', 'android-chrome-512x512.png'));
+  const logoSrc = `data:image/png;base64,${logoData.toString('base64')}`;
+
   return new ImageResponse(
     (
       <div
@@ -25,24 +31,15 @@ export default async function Image() {
           padding: '60px',
         }}
       >
-        {/* Logo area */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '80px',
-            height: '80px',
-            borderRadius: '16px',
-            background: '#2563eb',
-            marginBottom: '32px',
-            fontSize: '40px',
-            color: 'white',
-            fontWeight: 'bold',
-          }}
-        >
-          M
-        </div>
+        {/* Logo */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={logoSrc}
+          alt=""
+          width={120}
+          height={120}
+          style={{ marginBottom: '32px' }}
+        />
 
         {/* Arabic Title */}
         <div

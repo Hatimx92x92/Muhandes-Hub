@@ -5,16 +5,20 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound, redirect } from 'next/navigation';
+import { after } from 'next/server';
 import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { backfillEntityTranslation } from '@/actions/admin/translate-backfill';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { UserAvatar } from '@/components/features/user-avatar';
 import { formatSAR, getLocaleField, isUUID, getEntitySlug, truncate } from '@/lib/utils';
-import { Package, Building2, Shield, ShoppingCart, Truck, Download, Pencil } from 'lucide-react';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { Package, Building2, Shield, ShoppingCart, Truck, Pencil } from 'lucide-react';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 import { ProductInquiryButton } from '@/components/features/product-inquiry-button';
+import { FileActions } from '@/components/features/file-actions';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
 
@@ -71,10 +75,12 @@ async function fetchProduct(slug: string, locale: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const locale = await getLocale();
+  const { locale, slug: rawSlug } = await params;
+  setRequestLocale(locale);
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
 
   if (isUUID(slug)) return {};
 
@@ -138,12 +144,14 @@ export async function generateMetadata({
 export default async function PublicProductDetailPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug: rawSlug } = await params;
+  setRequestLocale(locale);
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
   const supabase = await createClient();
   const t = await getTranslations('public.productDetail');
-  const locale = await getLocale();
 
   // UUID redirect: old ID-based URLs → slug-based
   if (isUUID(slug)) {
@@ -179,6 +187,11 @@ export default async function PublicProductDetailPage({
   }
 
   if (!product) notFound();
+
+  // Backfill missing locale fields after render (fire-and-forget, free DeepL)
+  if (!product[`name_${locale}`] || !product[`description_${locale}`]) {
+    after(() => backfillEntityTranslation('products', product.id, product, ['name', 'description']));
+  }
 
   let variants: Array<{
     id: string;
@@ -284,6 +297,16 @@ export default async function PublicProductDetailPage({
     offers: offersJsonLd.length === 1 ? offersJsonLd[0] : offersJsonLd,
   };
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: locale === 'ar' ? 'الرئيسية' : 'Home', item: `${BASE_URL}/${locale}` },
+      { '@type': 'ListItem', position: 2, name: locale === 'ar' ? 'السوق' : 'Marketplace', item: `${BASE_URL}/${locale}/marketplace` },
+      { '@type': 'ListItem', position: 3, name: productName, item: `${BASE_URL}/${locale}/products/${slug}` },
+    ],
+  };
+
   return (
     <div className="py-16">
       {/* JSON-LD structured data for Google / Merchant Center */}
@@ -291,6 +314,7 @@ export default async function PublicProductDetailPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       <BreadcrumbOverride segment={slug} label={getLocaleField(product, 'name', locale)} />
 
@@ -405,7 +429,7 @@ export default async function PublicProductDetailPage({
               <ul className="space-y-2">
                 {productSpecs.map((spec: { id: string; file_url: string; file_name: string; file_size: number }) => (
                   <li key={spec.id} className="flex items-center gap-3 rounded-lg border p-3 text-sm">
-                    <Download className="h-5 w-5 shrink-0 text-primary" />
+                    <Package className="h-5 w-5 shrink-0 text-primary" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-foreground">{spec.file_name}</p>
                       <p className="text-xs text-muted-foreground">
@@ -414,16 +438,7 @@ export default async function PublicProductDetailPage({
                           : `${(spec.file_size / (1024 * 1024)).toFixed(1)} MB`}
                       </p>
                     </div>
-                    <a
-                      href={spec.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      download
-                    >
-                      <Button variant="outline" size="sm">
-                        {t('downloadCatalog')}
-                      </Button>
-                    </a>
+                    <FileActions url={spec.file_url} fileName={spec.file_name} compact />
                   </li>
                 ))}
               </ul>
@@ -491,13 +506,7 @@ export default async function PublicProductDetailPage({
               <Card className="p-5 transition-colors hover:bg-card/80">
                 <h3 className="mb-3 text-sm font-semibold text-foreground">{t('supplierLabel')}</h3>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    {supplier.avatar_url ? (
-                      <Image src={supplier.avatar_url} alt="" width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
-                    ) : (
-                      <Building2 className="h-5 w-5 text-primary" />
-                    )}
-                  </div>
+                  <UserAvatar src={supplier.avatar_url} name={supplier.full_name} size="md" />
                   <div>
                     <p className="text-sm font-medium text-foreground">
                       {locale === 'ar'

@@ -7,7 +7,8 @@ import { createClient } from '@/lib/supabase/server';
 import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { ContractForm } from '@/components/forms/contract-form';
-import { TIER_LIMITS } from '@/types';
+import { PageHeader } from '@/components/ui/page-header';
+import { getEffectiveLimits } from '@/types';
 import { TierGate } from '@/components/features/tier-gate';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,6 +25,14 @@ export default async function NewContractPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
+  // Buyer role cannot create contracts
+  const { data: roleCheck } = await db(supabase)
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+  if (roleCheck?.role === 'buyer') redirect('/dashboard');
+
   // Tier limit check for contracts per month
   const { data: subscription } = await db(supabase)
     .from('subscriptions')
@@ -32,8 +41,16 @@ export default async function NewContractPage({
     .eq('is_active', true)
     .single();
 
-  const tier = (subscription?.tier || 'starter') as keyof typeof TIER_LIMITS;
-  const limits = TIER_LIMITS[tier];
+  const tier = (subscription?.tier || 'starter') as string;
+
+  // Get profile for free-role limits
+  const { data: contractProfile } = await db(supabase)
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const limits = getEffectiveLimits(contractProfile?.role || 'contractor', tier);
   const maxContracts = limits?.contractsPerMonth ?? Infinity;
 
   if (maxContracts !== Infinity) {
@@ -41,7 +58,7 @@ export default async function NewContractPage({
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const { count } = await db(supabase)
       .from('contracts')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .eq('creator_id', user.id)
       .gte('created_at', startOfMonth);
 
@@ -49,9 +66,7 @@ export default async function NewContractPage({
       const tGate = await getTranslations('tierGate');
       return (
         <div className="space-y-6">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">{t('newPage.title')}</h1>
-          </div>
+          <PageHeader title={t('newPage.title')} backHref="/dashboard/contracts" />
           <TierGate
             isLocked
             title={tGate('contractsPerMonth.title')}
@@ -105,12 +120,11 @@ export default async function NewContractPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{t('newPage.title')}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {deal_id ? t('newPage.linkedToDeal') : t('newPage.standalone')}
-        </p>
-      </div>
+      <PageHeader
+        title={t('newPage.title')}
+        description={deal_id ? t('newPage.linkedToDeal') : t('newPage.standalone')}
+        backHref="/dashboard/contracts"
+      />
 
       <Card className="p-6">
         <ContractForm

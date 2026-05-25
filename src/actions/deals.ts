@@ -6,6 +6,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getTranslations } from 'next-intl/server';
 import {
   MilestoneSchema,
@@ -465,13 +466,19 @@ export async function confirmProof(
   let dealCompleted = false;
 
   if (newProgress >= 100 && otherProgress >= 100) {
+    const completedAt = new Date().toISOString();
     await db(supabase)
       .from('deals')
-      .update({
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-      })
+      .update({ status: 'completed', completed_at: completedAt })
       .eq('id', deal.id);
+
+    if (deal.project_id) {
+      await db(supabase)
+        .from('projects')
+        .update({ status: 'completed' })
+        .eq('id', deal.project_id);
+    }
+
     dealCompleted = true;
 
     // Notify both parties of deal completion
@@ -914,6 +921,14 @@ export async function approveSkipMilestone(
       buyer_progress: 100,
     })
     .eq('id', deal.id);
+
+  if (deal.project_id) {
+    const admin = createAdminClient();
+    await admin
+      .from('projects')
+      .update({ status: 'completed' })
+      .eq('id', deal.project_id);
+  }
 
   await logActivity(supabase, deal.id, user.id, 'skip_milestone_approved', {
     request_id: requestId,

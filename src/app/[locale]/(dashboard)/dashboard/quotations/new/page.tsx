@@ -5,9 +5,12 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { QuotationForm } from '@/components/forms/quotation-form';
+import { PageHeader } from '@/components/ui/page-header';
+import { Card } from '@/components/ui/card';
 import { getTranslations } from 'next-intl/server';
-import { TIER_LIMITS } from '@/types';
+import { getEffectiveLimits } from '@/types';
 import { TierGate } from '@/components/features/tier-gate';
+import { getLocaleField } from '@/lib/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -15,10 +18,13 @@ function db(supabase: any): any {
 }
 
 export default async function NewQuotationPage({
+  params: routeParams,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ inquiry_id?: string; recipient_id?: string; mode?: string }>;
 }) {
+  const { locale } = await routeParams;
   const params = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -43,8 +49,8 @@ export default async function NewQuotationPage({
     .eq('is_active', true)
     .single();
 
-  const tier = (subscription?.tier || 'starter') as keyof typeof TIER_LIMITS;
-  const limits = TIER_LIMITS[tier];
+  const tier = (subscription?.tier || 'starter') as string;
+  const limits = getEffectiveLimits(profile.role, tier);
   const maxQuotations = limits?.quotationsPerMonth ?? 3;
 
   if (maxQuotations !== Infinity) {
@@ -52,7 +58,7 @@ export default async function NewQuotationPage({
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const { count } = await db(supabase)
       .from('quotations')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .eq('sender_id', user.id)
       .gte('created_at', startOfMonth);
 
@@ -61,9 +67,7 @@ export default async function NewQuotationPage({
       const tGate = await getTranslations('tierGate');
       return (
         <div className="space-y-6">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">{t('newPage.title')}</h1>
-          </div>
+          <PageHeader title={t('newPage.title')} backHref="/dashboard/quotations" />
           <TierGate
             isLocked
             title={tGate('quotationsPerMonth.title')}
@@ -79,22 +83,34 @@ export default async function NewQuotationPage({
 
   const t = await getTranslations('dashboard.quotations');
 
-  return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">{t('newPage.title')}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t('newPage.subtitle')}
-        </p>
-      </div>
+  // Pre-fill client name from recipient profile when responding to an inquiry
+  let clientName: string | undefined;
+  if (params.recipient_id) {
+    const { data: recipientProfile } = await db(supabase)
+      .from('profiles')
+      .select('full_name_ar, full_name_en, company_name_ar, company_name_en')
+      .eq('id', params.recipient_id)
+      .single();
 
-      <div className="rounded-xl border border-border bg-card p-6">
+    if (recipientProfile) {
+      clientName =
+        getLocaleField(recipientProfile, 'company_name', locale) ||
+        getLocaleField(recipientProfile, 'full_name', locale) ||
+        undefined;
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <PageHeader title={t('newPage.title')} description={t('newPage.subtitle')} backHref="/dashboard/quotations" />
+      <Card className="p-6">
         <QuotationForm
           mode={params.mode === 'inquiry_response' ? 'inquiry_response' : 'standalone'}
           inquiryId={params.inquiry_id}
           recipientId={params.recipient_id}
+          defaultValues={{ client_name: clientName }}
         />
-      </div>
+      </Card>
     </div>
   );
 }

@@ -6,8 +6,10 @@ import { AdminTableShell, type FilterGroup } from '@/components/features/admin/a
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/features/empty-state';
 import { AdminCommissionActions } from '@/components/features/admin/commission-actions';
+import { CommissionDetailModal } from '@/components/features/admin/commission-detail-modal';
 import { Banknote, CheckCircle } from 'lucide-react';
 import { formatSAR } from '@/lib/utils';
+import { LocaleDate } from '@/components/ui/locale-date';
 import type { AdminCommissionRow } from '@/actions/admin/queries';
 import type { BulkAction } from '@/components/features/bulk-action-bar';
 import { approveCommissionPayment } from '@/actions/admin/commissions';
@@ -43,6 +45,17 @@ export function CommissionsTableClient({ data, totalCount, currentPage, totalPag
         header: t['col_commissionId'],
         cell: (row) => (
           <span className="font-mono text-sm font-medium">#{row.id.slice(0, 8)}</span>
+        ),
+      },
+      {
+        id: 'seller',
+        header: t['col_seller'] ?? 'Seller',
+        hiddenOnMobile: true,
+        cell: (row) => (
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium">{row.seller_name ?? '—'}</p>
+            {row.seller_company && <p className="truncate text-xs text-muted-foreground">{row.seller_company}</p>}
+          </div>
         ),
       },
       {
@@ -85,9 +98,7 @@ export function CommissionsTableClient({ data, totalCount, currentPage, totalPag
         sortKey: 'due_date',
         hiddenOnMobile: true,
         cell: (row) => (
-          <span className="text-xs text-muted-foreground">
-            {row.due_date ? new Date(row.due_date).toLocaleDateString() : '—'}
-          </span>
+          <LocaleDate date={row.due_date} className="text-xs text-muted-foreground" />
         ),
       },
       {
@@ -96,16 +107,15 @@ export function CommissionsTableClient({ data, totalCount, currentPage, totalPag
         sortKey: 'created_at',
         hiddenOnMobile: true,
         cell: (row) => (
-          <span className="text-xs text-muted-foreground">
-            {new Date(row.created_at).toLocaleDateString()}
-          </span>
+          <LocaleDate date={row.created_at} className="text-xs text-muted-foreground" />
         ),
       },
       {
         id: 'actions',
         header: t['col_actions'],
         cell: (row) => (
-          <div onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+            <CommissionDetailModal commission={row} translations={t} />
             {(row.status === 'pending' || row.status === 'approved' || row.status === 'disputed') && (
               <AdminCommissionActions
                 commissionId={row.id}
@@ -198,8 +208,8 @@ export function CommissionsTableClient({ data, totalCount, currentPage, totalPag
           amount: Number(row.amount ?? 0),
           vat_amount: Number(row.vat_amount ?? 0),
           total: Number(row.total ?? 0),
-          due_date: row.due_date ? new Date(row.due_date).toLocaleDateString() : '',
-          created_at: new Date(row.created_at).toLocaleDateString(),
+          due_date: row.due_date ? new Date(row.due_date).toLocaleDateString('en-GB') : '',
+          created_at: new Date(row.created_at).toLocaleDateString('en-GB'),
         })),
       }}
     >

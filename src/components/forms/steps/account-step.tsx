@@ -70,7 +70,7 @@ export function AccountStep({ data, updateData, fieldErrors, isOAuthMode = false
         value={data.full_name}
         onChange={(e) => updateData({ full_name: e.target.value })}
         error={getError('full_name')}
-        placeholder="أدخل اسمك الكامل"
+        placeholder={t('fullNamePlaceholder')}
       />
 
       <Input
@@ -81,7 +81,7 @@ export function AccountStep({ data, updateData, fieldErrors, isOAuthMode = false
         value={data.email}
         onChange={(e) => !isOAuthMode && updateData({ email: e.target.value })}
         error={getError('email')}
-        placeholder="email@example.com"
+        placeholder={t('emailPlaceholder')}
         readOnly={isOAuthMode}
         className={isOAuthMode ? 'opacity-60 cursor-not-allowed' : ''}
       />

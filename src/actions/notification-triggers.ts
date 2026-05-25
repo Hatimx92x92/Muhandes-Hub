@@ -18,8 +18,10 @@ export async function notifyBidReceived(params: {
   projectTitle: { ar: string; en: string };
   bidderName: string;
   projectId: string;
+  projectSlug?: string;
   bidId: string;
 }) {
+  const slugOrId = params.projectSlug || params.projectId;
   await createNotification({
     user_id: params.ownerId,
     type: 'bid_received',
@@ -27,7 +29,7 @@ export async function notifyBidReceived(params: {
     title_en: `New bid on "${params.projectTitle.en}"`,
     body_ar: `قدّم ${params.bidderName} عرضاً على مشروعك`,
     body_en: `${params.bidderName} submitted a bid on your project`,
-    link: `/dashboard/projects/${params.projectId}/bids`,
+    link: `/dashboard/projects/${slugOrId}/bids`,
     entity_type: 'bid',
     entity_id: params.bidId,
   });
@@ -39,7 +41,11 @@ export async function notifyBidAwarded(params: {
   projectTitle: { ar: string; en: string };
   projectId: string;
   bidId: string;
+  dealId?: string;
 }) {
+  const link = params.dealId
+    ? `/dashboard/deals/${params.dealId}`
+    : `/dashboard/deals`;
   await createNotification({
     user_id: params.contractorId,
     type: 'bid_awarded',
@@ -47,7 +53,7 @@ export async function notifyBidAwarded(params: {
     title_en: `Your bid was awarded on "${params.projectTitle.en}"`,
     body_ar: 'تهانينا! تم قبول عرضك وإنشاء صفقة جديدة',
     body_en: 'Congratulations! Your bid was accepted and a new deal was created',
-    link: `/dashboard/projects/${params.projectId}`,
+    link,
     entity_type: 'bid',
     entity_id: params.bidId,
   });
@@ -364,15 +370,16 @@ export async function notifyDocumentApproved(params: {
 export async function notifyDocumentRejected(params: {
   userId: string;
   documentType: string;
-  reason?: string;
+  reasonAr?: string;
+  reasonEn?: string;
 }) {
   await createNotification({
     user_id: params.userId,
     type: 'document_rejected',
     title_ar: `تم رفض المستند: ${params.documentType}`,
     title_en: `Document rejected: ${params.documentType}`,
-    body_ar: params.reason,
-    body_en: params.reason,
+    body_ar: params.reasonAr,
+    body_en: params.reasonEn,
     link: `/dashboard/settings`,
   });
 }
@@ -412,7 +419,8 @@ export async function notifyPostRejected(params: {
   postTitle: { ar: string; en: string };
   postType: 'project' | 'product' | 'rfq';
   postId: string;
-  reason?: string;
+  reasonAr?: string;
+  reasonEn?: string;
 }) {
   const typeLabels = {
     project: { ar: 'المشروع', en: 'Project' },
@@ -426,8 +434,8 @@ export async function notifyPostRejected(params: {
     type: 'post_rejected',
     title_ar: `تم رفض ${label.ar} "${params.postTitle.ar}"`,
     title_en: `${label.en} "${params.postTitle.en}" rejected`,
-    body_ar: params.reason,
-    body_en: params.reason,
+    body_ar: params.reasonAr,
+    body_en: params.reasonEn,
     link: `/dashboard/${params.postType}s/${params.postId}`,
     entity_type: params.postType,
     entity_id: params.postId,
@@ -735,6 +743,23 @@ export async function notifySubscriptionPaymentApproved(params: {
     body_ar: 'تم تفعيل اشتراكك بنجاح',
     body_en: 'Your subscription has been activated successfully',
     link: '/dashboard/subscription',
+    entity_type: 'subscription',
+  });
+}
+
+export async function notifySubscriptionPaymentRejected(params: {
+  userId: string;
+  tier: string;
+  reason: string;
+}) {
+  await createNotification({
+    user_id: params.userId,
+    type: 'subscription_payment_rejected',
+    title_ar: `تم رفض دفعتك لباقة ${params.tier}`,
+    title_en: `Your payment for ${params.tier} plan has been rejected`,
+    body_ar: params.reason || 'يرجى إعادة المحاولة أو التواصل مع الدعم',
+    body_en: params.reason || 'Please retry or contact support',
+    link: '/verify/payment',
     entity_type: 'subscription',
   });
 }

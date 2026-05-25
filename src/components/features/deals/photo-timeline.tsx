@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Camera, ImageIcon } from 'lucide-react';
+import { getProxyUrl } from '@/lib/file-utils';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -90,12 +91,12 @@ export function PhotoTimeline({ photos }: PhotoTimelineProps) {
                 <div key={idx} className="group relative">
                   <button
                     type="button"
-                    onClick={() => setSelectedPhoto(photo.url)}
+                    onClick={() => setSelectedPhoto(getProxyUrl(photo.url))}
                     className="block w-full aspect-square overflow-hidden rounded-lg border border-border transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={photo.url}
+                      src={getProxyUrl(photo.url)}
                       alt={photo.label || ''}
                       className="h-full w-full object-cover"
                       loading="lazy"

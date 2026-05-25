@@ -2,6 +2,8 @@
 // Projects Browse Page — public project listing with search & filters
 // =============================================================================
 
+import type { Metadata } from 'next';
+import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
@@ -9,13 +11,52 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/features/empty-state';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, Banknote, Calendar, Users, FolderKanban, Search } from 'lucide-react';
+import { MapPin, Banknote, Calendar, Users, FolderKanban, Search, ImageIcon } from 'lucide-react';
 import { formatSAR, formatDate, getLocaleField, getEntitySlug } from '@/lib/utils';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { BrowsePagination } from '@/components/features/browse-pagination';
 import { SavedFilters } from '@/components/features/saved-filters';
+import { getProxyUrl } from '@/lib/file-utils';
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
 const PAGE_SIZE = 24;
+
+// ---------------------------------------------------------------------------
+// SEO — generateMetadata
+// ---------------------------------------------------------------------------
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ q?: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const sp = await searchParams;
+  setRequestLocale(locale);
+  const t = await getTranslations('metadata.projects');
+
+  return {
+    title: t('title'),
+    description: t('description'),
+    ...(sp.q ? { robots: { index: false, follow: true } } : {}),
+    openGraph: {
+      title: t('title'),
+      description: t('description'),
+      type: 'website',
+      locale: locale === 'ar' ? 'ar_SA' : 'en_US',
+      alternateLocale: locale === 'ar' ? 'en_US' : 'ar_SA',
+      siteName: 'Muhandes HUB',
+    },
+    alternates: {
+      canonical: `${BASE_URL}/${locale}/projects`,
+      languages: {
+        ar: `${BASE_URL}/ar/projects`,
+        en: `${BASE_URL}/en/projects`,
+      },
+    },
+  };
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -23,15 +64,18 @@ function db(supabase: any): any {
 }
 
 export default async function ProjectsPage({
+  params: routeParams,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ q?: string; city?: string; source?: string; sort?: string; page?: string }>;
 }) {
+  const { locale } = await routeParams;
+  setRequestLocale(locale);
   const params = await searchParams;
   const supabase = await createClient();
   const t = await getTranslations('public.projects');
   const sf = await getTranslations('features.savedFilters');
-  const locale = await getLocale();
   const { data: { user } } = await supabase.auth.getUser();
   const currentPage = Math.max(1, parseInt(params.page || '1', 10) || 1);
   const from = (currentPage - 1) * PAGE_SIZE;
@@ -39,7 +83,7 @@ export default async function ProjectsPage({
 
   let query = db(supabase)
     .from('projects')
-    .select('id, title_ar, title_en, description_ar, description_en, city_id, budget_min, budget_max, source, classification, bid_count, created_at, timeline_start, timeline_end, slug_ar, slug_en', { count: 'exact' })
+    .select('id, title_ar, title_en, description_ar, description_en, city_id, budget_min, budget_max, source, classification, bid_count, created_at, timeline_start, timeline_end, slug_ar, slug_en, saudi_cities(name_ar, name_en)', { count: 'exact' })
     .eq('status', 'published');
 
   if (params.q) {
@@ -83,7 +127,27 @@ export default async function ProjectsPage({
     created_at: string;
     timeline_start: string | null;
     timeline_end: string | null;
+    saudi_cities: { name_ar: string; name_en: string } | null;
   }>;
+
+  // Fetch thumbnail images for displayed projects
+  const projectIds = items.map((p) => p.id);
+  let thumbnailMap: Record<string, string> = {};
+  if (projectIds.length > 0) {
+    const { data: imageFiles } = await db(supabase)
+      .from('project_files')
+      .select('project_id, file_url')
+      .in('project_id', projectIds)
+      .eq('category', 'images')
+      .order('created_at', { ascending: true });
+    if (imageFiles) {
+      for (const img of imageFiles as { project_id: string; file_url: string }[]) {
+        if (!thumbnailMap[img.project_id]) {
+          thumbnailMap[img.project_id] = img.file_url;
+        }
+      }
+    }
+  }
 
   return (
     <div className="py-16">
@@ -163,7 +227,7 @@ export default async function ProjectsPage({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((project) => (
-            <PublicProjectCard key={project.id} project={project} locale={locale} t={t} />
+            <PublicProjectCard key={project.id} project={project} locale={locale} t={t} thumbnailUrl={thumbnailMap[project.id] || null} />
           ))}
         </div>
       )}
@@ -185,6 +249,7 @@ function PublicProjectCard({
   project,
   locale,
   t,
+  thumbnailUrl,
 }: {
   project: {
     id: string;
@@ -202,10 +267,12 @@ function PublicProjectCard({
     timeline_start: string | null;
     slug_ar?: string | null;
     slug_en?: string | null;
+    saudi_cities: { name_ar: string; name_en: string } | null;
   };
   locale: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any;
+  thumbnailUrl: string | null;
 }) {
   const title = getLocaleField(project, 'title', locale);
   const descField = locale === 'ar' ? project.description_ar : (project.description_en || project.description_ar);
@@ -213,8 +280,24 @@ function PublicProjectCard({
 
   return (
     <Link href={`/projects/${getEntitySlug(project, locale)}`}>
-      <Card className="h-full p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/20">
-        <div className="space-y-3">
+      <Card className="h-full overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/20">
+        {/* Thumbnail */}
+        {thumbnailUrl ? (
+          <div className="relative aspect-video w-full overflow-hidden bg-muted">
+            <Image
+              src={getProxyUrl(thumbnailUrl)}
+              alt={title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            />
+          </div>
+        ) : (
+          <div className="flex aspect-video w-full items-center justify-center bg-muted/50">
+            <ImageIcon className="h-10 w-10 text-muted-foreground/30" />
+          </div>
+        )}
+        <div className="space-y-3 p-5">
           <div>
             <h3 className="text-base font-semibold text-foreground line-clamp-2">{title}</h3>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -230,10 +313,10 @@ function PublicProjectCard({
           <p className="text-sm text-muted-foreground line-clamp-2">{desc}</p>
 
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-            {project.city_id && (
+            {project.saudi_cities && (
               <span className="flex items-center gap-1">
                 <MapPin className="h-3 w-3" />
-                {project.city_id}
+                {locale === 'ar' ? project.saudi_cities.name_ar : project.saudi_cities.name_en}
               </span>
             )}
             {(project.budget_min || project.budget_max) && (

@@ -7,14 +7,12 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { PostStatusBadge } from '@/components/features/post-status-badge';
-import { EmptyState } from '@/components/features/empty-state';
+import { StatCard } from '@/components/features/stat-card';
+import { PageHeader } from '@/components/ui/page-header';
 import { TierLimitIndicator } from '@/components/features/tier-gate';
-import { Plus, Package, AlertTriangle } from 'lucide-react';
-import { formatSAR, getLocaleField } from '@/lib/utils';
+import { Plus, Package, AlertTriangle, EyeOff } from 'lucide-react';
 import { TIER_LIMITS } from '@/types';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ProductsTableClient } from './products-table-client';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,7 +32,16 @@ export interface ProductRow {
   inquiry_count: number;
 }
 
-export default async function ProductsListPage() {
+export default async function ProductsListPage({
+  params: routeParams,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ status?: string; page?: string; search?: string; sort?: string }>;
+}) {
+  const { locale } = await routeParams;
+  setRequestLocale(locale);
+  const params = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -63,14 +70,35 @@ export default async function ProductsListPage() {
 
   const t = await getTranslations('dashboard.products');
   const tCommon = await getTranslations('dashboard.common');
-  const locale = await getLocale();
 
-  // Fetch products with inquiry counts
-  const { data: products } = await db(supabase)
+  const page = Math.max(1, Number(params.page) || 1);
+  const perPage = 20;
+  const search = params.search?.trim() || '';
+  const sort = params.sort || '';
+
+  const sortMap: Record<string, { column: string; ascending: boolean }> = {
+    newest: { column: 'created_at', ascending: false },
+    oldest: { column: 'created_at', ascending: true },
+    priceHigh: { column: 'price', ascending: false },
+    priceLow: { column: 'price', ascending: true },
+  };
+  const sortConfig = sortMap[sort] ?? sortMap.newest;
+
+  // Fetch products with pagination
+  let query = db(supabase)
     .from('products')
-    .select('id, name_ar, name_en, pricing_model, price, in_stock, status, created_at, inquiries(count)')
+    .select('id, name_ar, name_en, pricing_model, price, in_stock, status, created_at, inquiries(count)', { count: 'exact' })
     .eq('supplier_id', user.id)
-    .order('created_at', { ascending: false });
+    .order(sortConfig.column, { ascending: sortConfig.ascending });
+
+  if (params.status) {
+    query = query.eq('status', params.status);
+  }
+  if (search) {
+    query = query.or(`name_ar.ilike.%${search}%,name_en.ilike.%${search}%`);
+  }
+
+  const { data: products, count: totalCountRaw } = await query.range((page - 1) * perPage, page * perPage - 1);
 
   const items = (products ?? []).map((p: ProductRow & { inquiries: { count: number }[] }) => ({
     id: p.id,
@@ -84,16 +112,48 @@ export default async function ProductsListPage() {
     inquiry_count: p.inquiries?.[0]?.count ?? 0,
   })) as ProductRow[];
 
-  const usedCount = items.length;
+  const totalCount = totalCountRaw ?? 0;
+  const totalPages = Math.ceil(totalCount / perPage);
+
+  // Unfiltered used count (for limit)
+  const { count: usedCountRaw } = await db(supabase)
+    .from('products').select('id', { count: 'exact' })
+    .eq('supplier_id', user.id);
+  const usedCount = usedCountRaw ?? 0;
   const atLimit = maxProducts !== Infinity && usedCount >= maxProducts;
 
-  // Status counts
+  // Stats — unfiltered counts
+  const { count: unpublishedCountRaw } = await db(supabase)
+    .from('products').select('id', { count: 'exact' })
+    .eq('supplier_id', user.id).eq('status', 'draft');
+  const { count: publishedCountRaw } = await db(supabase)
+    .from('products').select('id', { count: 'exact' })
+    .eq('supplier_id', user.id).eq('status', 'published');
+
   const counts = {
-    total: items.length,
-    draft: items.filter((p) => p.status === 'draft').length,
-    pending: items.filter((p) => p.status === 'pending').length,
-    published: items.filter((p) => p.status === 'published').length,
+    total: usedCount,
+    unpublished: unpublishedCountRaw ?? 0,
+    published: publishedCountRaw ?? 0,
   };
+
+  // Filter groups
+  const filterGroups = [
+    {
+      key: 'status',
+      label: tCommon('status'),
+      options: [
+        { value: 'published', label: tCommon('published') },
+        { value: 'draft', label: t('unpublished') },
+      ],
+    },
+  ];
+
+  const sortOptions = [
+    { value: 'newest', label: tCommon('createdAt') + ' ↓' },
+    { value: 'oldest', label: tCommon('createdAt') + ' ↑' },
+    { value: 'priceHigh', label: t('price') + ' ↓' },
+    { value: 'priceLow', label: t('price') + ' ↑' },
+  ];
 
   // Build serializable translations for the client component
   const translations = {
@@ -107,7 +167,11 @@ export default async function ProductsListPage() {
     byVariants: t('byVariants'),
     actions: tCommon('actions'),
     delete: tCommon('delete'),
-    submitForReview: t('detail.submitForReview' as never) || 'Submit for Review',
+    unpublish: t('unpublish') || 'Unpublish',
+    republish: t('republish') || 'Republish',
+    editPrice: t('editPrice') || 'Edit Price',
+    editStock: t('editStock') || 'Edit Stock',
+    export: t('export') || 'Export',
     noProducts: t('noProducts'),
     addFirstProduct: t('addFirstProduct'),
     addProduct: t('addProduct'),
@@ -117,33 +181,30 @@ export default async function ProductsListPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('subtitle')}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <TierLimitIndicator current={usedCount} max={maxProducts} label={t('productCount')} />
-          {atLimit ? (
-            <Link href="/dashboard/subscription">
-              <Button variant="outline" size="sm">
-                <AlertTriangle className="me-1.5 h-4 w-4 text-warning" />
-                {t('upgradeSubscription')}
-              </Button>
-            </Link>
-          ) : (
-            <Link href="/dashboard/products/new">
-              <Button>
-                <Plus className="me-2 h-4 w-4" />
-                {t('new')}
-              </Button>
-            </Link>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title={t('title')}
+        description={t('subtitle')}
+        action={
+          <div className="flex items-center gap-3">
+            <TierLimitIndicator current={usedCount} max={maxProducts} label={t('productCount')} />
+            {atLimit ? (
+              <Link href="/dashboard/subscription">
+                <Button variant="outline" size="sm">
+                  <AlertTriangle className="me-1.5 h-4 w-4 text-warning" />
+                  {t('upgradeSubscription')}
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/dashboard/products/new">
+                <Button>
+                  <Plus className="me-2 h-4 w-4" />
+                  {t('new')}
+                </Button>
+              </Link>
+            )}
+          </div>
+        }
+      />
 
       {/* At-Limit Warning */}
       {atLimit && (
@@ -161,42 +222,23 @@ export default async function ProductsListPage() {
       )}
 
       {/* Status Summary */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <SummaryCard label={tCommon('all')} count={counts.total} />
-        <SummaryCard label={tCommon('draft')} count={counts.draft} variant="gray" />
-        <SummaryCard label={tCommon('pending')} count={counts.pending} variant="yellow" />
-        <SummaryCard label={tCommon('published')} count={counts.published} variant="green" />
+      <div className="grid grid-cols-3 gap-3">
+        <StatCard icon={<Package className="h-5 w-5 text-primary" />} label={tCommon('all')} value={counts.total} />
+        <StatCard icon={<Package className="h-5 w-5 text-success" />} label={tCommon('published')} value={counts.published} color="green" />
+        <StatCard icon={<EyeOff className="h-5 w-5 text-muted-foreground" />} label={t('unpublished')} value={counts.unpublished} />
       </div>
 
       {/* Products Table */}
-      <ProductsTableClient items={items} locale={locale} translations={translations} />
+      <ProductsTableClient
+        items={items}
+        locale={locale}
+        totalCount={totalCount}
+        currentPage={page}
+        totalPages={totalPages}
+        translations={translations}
+        filterGroups={filterGroups}
+        sortOptions={sortOptions}
+      />
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Summary Card
-// ---------------------------------------------------------------------------
-function SummaryCard({
-  label,
-  count,
-  variant = 'default',
-}: {
-  label: string;
-  count: number;
-  variant?: 'default' | 'gray' | 'yellow' | 'green';
-}) {
-  const colors = {
-    default: 'border-border',
-    gray: 'border-border',
-    yellow: 'border-status-pending/30',
-    green: 'border-status-completed/30',
-  };
-
-  return (
-    <Card className={`border ${colors[variant]} p-3 text-center`}>
-      <div className="text-2xl font-bold text-foreground">{count}</div>
-      <div className="text-xs text-muted-foreground">{label}</div>
-    </Card>
   );
 }

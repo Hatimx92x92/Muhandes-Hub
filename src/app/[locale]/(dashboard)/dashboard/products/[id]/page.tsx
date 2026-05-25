@@ -5,17 +5,19 @@
 import { Link } from '@/i18n/navigation';
 import { redirect } from 'next/navigation';
 import { notFound } from 'next/navigation';
+import { after } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { backfillEntityTranslation } from '@/actions/admin/translate-backfill';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PostStatusBadge } from '@/components/features/post-status-badge';
-import { ModerationFeedback } from '@/components/features/moderation-feedback';
 import { ProductForm } from '@/components/forms/product-form';
+import { PageHeader } from '@/components/ui/page-header';
 import { formatSAR, formatDate, getLocaleField } from '@/lib/utils';
-import { ArrowRight, Send, Trash2, Package, Clock, Layers } from 'lucide-react';
-import { submitProductForApproval, deleteProduct } from '@/actions/products';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { Trash2, Package, Clock, Layers } from 'lucide-react';
+import { deleteProduct } from '@/actions/products';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,13 +28,13 @@ function db(supabase: any): any {
 export default async function ProductDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ locale: string; id: string }>;
 }) {
-  const { id } = await params;
+  const { locale, id } = await params;
+  setRequestLocale(locale);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
-  const locale = await getLocale();
 
   // Fetch product by ID — must belong to the current user
   const { data: product } = await db(supabase)
@@ -43,6 +45,11 @@ export default async function ProductDetailPage({
     .single();
 
   if (!product) notFound();
+
+  // Backfill missing locale fields after render (fire-and-forget, free DeepL)
+  if (!product[`name_${locale}`] || !product[`description_${locale}`]) {
+    after(() => backfillEntityTranslation('products', product.id, product, ['name', 'description']));
+  }
 
   // Fetch variants if variant-based pricing
   let variants: { name_ar: string; name_en: string; sku: string | null; price: number; stock_quantity: number | null; sort_order: number }[] = [];
@@ -76,47 +83,25 @@ export default async function ProductDetailPage({
   const validStatuses = ['draft', 'pending', 'published', 'rejected', 'awarded', 'completed', 'expired', 'closed'] as const;
   const status = validStatuses.includes(product.status) ? product.status : 'draft';
   const canEdit = true;
-  const canSubmit = ['draft', 'rejected'].includes(status);
-  const canDelete = status === 'draft';
+  const canDelete = true; // Can delete any product (active deals checked server-side)
 
   return (
     <div className="space-y-6">
       <BreadcrumbOverride segment={id} label={getLocaleField(product, 'name', locale)} />
 
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <Link
-            href="/dashboard/products"
-            className="mb-2 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowRight className="h-4 w-4 rotate-180 rtl:rotate-0" />
-            {tDetail('backToProducts')}
-          </Link>
-          <h1 className="text-2xl font-bold text-foreground">
-            {getLocaleField(product, 'name', locale)}
-          </h1>
-          <div className="mt-2 flex items-center gap-2">
+      <PageHeader
+        title={getLocaleField(product, 'name', locale)}
+        badge={
+          <div className="flex items-center gap-2">
             <PostStatusBadge status={status} />
             <Badge variant="outline">
               {product.pricing_model === 'fixed' ? tDetail('fixedPrice') : tDetail('variantBased')}
             </Badge>
           </div>
-        </div>
-
-        <div className="flex gap-2">
-          {canSubmit && (
-            <form action={async () => {
-              'use server';
-              await submitProductForApproval(id);
-            }}>
-              <Button size="sm">
-                <Send className="me-1.5 h-4 w-4" />
-                {tDetail('submitForReview')}
-              </Button>
-            </form>
-          )}
-          {canDelete && (
+        }
+        backHref="/dashboard/products"
+        action={
+          canDelete && (
             <form action={async () => {
               'use server';
               await deleteProduct(id);
@@ -127,19 +112,11 @@ export default async function ProductDetailPage({
                 {tCommon('delete')}
               </Button>
             </form>
-          )}
-        </div>
-      </div>
+          )
+        }
+      />
 
-      {/* Rejection Feedback */}
-      {status === 'rejected' && (
-        <ModerationFeedback
-          rejectionReasonAr={product.rejection_reason_ar}
-          rejectionReasonEn={product.rejection_reason_en}
-        />
-      )}
-
-      {/* Edit Form (draft/rejected) OR Read-Only Details */}
+      {/* Edit Form OR Read-Only Details */}
       {canEdit ? (
         <div className="space-y-4">
           <div>

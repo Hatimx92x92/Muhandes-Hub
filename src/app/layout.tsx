@@ -40,11 +40,26 @@ export const metadata: Metadata = {
     'منصة مهندس',
   ],
   authors: [{ name: 'Muhandes HUB' }],
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+    shortcut: '/favicon.ico',
+  },
+  manifest: '/site.webmanifest',
   openGraph: {
     type: 'website',
     locale: 'ar_SA',
     alternateLocale: 'en_US',
     siteName: 'Muhandes HUB',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@muhandeshub',
+    creator: '@muhandeshub',
   },
 };
 
@@ -61,6 +76,67 @@ export default async function RootLayout({
       <body
         className={`${inter.variable} ${ibmPlexSansArabic.variable} antialiased`}
       >
+        {/* Organization + WebSite structured data for Google Knowledge Panel & Sitelinks */}
+        <Script
+          id="json-ld-organization"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [
+                {
+                  '@type': 'Organization',
+                  '@id': 'https://muhandeshub.com/#organization',
+                  name: 'Muhandes HUB',
+                  alternateName: 'منصة مهندس',
+                  url: 'https://muhandeshub.com',
+                  logo: {
+                    '@type': 'ImageObject',
+                    url: 'https://muhandeshub.com/logo.png',
+                  },
+                  description:
+                    'Bilingual B2B marketplace for the Saudi construction industry — connecting project owners, contractors, suppliers & buyers.',
+                  address: {
+                    '@type': 'PostalAddress',
+                    addressCountry: 'SA',
+                  },
+                  sameAs: [],
+                  parentOrganization: {
+                    '@type': 'Organization',
+                    name: 'Remal Al Mas',
+                    alternateName: 'رمال الماس',
+                    url: 'https://remal-almas.com',
+                  },
+                  contactPoint: {
+                    '@type': 'ContactPoint',
+                    contactType: 'customer service',
+                    email: 'info@muhandeshub.com',
+                    availableLanguage: ['Arabic', 'English'],
+                  },
+                },
+                {
+                  '@type': 'WebSite',
+                  '@id': 'https://muhandeshub.com/#website',
+                  url: 'https://muhandeshub.com',
+                  name: 'Muhandes HUB',
+                  alternateName: 'منصة مهندس',
+                  publisher: { '@id': 'https://muhandeshub.com/#organization' },
+                  inLanguage: ['ar', 'en'],
+                  potentialAction: {
+                    '@type': 'SearchAction',
+                    target: {
+                      '@type': 'EntryPoint',
+                      urlTemplate:
+                        'https://muhandeshub.com/ar/marketplace?q={search_term_string}',
+                    },
+                    'query-input': 'required name=search_term_string',
+                  },
+                },
+              ],
+            }),
+          }}
+        />
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-BQC8J76G8Z"
           strategy="afterInteractive"

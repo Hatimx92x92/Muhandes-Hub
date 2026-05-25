@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { sendQuoteInvitation } from '@/actions/inquiries';
 import { Button } from '@/components/ui/button';
@@ -14,14 +14,20 @@ interface InviteToQuoteFormProps {
   projects: { id: string; title: string }[];
   /** Available suppliers for the selector */
   suppliers: { id: string; companyName: string }[];
+  /** Called after successful submission (e.g. close modal) */
+  onSuccess?: () => void;
 }
 
-export function InviteToQuoteForm({ projects, suppliers }: InviteToQuoteFormProps) {
+export function InviteToQuoteForm({ projects, suppliers, onSuccess }: InviteToQuoteFormProps) {
   const t = useTranslations('dashboard.invitations');
   const [state, formAction, isPending] = useActionState<
     ActionResult<{ id: string }> | null,
     FormData
   >(sendQuoteInvitation, null);
+
+  useEffect(() => {
+    if (state?.data) onSuccess?.();
+  }, [state?.data, onSuccess]);
 
   return (
     <form action={formAction} className="space-y-6">

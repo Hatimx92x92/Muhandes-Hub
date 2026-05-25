@@ -13,6 +13,7 @@ import { apiLimiter, checkRateLimit } from '@/lib/rate-limit';
 import type { ActionResult } from '@/types';
 import { generateUniqueSlug } from '@/lib/utils';
 import { autoTranslateBilingualFields } from '@/lib/translate';
+import { createNotification } from '@/actions/notifications';
 
 // Temporary helper: cast supabase for table queries until types are generated
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -80,6 +81,7 @@ export async function createProject(
     timeline_end: formData.get('timeline_end') || undefined,
     classification: formData.get('classification') || undefined,
     source: formData.get('source') || 'owner',
+    external_link: formData.get('external_link') || '',
   };
 
   const parsed = ProjectSchema.safeParse(raw);
@@ -90,10 +92,12 @@ export async function createProject(
   // 3b. Auto-translate missing bilingual fields
   const translated = await autoTranslateBilingualFields(parsed.data as Record<string, unknown>, ['title', 'description']);
 
-  // 4. Generate slugs
+  // 4. Generate slugs (use other locale's title as fallback to prevent empty slugs)
+  const titleAr = (translated.title_ar as string) || parsed.data.title_ar || '';
+  const titleEn = (translated.title_en as string) || parsed.data.title_en || '';
   const [slug_ar, slug_en] = await Promise.all([
-    generateUniqueSlug((translated.title_ar as string) || parsed.data.title_ar || '', 'projects', 'slug_ar', db(supabase)),
-    generateUniqueSlug((translated.title_en as string) || parsed.data.title_en || '', 'projects', 'slug_en', db(supabase)),
+    generateUniqueSlug(titleAr || titleEn, 'projects', 'slug_ar', db(supabase)),
+    generateUniqueSlug(titleEn || titleAr, 'projects', 'slug_en', db(supabase)),
   ]);
 
   // 5. Resolve city slug to UUID
@@ -125,6 +129,7 @@ export async function createProject(
       timeline_end: parsed.data.timeline_end || null,
       classification: parsed.data.classification || null,
       source: parsed.data.source,
+      external_link: parsed.data.external_link || null,
       slug_ar,
       slug_en,
       status: 'draft',
@@ -161,6 +166,26 @@ export async function createProject(
     }
   }
 
+  // 6b. Upload project images (separate from documents)
+  const projectImages = formData.getAll('project_images') as File[];
+  if (projectImages.length > 0) {
+    const { uploadFile: doUpload } = await import('@/actions/uploads');
+    for (const file of projectImages) {
+      if (!file || file.size === 0) continue;
+      const uploadResult = await doUpload('project-files', file, `${project.id}/images-${Date.now()}`);
+      if (uploadResult.data) {
+        await db(supabase).from('project_files').insert({
+          project_id: project.id,
+          file_url: uploadResult.data.url,
+          file_name: file.name,
+          file_size: file.size,
+          mime_type: file.type,
+          category: 'images',
+        });
+      }
+    }
+  }
+
   return { data: { id: project.id, status: project.status }, error: null };
 }
 
@@ -192,6 +217,7 @@ export async function updateProject(
     timeline_end: formData.get('timeline_end') || undefined,
     classification: formData.get('classification') || undefined,
     source: formData.get('source') || 'owner',
+    external_link: formData.get('external_link') || '',
   };
 
   const parsed = UpdateProjectSchema.safeParse(raw);
@@ -219,10 +245,12 @@ export async function updateProject(
     return { data: null, error: t('cannotEditStatus') };
   }
 
-  // Regenerate slugs
+  // Regenerate slugs (use other locale's title as fallback to prevent empty slugs)
+  const titleAr = (translated.title_ar as string) || parsed.data.title_ar || '';
+  const titleEn = (translated.title_en as string) || parsed.data.title_en || '';
   const [slug_ar, slug_en] = await Promise.all([
-    generateUniqueSlug((translated.title_ar as string) || parsed.data.title_ar || '', 'projects', 'slug_ar', db(supabase), parsed.data.project_id),
-    generateUniqueSlug((translated.title_en as string) || parsed.data.title_en || '', 'projects', 'slug_en', db(supabase), parsed.data.project_id),
+    generateUniqueSlug(titleAr || titleEn, 'projects', 'slug_ar', db(supabase), parsed.data.project_id),
+    generateUniqueSlug(titleEn || titleAr, 'projects', 'slug_en', db(supabase), parsed.data.project_id),
   ]);
 
   // Resolve city slug to UUID
@@ -253,6 +281,7 @@ export async function updateProject(
       timeline_end: parsed.data.timeline_end || null,
       classification: parsed.data.classification || null,
       source: parsed.data.source,
+      external_link: parsed.data.external_link || null,
       slug_ar,
       slug_en,
       status: 'draft', // Reset to draft on edit
@@ -284,6 +313,26 @@ export async function updateProject(
     }
   }
 
+  // Upload new images from FormData
+  const projectImages = formData.getAll('project_images') as File[];
+  if (projectImages.length > 0) {
+    const { uploadFile: doUpload } = await import('@/actions/uploads');
+    for (const file of projectImages) {
+      if (!file || file.size === 0) continue;
+      const uploadResult = await doUpload('project-files', file, `${parsed.data.project_id}/images-${Date.now()}`);
+      if (uploadResult.data) {
+        await db(supabase).from('project_files').insert({
+          project_id: parsed.data.project_id,
+          file_url: uploadResult.data.url,
+          file_name: file.name,
+          file_size: file.size,
+          mime_type: file.type,
+          category: 'images',
+        });
+      }
+    }
+  }
+
   revalidatePath('/dashboard/projects');
   revalidatePath(`/dashboard/projects/${parsed.data.project_id}`);
 
@@ -306,7 +355,7 @@ export async function submitProjectForApproval(
   // Ownership + status check
   const { data: project } = await db(supabase)
     .from('projects')
-    .select('owner_id, status')
+    .select('owner_id, status, title_ar, title_en')
     .eq('id', projectId)
     .single();
 
@@ -329,7 +378,29 @@ export async function submitProjectForApproval(
     return { data: null, error: t('submitError') };
   }
 
-  // TODO: Notify admins
+  // Notify all admins about the new pending project
+  void (async () => {
+    try {
+      const { data: admins } = await db(supabase).from('profiles').select('id').eq('is_admin', true);
+      if (admins?.length) {
+        await Promise.all(
+          admins.map((admin: { id: string }) =>
+            createNotification({
+              user_id: admin.id,
+              type: 'deal_flagged_review',
+              title_ar: 'مشروع جديد بانتظار المراجعة',
+              title_en: 'New Project Pending Review',
+              body_ar: `"${project.title_ar || project.title_en}" بانتظار موافقتك`,
+              body_en: `"${project.title_en || project.title_ar}" is awaiting your approval`,
+              link: '/admin/posts',
+              entity_type: 'project',
+              entity_id: projectId,
+            }),
+          ),
+        );
+      }
+    } catch { /* non-critical */ }
+  })();
 
   revalidatePath('/dashboard/projects');
   return { data: { status: 'pending' }, error: null };
@@ -367,8 +438,16 @@ export async function deleteProject(
     return { data: null, error: t('cannotDeleteWithBids') };
   }
 
-  // Delete project files from storage (if any)
-  // TODO: Delete from project-files bucket when Supabase Storage is configured
+  // Delete project files from storage
+  void (async () => {
+    try {
+      const { data: files } = await supabase.storage.from('project-files').list(projectId);
+      if (files?.length) {
+        const paths = files.map((f) => `${projectId}/${f.name}`);
+        await supabase.storage.from('project-files').remove(paths);
+      }
+    } catch { /* non-critical */ }
+  })();
 
   const { error: deleteErr } = await db(supabase)
     .from('projects')

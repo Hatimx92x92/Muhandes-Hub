@@ -12,7 +12,7 @@ import { EmptyState } from '@/components/features/empty-state';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Package, Search, Star } from 'lucide-react';
 import { formatSAR, getLocaleField, getEntitySlug } from '@/lib/utils';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { BrowsePagination } from '@/components/features/browse-pagination';
 import { SavedFilters } from '@/components/features/saved-filters';
 
@@ -27,13 +27,22 @@ function db(supabase: any): any {
 // ---------------------------------------------------------------------------
 // SEO — generateMetadata
 // ---------------------------------------------------------------------------
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ q?: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const sp = await searchParams;
+  setRequestLocale(locale);
   const t = await getTranslations('metadata.marketplace');
-  const locale = await getLocale();
 
   return {
     title: t('title'),
     description: t('description'),
+    ...(sp.q ? { robots: { index: false, follow: true } } : {}),
     openGraph: {
       title: t('title'),
       description: t('description'),
@@ -53,15 +62,18 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function MarketplacePage({
+  params: routeParams,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ q?: string; sort?: string; stock?: string; page?: string }>;
 }) {
+  const { locale } = await routeParams;
+  setRequestLocale(locale);
   const params = await searchParams;
   const supabase = await createClient();
   const t = await getTranslations('public.marketplace');
   const sf = await getTranslations('features.savedFilters');
-  const locale = await getLocale();
   const { data: { user } } = await supabase.auth.getUser();
   const currentPage = Math.max(1, parseInt(params.page || '1', 10) || 1);
   const from = (currentPage - 1) * PAGE_SIZE;

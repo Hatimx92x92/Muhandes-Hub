@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabase/server';
 // =============================================================================
 
 interface Props {
-  searchParams: Promise<{ oauth?: string; email?: string }>;
+  searchParams: Promise<{ oauth?: string; email?: string; name?: string }>;
 }
 
 export default async function RegisterPage({ searchParams }: Props) {
@@ -19,12 +19,14 @@ export default async function RegisterPage({ searchParams }: Props) {
   const isOAuthMode = params.oauth === 'google';
   const oauthEmail = params.email ?? '';
 
-  // For Google OAuth users, fetch their name from the authenticated session
+  // For Google OAuth users, fetch their name from session with URL param fallback
+  // (URL param guards against PKCE cookie loss between callback and register page)
   let oauthName = '';
   if (isOAuthMode) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    oauthName = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? '';
+    const sessionName = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? '';
+    oauthName = sessionName || params.name || '';
   }
 
   return (

@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { BreadcrumbProvider } from '@/components/layout/breadcrumb-provider';
 import { BreadcrumbNav } from '@/components/layout/breadcrumb-nav';
 import { AdminSidebar } from '@/components/layout/admin-sidebar';
+import { AdminMobileNav } from '@/components/layout/admin-mobile-nav';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -37,7 +38,12 @@ export default async function AdminLayout({
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
         <BreadcrumbProvider>
-          <div className="p-6">
+          {/* Mobile topbar — hamburger + title, hidden on lg+ */}
+          <div className="lg:hidden sticky top-16 z-30 flex items-center gap-3 border-b border-border bg-background px-4 py-2">
+            <AdminMobileNav adminName={profile.full_name ?? t('admin')} />
+          </div>
+
+          <div className="p-4 sm:p-6 lg:p-8">
             <BreadcrumbNav rootType="admin" className="mb-6" />
             {children}
           </div>

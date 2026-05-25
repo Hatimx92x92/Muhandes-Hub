@@ -2,30 +2,96 @@
 // Public RFQ Detail Page
 // =============================================================================
 
+import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
+import { after } from 'next/server';
 import { Link } from '@/i18n/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { backfillEntityTranslation } from '@/actions/admin/translate-backfill';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatSAR, formatDate, getLocaleField, isUUID, getEntitySlug } from '@/lib/utils';
 import { ShoppingCart, Calendar, Banknote, MessageSquare, User } from 'lucide-react';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
   return supabase;
 }
 
+// ---------------------------------------------------------------------------
+// SEO — generateMetadata
+// ---------------------------------------------------------------------------
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug: rawSlug } = await params;
+  setRequestLocale(locale);
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
+  const supabase = await createClient();
+
+  if (isUUID(slug)) return {};
+
+  const slugCol = locale === 'ar' ? 'slug_ar' : 'slug_en';
+  let { data: rfq } = await db(supabase)
+    .from('rfqs')
+    .select('title_ar, title_en, description_ar, description_en, slug_ar, slug_en, created_at')
+    .eq(slugCol, slug)
+    .eq('status', 'published')
+    .single();
+
+  if (!rfq) {
+    const fallbackCol = locale === 'ar' ? 'slug_en' : 'slug_ar';
+    ({ data: rfq } = await db(supabase)
+      .from('rfqs')
+      .select('title_ar, title_en, description_ar, description_en, slug_ar, slug_en, created_at')
+      .eq(fallbackCol, slug)
+      .eq('status', 'published')
+      .single());
+  }
+
+  if (!rfq) return {};
+
+  const title = getLocaleField(rfq, 'title', locale);
+  const description = getLocaleField(rfq, 'description', locale)?.slice(0, 160) || '';
+  const arSlug = rfq.slug_ar || rfq.slug_en || slug;
+  const enSlug = rfq.slug_en || rfq.slug_ar || slug;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'article',
+      locale: locale === 'ar' ? 'ar_SA' : 'en_US',
+      alternateLocale: locale === 'ar' ? 'en_US' : 'ar_SA',
+      siteName: 'Muhandes HUB',
+      publishedTime: rfq.created_at,
+    },
+    alternates: {
+      canonical: `${BASE_URL}/${locale}/rfqs/${slug}`,
+      languages: {
+        ar: `${BASE_URL}/ar/rfqs/${arSlug}`,
+        en: `${BASE_URL}/en/rfqs/${enSlug}`,
+      },
+    },
+  };
+}
+
 export default async function PublicRFQDetailPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug: rawSlug } = await params;
+  setRequestLocale(locale);
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
   const supabase = await createClient();
   const t = await getTranslations('public.rfqDetail');
-  const locale = await getLocale();
 
   // UUID redirect
   if (isUUID(slug)) {
@@ -61,6 +127,11 @@ export default async function PublicRFQDetailPage({
 
   if (!rfq) notFound();
 
+  // Backfill missing locale fields after render (fire-and-forget, free DeepL)
+  if (!rfq[`title_${locale}`] || !rfq[`description_${locale}`]) {
+    after(() => backfillEntityTranslation('rfqs', rfq.id, rfq, ['title', 'description']));
+  }
+
   const { data: poster } = await db(supabase)
     .from('profiles')
     .select('full_name, company_name_ar, company_name_en, role, slug_ar, slug_en')
@@ -78,8 +149,19 @@ export default async function PublicRFQDetailPage({
     buyer: t('roleBuyer'),
   };
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: locale === 'ar' ? 'الرئيسية' : 'Home', item: `${BASE_URL}/${locale}` },
+      { '@type': 'ListItem', position: 2, name: locale === 'ar' ? 'طلبات العروض' : 'RFQs', item: `${BASE_URL}/${locale}/rfqs` },
+      { '@type': 'ListItem', position: 3, name: title, item: `${BASE_URL}/${locale}/rfqs/${slug}` },
+    ],
+  };
+
   return (
     <div className="mx-auto max-w-4xl py-16">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <BreadcrumbOverride segment={slug} label={title} />
       <div className="mb-8">
         <div className="flex items-start gap-3 mb-2">

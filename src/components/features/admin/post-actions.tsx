@@ -6,6 +6,7 @@ import { useRouter } from '@/i18n/navigation';
 import { approvePost, rejectPost } from '@/actions/admin/moderation';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 
 interface AdminPostActionsProps {
   postId: string;
@@ -22,7 +23,12 @@ export function AdminPostActions({ postId, postType }: AdminPostActionsProps) {
 
   const handleApprove = () => {
     startTransition(async () => {
-      await approvePost(postId, postType);
+      const result = await approvePost(postId, postType);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success(t('approveSuccess'));
+      }
       router.refresh();
     });
   };
@@ -30,7 +36,12 @@ export function AdminPostActions({ postId, postType }: AdminPostActionsProps) {
   const handleReject = () => {
     if (!reasonAr.trim()) return;
     startTransition(async () => {
-      await rejectPost(postId, postType, reasonAr.trim(), reasonEn.trim());
+      const result = await rejectPost(postId, postType, reasonAr.trim(), reasonEn.trim());
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success(t('rejectSuccess'));
+      }
       router.refresh();
       setShowReject(false);
     });

@@ -277,6 +277,20 @@ export async function approveSubscriptionPayment(
     payment_method: 'bank_transfer',
   });
 
+  // Advance verification_status: pending_payment → pending_documents (Pro+ 4-gate flow)
+  const { data: profile } = await db(adminClient)
+    .from('profiles')
+    .select('verification_status')
+    .eq('id', sub.user_id)
+    .single();
+
+  if (profile?.verification_status === 'pending_payment') {
+    await db(adminClient)
+      .from('profiles')
+      .update({ verification_status: 'pending_documents' })
+      .eq('id', sub.user_id);
+  }
+
   // Notify user
   try {
     const { notifySubscriptionPaymentApproved } = await import('@/actions/notification-triggers');
@@ -287,4 +301,63 @@ export async function approveSubscriptionPayment(
   revalidatePath('/admin/users');
 
   return { data: { invoiceId: invoice?.id }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// REJECT SUBSCRIPTION PAYMENT (bank transfer receipt rejected)
+// ---------------------------------------------------------------------------
+export async function rejectSubscriptionPayment(
+  subscriptionId: string,
+  reason: string,
+): Promise<ActionResult<{ rejected: boolean }>> {
+  const t = await getTranslations('actions.adminSubscriptions');
+  const auth = await verifyAdmin();
+  if ('error' in auth) return { data: null, error: auth.error };
+
+  const adminClient = createAdminClient();
+
+  const { data: sub, error: fetchError } = await db(adminClient)
+    .from('subscriptions')
+    .select('*')
+    .eq('id', subscriptionId)
+    .single();
+
+  if (fetchError || !sub) return { data: null, error: t('notFound') };
+  if (sub.payment_status === 'completed') {
+    return { data: null, error: t('alreadyActive') };
+  }
+
+  // Mark subscription as rejected
+  const { error: updateError } = await db(adminClient)
+    .from('subscriptions')
+    .update({
+      payment_status: 'failed',
+      is_active: false,
+    })
+    .eq('id', subscriptionId);
+
+  if (updateError) return { data: null, error: t('rejectError') };
+
+  // Clear bank receipt so user can re-upload
+  await db(adminClient)
+    .from('profiles')
+    .update({ bank_receipt_url: null })
+    .eq('id', sub.user_id);
+
+  await logAudit(auth.adminId, 'reject_subscription_payment', 'subscription', subscriptionId, {
+    tier: sub.tier,
+    reason,
+    payment_method: 'bank_transfer',
+  });
+
+  // Notify user
+  try {
+    const { notifySubscriptionPaymentRejected } = await import('@/actions/notification-triggers');
+    await notifySubscriptionPaymentRejected({ userId: sub.user_id as string, tier: sub.tier as string, reason });
+  } catch { /* non-critical */ }
+
+  revalidatePath('/admin/subscriptions');
+  revalidatePath('/admin/users');
+
+  return { data: { rejected: true }, error: null };
 }

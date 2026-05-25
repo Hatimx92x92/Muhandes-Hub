@@ -2,12 +2,15 @@
 
 import { useState, useMemo, useTransition } from 'react';
 import { useRouter, Link } from '@/i18n/navigation';
+import { useRealtime } from '@/hooks';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
-import { BulkActionBar, type BulkAction } from '@/components/features/bulk-action-bar';
-import { Badge, type BadgeProps } from '@/components/ui/badge';
+import { DashboardTableShell, type FilterGroup } from '@/components/features/dashboard-table-shell';
+import { type BulkAction } from '@/components/features/bulk-action-bar';
+import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/features/empty-state';
 import { Inbox, CheckCircle, Archive } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { getStatusVariant } from '@/components/features/status-badge-map';
 
 // =============================================================================
 // Types
@@ -27,20 +30,16 @@ export interface InquiryItem {
 
 interface InquiriesTableClientProps {
   items: InquiryItem[];
+  direction?: 'sent' | 'received';
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
   translations: Record<string, string>;
+  filterGroups: FilterGroup[];
+  sortOptions: { value: string; label: string }[];
   onBulkRespond?: (ids: string[]) => Promise<void>;
   onBulkClose?: (ids: string[]) => Promise<void>;
 }
-
-// =============================================================================
-// Status badge mapping
-// =============================================================================
-
-const statusBadge: Record<string, BadgeProps['variant']> = {
-  pending: 'pending',
-  responded: 'published',
-  closed: 'secondary',
-};
 
 // =============================================================================
 // Component
@@ -48,11 +47,21 @@ const statusBadge: Record<string, BadgeProps['variant']> = {
 
 export function InquiriesTableClient({
   items,
+  direction = 'received',
+  totalCount,
+  currentPage,
+  totalPages,
   translations: t,
+  filterGroups,
+  sortOptions,
   onBulkRespond,
   onBulkClose,
 }: InquiriesTableClientProps) {
   const router = useRouter();
+
+  // Live updates when inquiries change
+  useRealtime({ channel: 'rt-inquiries', table: 'inquiries' });
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
 
@@ -62,7 +71,7 @@ export function InquiriesTableClient({
         id: 'status',
         header: t.status || 'Status',
         cell: (row) => (
-          <Badge variant={statusBadge[row.status] || 'secondary'}>
+          <Badge variant={getStatusVariant(row.status)}>
             {t[`status_${row.status}`] || row.status}
           </Badge>
         ),
@@ -153,32 +162,37 @@ export function InquiriesTableClient({
     return actions;
   }, [onBulkRespond, onBulkClose, t, startTransition]);
 
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={<Inbox className="h-12 w-12" />}
-        title={t.empty || 'No inquiries'}
-        description={t.emptyDescription || ''}
-      />
-    );
-  }
-
   return (
-    <div className={isPending ? 'opacity-60 pointer-events-none' : ''}>
-      <DataTable
-        columns={columns}
-        data={items}
-        getRowId={(row) => row.id}
-        selectable
-        onSelectionChange={setSelectedIds}
-        onRowClick={(row) => router.push(`/dashboard/inquiries/${row.id}`)}
-      />
-      <BulkActionBar
-        selectedCount={selectedIds.length}
-        selectedIds={selectedIds}
-        actions={bulkActions}
-        onClear={() => setSelectedIds([])}
-      />
-    </div>
+    <DashboardTableShell
+      totalCount={totalCount}
+      currentPage={currentPage}
+      totalPages={totalPages}
+      filterGroups={filterGroups}
+      sortOptions={sortOptions}
+      searchable
+      preserveParams={['view']}
+      selectedIds={selectedIds}
+      selectedCount={selectedIds.length}
+      bulkActions={bulkActions}
+      onSelectionClear={() => setSelectedIds([])}
+    >
+      <div className={isPending ? 'opacity-60 pointer-events-none' : ''}>
+        <DataTable
+          columns={columns}
+          data={items}
+          getRowId={(row) => row.id}
+          selectable={direction === 'received'}
+          onSelectionChange={direction === 'received' ? setSelectedIds : undefined}
+          onRowClick={(row) => router.push(`/dashboard/inquiries/${row.id}`)}
+          emptyState={
+            <EmptyState
+              icon={<Inbox className="h-12 w-12" />}
+              title={t.empty || 'No inquiries'}
+              description={t.emptyDescription || ''}
+            />
+          }
+        />
+      </div>
+    </DashboardTableShell>
   );
 }

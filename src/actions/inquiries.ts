@@ -45,8 +45,6 @@ export async function sendProductInquiry(
 
   const raw = {
     product_id: formData.get('product_id'),
-    message_ar: formData.get('message_ar'),
-    message_en: formData.get('message_en') || undefined,
     quantity: formData.get('quantity') || undefined,
   };
 
@@ -76,9 +74,7 @@ export async function sendProductInquiry(
     .insert({
       product_id: parsed.data.product_id,
       sender_id: user.id,
-      requirements_ar: parsed.data.message_ar,
-      requirements_en: parsed.data.message_en || null,
-      quantity: parsed.data.quantity || null,
+      quantity: parsed.data.quantity,
       status: 'pending',
     })
     .select('id')
@@ -265,7 +261,7 @@ export async function acceptQuoteInvitation(
   const year = new Date().getFullYear();
   const { count } = await db(supabase)
     .from('quotations')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'exact' })
     .eq('sender_id', user.id);
   const seq = String((count ?? 0) + 1).padStart(4, '0');
   const quotationNumber = `QTN-${year}-${seq}`;

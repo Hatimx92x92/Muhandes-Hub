@@ -12,10 +12,20 @@ import { getTranslations } from 'next-intl/server';
 import type { ActionResult } from '@/types';
 import { AdminUpdateProfileSchema, AdminUpdateAuthSchema } from '@/schemas/admin';
 import type { AdminUpdateProfileData } from '@/schemas/admin';
+import { notifyDocumentApproved, notifyDocumentRejected } from '@/actions/notification-triggers';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
   return supabase;
+}
+
+/** Convert a bank_receipt_url (which may be a bare storage path) into a full public URL */
+function resolveReceiptUrl(raw: string | null): string | null {
+  if (!raw) return null;
+  if (raw.startsWith('http')) return raw;
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!base) return raw;
+  return `${base}/storage/v1/object/public/bank-payments/${raw}`;
 }
 
 async function verifyAdmin(): Promise<{ adminId: string } | { error: string }> {
@@ -88,7 +98,7 @@ export async function approveUserDocuments(
 
   if (profileError) return { data: null, error: t('updateUserStatusError') };
 
-  // TODO: Send document_approved notification
+  void notifyDocumentApproved({ userId, documentType: 'verification_documents' });
 
   await logAudit(auth.adminId, 'approve_documents', 'user', userId);
   revalidatePath('/admin/users');
@@ -124,7 +134,15 @@ export async function rejectUserDocuments(
 
   if (docError) return { data: null, error: t('rejectDocsError') };
 
-  // TODO: Send document_rejected notification
+  // Reset verification status so user can re-upload documents
+  const { error: profileError } = await db(adminClient)
+    .from('profiles')
+    .update({ verification_status: 'pending_documents' })
+    .eq('id', userId);
+
+  if (profileError) return { data: null, error: t('updateUserStatusError') };
+
+  void notifyDocumentRejected({ userId, documentType: 'verification_documents', reasonAr, reasonEn });
 
   await logAudit(auth.adminId, 'reject_documents', 'user', userId, { reason_ar: reasonAr });
   revalidatePath('/admin/users');
@@ -391,14 +409,21 @@ export async function getFullUserDetails(
     .eq('id', userId)
     .single();
 
-  // Fetch subscription
-  const { data: subscription } = await db(adminClient)
+  // Fetch ALL subscriptions (history) + latest for header
+  const { data: subscriptions } = await db(adminClient)
     .from('subscriptions')
     .select('*')
     .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order('created_at', { ascending: false });
+
+  const subscription = subscriptions?.[0] ?? null;
+
+  // Fetch invoices
+  const { data: invoices } = await db(adminClient)
+    .from('invoices')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
 
   // Fetch verification documents
   const { data: documents } = await db(adminClient)
@@ -428,11 +453,11 @@ export async function getFullUserDetails(
     { data: notifications },
   ] = await Promise.all([
     // Counts
-    db(adminClient).from('deals').select('id', { count: 'exact', head: true }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
-    db(adminClient).from('projects').select('id', { count: 'exact', head: true }).eq('owner_id', userId),
-    db(adminClient).from('products').select('id', { count: 'exact', head: true }).eq('supplier_id', userId),
-    db(adminClient).from('bids').select('id', { count: 'exact', head: true }).eq('contractor_id', userId),
-    db(adminClient).from('reviews').select('id', { count: 'exact', head: true }).eq('reviewee_id', userId),
+    db(adminClient).from('deals').select('id', { count: 'exact' }).or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
+    db(adminClient).from('projects').select('id', { count: 'exact' }).eq('owner_id', userId),
+    db(adminClient).from('products').select('id', { count: 'exact' }).eq('supplier_id', userId),
+    db(adminClient).from('bids').select('id', { count: 'exact' }).eq('contractor_id', userId),
+    db(adminClient).from('reviews').select('id', { count: 'exact' }).eq('reviewee_id', userId),
     db(adminClient).from('reviews').select('overall_rating').eq('reviewee_id', userId),
     // Entity lists (last 20 each)
     db(adminClient).from('projects').select('id, title_ar, title_en, status, created_at').eq('owner_id', userId).order('created_at', { ascending: false }).limit(20),
@@ -465,7 +490,22 @@ export async function getFullUserDetails(
       },
       profile,
       subscription,
-      documents: documents ?? [],
+      subscriptions: (subscriptions ?? []).map((s: Record<string, unknown>) => ({
+        ...s,
+        bank_receipt_url: resolveReceiptUrl(s.bank_receipt_url as string | null),
+      })),
+      invoices: invoices ?? [],
+      documents: await Promise.all(
+        (documents ?? []).map(async (doc: Record<string, unknown>) => {
+          if (doc.file_url) {
+            const { data: signed } = await adminClient.storage
+              .from('verification-docs')
+              .createSignedUrl(doc.file_url as string, 3600);
+            return { ...doc, signed_url: signed?.signedUrl ?? null };
+          }
+          return { ...doc, signed_url: null };
+        }),
+      ),
       activity: {
         totalDeals: totalDeals ?? 0,
         totalProjects: totalProjects ?? 0,

@@ -2,6 +2,9 @@
 // Muhandes HUB — Resend Email Client + Bilingual Template
 // =============================================================================
 
+import { Resend } from 'resend';
+import { createHmac } from 'crypto';
+
 interface EmailParams {
   to: string;
   subject: { ar: string; en: string };
@@ -10,58 +13,62 @@ interface EmailParams {
   ctaText?: { ar: string; en: string };
   ctaUrl?: string;
   footer?: { ar: string; en: string };
+  preheader?: { ar: string; en: string };
+  userId?: string;
 }
 
 const FROM_EMAIL = 'Muhandes HUB <noreply@muhandeshub.com>';
 const APP_NAME = 'Muhandes HUB | منصة مهندس';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://muhandeshub.com';
 
-/**
- * Send a bilingual email via Resend.
- * The email contains both Arabic and English sections.
- */
-export async function sendEmail(params: EmailParams): Promise<{ success: boolean; error?: string }> {
+let _resend: Resend | null = null;
+function getResend(): Resend | null {
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
+  if (!apiKey) return null;
+  if (!_resend) _resend = new Resend(apiKey);
+  return _resend;
+}
+
+// HMAC-signed token used in unsubscribe URLs — verified in /api/unsubscribe
+export function generateUnsubscribeToken(userId: string): string {
+  const secret = process.env.CRON_SECRET || process.env.RESEND_API_KEY || 'mh-unsub';
+  return createHmac('sha256', secret).update(userId).digest('hex');
+}
+
+export function verifyUnsubscribeToken(userId: string, token: string): boolean {
+  return generateUnsubscribeToken(userId) === token;
+}
+
+export async function sendEmail(params: EmailParams): Promise<{ success: boolean; error?: string }> {
+  const resend = getResend();
+  if (!resend) {
     console.warn('RESEND_API_KEY not configured — email not sent');
     return { success: false, error: 'Email service not configured' };
   }
 
   const html = buildBilingualTemplate(params);
 
-  try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: FROM_EMAIL,
-        to: [params.to],
-        subject: `${params.subject.ar} | ${params.subject.en}`,
-        html,
-      }),
-    });
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: [params.to],
+    subject: `${params.subject.ar} | ${params.subject.en}`,
+    html,
+  });
 
-    if (!response.ok) {
-      const err = await response.text();
-      console.error('Resend error:', err);
-      return { success: false, error: 'Failed to send email' };
-    }
-
-    return { success: true };
-  } catch (err) {
-    console.error('Email send error:', err);
+  if (error) {
+    console.error('Resend error:', error);
     return { success: false, error: 'Failed to send email' };
   }
+
+  return { success: true };
 }
 
-/**
- * Build a bilingual HTML email template.
- * Arabic section (RTL) on top, English section (LTR) below.
- */
 function buildBilingualTemplate(params: EmailParams): string {
-  const { heading, body, ctaText, ctaUrl, footer } = params;
+  const { heading, body, ctaText, ctaUrl, footer, preheader, userId } = params;
+
+  const preheaderHtml = preheader
+    ? `<span style="display:none;font-size:1px;color:#f8fafc;max-height:0;max-width:0;opacity:0;overflow:hidden;">${escapeHtml(preheader.ar)} | ${escapeHtml(preheader.en)}</span>`
+    : '';
 
   const ctaButton = ctaText && ctaUrl
     ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px auto;">
@@ -73,6 +80,14 @@ function buildBilingualTemplate(params: EmailParams): string {
       </table>`
     : '';
 
+  const unsubscribeUrl = userId
+    ? `${APP_URL}/api/unsubscribe?uid=${encodeURIComponent(userId)}&t=${generateUnsubscribeToken(userId)}`
+    : `${APP_URL}/dashboard/notifications`;
+
+  const footerText = footer
+    ? `${escapeHtml(footer.ar)} | ${escapeHtml(footer.en)}`
+    : `© ${new Date().getFullYear()} ${escapeHtml(APP_NAME)}`;
+
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -80,11 +95,12 @@ function buildBilingualTemplate(params: EmailParams): string {
   <meta name="viewport" content="width=device-width,initial-scale=1">
 </head>
 <body style="margin:0;padding:0;background-color:#f4f4f5;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+  ${preheaderHtml}
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:32px 16px;">
     <tr>
       <td align="center">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;">
-          
+
           <!-- Header -->
           <tr>
             <td style="background-color:#1e293b;padding:24px;text-align:center;">
@@ -121,8 +137,9 @@ function buildBilingualTemplate(params: EmailParams): string {
           <!-- Footer -->
           <tr>
             <td style="background-color:#f8fafc;padding:16px 24px;text-align:center;">
-              <p style="margin:0;color:#94a3b8;font-size:12px;">
-                ${footer ? `${escapeHtml(footer.ar)} | ${escapeHtml(footer.en)}` : `© ${new Date().getFullYear()} ${escapeHtml(APP_NAME)}`}
+              <p style="margin:0 0 8px;color:#94a3b8;font-size:12px;">${footerText}</p>
+              <p style="margin:0;font-size:12px;">
+                <a href="${escapeHtml(unsubscribeUrl)}" style="color:#94a3b8;text-decoration:underline;">إلغاء الاشتراك | Unsubscribe</a>
               </p>
             </td>
           </tr>

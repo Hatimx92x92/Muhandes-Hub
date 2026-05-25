@@ -4,17 +4,22 @@
 
 import { redirect } from 'next/navigation';
 import { notFound } from 'next/navigation';
+import { after } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { backfillEntityTranslation } from '@/actions/admin/translate-backfill';
 import { Card } from '@/components/ui/card';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
+import { PageHeader } from '@/components/ui/page-header';
 import { formatSAR, formatDate, getLocaleField, isUUID, getEntitySlug } from '@/lib/utils';
-import { ShoppingCart, Calendar, Banknote, MessageSquare, User, Package, Receipt } from 'lucide-react';
+import { Calendar, Banknote, MessageSquare, User, Package, Receipt } from 'lucide-react';
 import { SubmitRFQButton, AcceptRFQResponseButton, RejectRFQResponseButton } from '@/components/features/rfq-actions';
 import { RFQResponseForm } from '@/components/forms/rfq-response-form';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, getLocale, setRequestLocale } from 'next-intl/server';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 import { FileDisplayList } from '@/components/features/file-display-list';
 import { Link } from '@/i18n/navigation';
+import { Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
@@ -39,16 +44,18 @@ const responseStatusBadge: Record<string, BadgeProps['variant']> = {
 export default async function RFQDetailPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug: rawSlug } = await params;
+  setRequestLocale(locale);
+  let slug: string;
+  try { slug = decodeURIComponent(rawSlug); } catch { slug = rawSlug; }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
   const t = await getTranslations('dashboard.rfqs');
   const tCommon = await getTranslations('dashboard.common');
-  const locale = await getLocale();
 
   // Slug-based RFQ lookup
   let rfq;
@@ -68,6 +75,11 @@ export default async function RFQDetailPage({
     ({ data: rfq } = await db(supabase).from('rfqs').select('*').eq(fallbackCol, slug).single());
   }
   if (!rfq) notFound();
+
+  // Backfill missing locale fields after render (fire-and-forget, free DeepL)
+  if (!rfq[`title_${locale}`] || !rfq[`description_${locale}`]) {
+    after(() => backfillEntityTranslation('rfqs', rfq.id, rfq, ['title', 'description']));
+  }
 
   const id = rfq.id;
 
@@ -128,28 +140,31 @@ export default async function RFQDetailPage({
   return (
     <div className="space-y-6">
       <BreadcrumbOverride segment={slug} label={title} />
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <ShoppingCart className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-            <Badge variant={statusBadge[rfq.status] || 'secondary'}>
-              {tCommon(rfq.status as 'draft' | 'pending' | 'published' | 'rejected' | 'closed' | 'expired')}
-            </Badge>
+      <PageHeader
+        title={title}
+        badge={
+          <Badge variant={statusBadge[rfq.status] || 'secondary'}>
+            {tCommon(rfq.status as 'draft' | 'pending' | 'published' | 'rejected' | 'closed' | 'expired')}
+          </Badge>
+        }
+        description={`${t('createdOn')} ${formatDate(rfq.created_at)}`}
+        backHref="/dashboard/rfqs"
+        action={
+          <div className="flex gap-2">
+            {isPoster && (
+              <Link href={`/dashboard/rfqs/${slug}/edit`}>
+                <Button variant="outline" size="sm">
+                  <Pencil className="h-4 w-4 me-1" />
+                  {tCommon('edit')}
+                </Button>
+              </Link>
+            )}
+            {isPoster && (rfq.status === 'draft' || rfq.status === 'rejected') && (
+              <SubmitRFQButton rfqId={rfq.id} />
+            )}
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('createdOn')} {formatDate(rfq.created_at)}
-          </p>
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-2">
-          {isPoster && (rfq.status === 'draft' || rfq.status === 'rejected') && (
-            <SubmitRFQButton rfqId={rfq.id} />
-          )}
-        </div>
-      </div>
+        }
+      />
 
       {/* Info Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -7,6 +7,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getTranslations } from 'next-intl/server';
 import {
   MessageSchema,
@@ -65,13 +66,20 @@ export async function sendMessage(
 
   const { conversation_id, content } = parsed.data;
 
-  // 2b. Handle file attachment upload
-  let fileUrl: string | null = null;
-  let fileName: string | null = null;
-  let fileSize: number | null = null;
+  // 2b. Handle file attachment uploads (supports multiple files)
+  type Attachment = { url: string; name: string; size: number; mimeType: string };
+  const attachments: Attachment[] = [];
 
-  const file = formData.get('file') as File | null;
-  if (file && file.size > 0) {
+  // Collect all files from formData: supports `file` (legacy single) and `files` (multi)
+  const rawFiles: File[] = [];
+  const singleFile = formData.get('file') as File | null;
+  if (singleFile && singleFile.size > 0) rawFiles.push(singleFile);
+  const multiFiles = formData.getAll('files') as File[];
+  for (const f of multiFiles) {
+    if (f && f.size > 0) rawFiles.push(f);
+  }
+
+  for (const file of rawFiles) {
     const uploadResult = await uploadFile(
       'message-attachments',
       file,
@@ -80,13 +88,16 @@ export async function sendMessage(
     if (uploadResult.error) {
       return { data: null, error: uploadResult.error };
     }
-    fileUrl = uploadResult.data!.url;
-    fileName = file.name;
-    fileSize = file.size;
+    attachments.push({
+      url: uploadResult.data!.url,
+      name: file.name,
+      size: file.size,
+      mimeType: file.type,
+    });
   }
 
-  // Must have content or file
-  if (!content && !fileUrl) {
+  // Must have content or at least one attachment
+  if (!content && attachments.length === 0) {
     return { data: null, error: t('invalidData') };
   }
 
@@ -100,15 +111,18 @@ export async function sendMessage(
   if (!participant) return { data: null, error: t('notParticipant') };
 
   // 4. Insert message
+  // Keep legacy single-file fields populated from first attachment for backward compat
+  const firstAttachment = attachments[0] ?? null;
   const { data: message, error: insertErr } = await db(supabase)
     .from('messages')
     .insert({
       conversation_id,
       sender_id: user.id,
       content: content || '',
-      ...(fileUrl && { file_url: fileUrl }),
-      ...(fileName && { file_name: fileName }),
-      ...(fileSize && { file_size: fileSize }),
+      attachments: attachments.length > 0 ? attachments : [],
+      ...(firstAttachment && { file_url: firstAttachment.url }),
+      ...(firstAttachment && { file_name: firstAttachment.name }),
+      ...(firstAttachment && { file_size: firstAttachment.size }),
     })
     .select('id')
     .single();
@@ -200,27 +214,24 @@ export async function createConversation(
     contextColumns[`${context_type}_id`] = context_id;
   }
 
-  // 6. Create conversation
-  const { data: conversation, error: convErr } = await db(supabase)
+  // 6. Create conversation (UUID pre-generated to avoid SELECT-after-INSERT RLS issue)
+  const newConvId = crypto.randomUUID();
+  const { error: convErr } = await db(supabase)
     .from('conversations')
-    .insert(contextColumns)
-    .select('id')
-    .single();
+    .insert({ id: newConvId, ...contextColumns });
   if (convErr) return { data: null, error: t('createConversationError') };
 
-  // 7. Add participants
-  await db(supabase)
-    .from('conversation_participants')
-    .insert([
-      { conversation_id: conversation.id, user_id: user.id },
-      { conversation_id: conversation.id, user_id: participant_id },
-    ]);
+  // 7. Add participants via SECURITY DEFINER RPC (bypasses user_id = auth.uid() policy for counterparty)
+  await db(supabase).rpc('add_participants_to_conversation', {
+    p_conversation_id: newConvId,
+    p_user_ids: [user.id, participant_id],
+  });
 
   // 8. Send initial message
   const { error: msgErr } = await db(supabase)
     .from('messages')
     .insert({
-      conversation_id: conversation.id,
+      conversation_id: newConvId,
       sender_id: user.id,
       content: initial_message,
     });
@@ -230,12 +241,12 @@ export async function createConversation(
   await db(supabase)
     .from('conversation_participants')
     .update({ unread_count: 1 })
-    .eq('conversation_id', conversation.id)
+    .eq('conversation_id', newConvId)
     .eq('user_id', participant_id);
 
   revalidatePath('/dashboard/messages');
 
-  return { data: { conversationId: conversation.id }, error: null };
+  return { data: { conversationId: newConvId }, error: null };
 }
 
 // ---------------------------------------------------------------------------
@@ -422,24 +433,111 @@ export async function getOrCreateDealConversation(
     return { data: { conversationId: existing.id, messages: messages || [] }, error: null };
   }
 
-  // Create new conversation for this deal
-  const { data: conversation, error: convErr } = await db(supabase)
-    .from('conversations')
-    .insert({ deal_id: dealId })
-    .select('id')
-    .single();
+  // Generate UUID upfront to avoid SELECT-after-INSERT RLS issue
+  // (SELECT policy requires being a participant, but participants aren't added yet)
+  const newConvId = crypto.randomUUID();
 
-  if (convErr || !conversation) {
+  const { error: convErr } = await db(supabase)
+    .from('conversations')
+    .insert({ id: newConvId, deal_id: dealId });
+
+  if (convErr) {
     return { data: null, error: t('createConversationError') };
   }
 
   // Add both participants
   await db(supabase)
-    .from('conversation_participants')
-    .insert([
-      { conversation_id: conversation.id, user_id: user.id },
-      { conversation_id: conversation.id, user_id: counterpartyId },
-    ]);
+    .rpc('add_participants_to_conversation', {
+      p_conversation_id: newConvId,
+      p_user_ids: [user.id, counterpartyId],
+    }); // SECURITY DEFINER — counterparty row bypasses user_id = auth.uid() policy
 
-  return { data: { conversationId: conversation.id, messages: [] }, error: null };
+  return { data: { conversationId: newConvId, messages: [] }, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// ADMIN: SEARCH USERS FOR MESSAGING
+// ---------------------------------------------------------------------------
+export async function searchUsersForMessaging(query: string): Promise<
+  ActionResult<{ id: string; full_name: string; company_name_ar: string | null; company_name_en: string | null; role: string; avatar_url: string | null }[]>
+> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: 'Unauthorized' };
+
+  const { data: profile } = await db(supabase)
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single();
+  if (!profile?.is_admin) return { data: null, error: 'Admin only' };
+
+  if (!query || query.trim().length < 2) return { data: [], error: null };
+
+  const adminClient = createAdminClient();
+  const term = `%${query.trim()}%`;
+
+  const { data: users } = await db(adminClient)
+    .from('profiles')
+    .select('id, full_name, company_name_ar, company_name_en, role, avatar_url')
+    .or(`full_name.ilike.${term},company_name_ar.ilike.${term},company_name_en.ilike.${term}`)
+    .neq('id', user.id)
+    .limit(10);
+
+  return { data: users ?? [], error: null };
+}
+
+// ---------------------------------------------------------------------------
+// ADMIN: START OR REOPEN CONVERSATION WITH A USER
+// ---------------------------------------------------------------------------
+export async function adminStartConversation(
+  participantId: string,
+): Promise<ActionResult<{ conversationId: string }>> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: 'Unauthorized' };
+
+  const { data: profile } = await db(supabase)
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single();
+  if (!profile?.is_admin) return { data: null, error: 'Admin only' };
+
+  if (participantId === user.id) return { data: null, error: 'Cannot message yourself' };
+
+  // Find existing conversation between admin and this user
+  const { data: myConvs } = await db(supabase)
+    .from('conversation_participants')
+    .select('conversation_id')
+    .eq('user_id', user.id);
+
+  if (myConvs && myConvs.length > 0) {
+    const myConvIds = myConvs.map((c: { conversation_id: string }) => c.conversation_id);
+    const { data: existing } = await db(supabase)
+      .from('conversation_participants')
+      .select('conversation_id')
+      .eq('user_id', participantId)
+      .in('conversation_id', myConvIds);
+
+    if (existing && existing.length > 0) {
+      revalidatePath('/admin/messages');
+      return { data: { conversationId: existing[0].conversation_id }, error: null };
+    }
+  }
+
+  // Create new conversation
+  const newConvId = crypto.randomUUID();
+  const { error: convErr } = await db(supabase)
+    .from('conversations')
+    .insert({ id: newConvId });
+  if (convErr) return { data: null, error: 'Failed to create conversation' };
+
+  await db(supabase).rpc('add_participants_to_conversation', {
+    p_conversation_id: newConvId,
+    p_user_ids: [user.id, participantId],
+  });
+
+  revalidatePath('/admin/messages');
+  return { data: { conversationId: newConvId }, error: null };
 }

@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import {
   Users,
   FileText,
@@ -22,14 +23,17 @@ function db(supabase: any): any {
   return supabase;
 }
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('admin');
-  const locale = await getLocale();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  // Fetch admin stats in parallel
+  const adminClient = createAdminClient();
+
+  // Fetch admin stats in parallel using admin client (bypasses RLS)
   const [
     { count: totalUsers },
     { count: pendingPosts },
@@ -40,14 +44,14 @@ export default async function AdminDashboardPage() {
     { count: totalRevenue },
     { data: recentAudit },
   ] = await Promise.all([
-    db(supabase).from('profiles').select('*', { count: 'exact', head: true }),
-    db(supabase).from('projects').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-    db(supabase).from('deals').select('*', { count: 'exact', head: true }).in('status', ['active', 'in_progress']),
-    db(supabase).from('commissions').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-    db(supabase).from('commissions').select('*', { count: 'exact', head: true }).eq('status', 'disputed'),
-    db(supabase).from('verification_documents').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-    db(supabase).from('commissions').select('*', { count: 'exact', head: true }).eq('status', 'paid'),
-    db(supabase).from('admin_audit_log').select('id, action, target_type, created_at').order('created_at', { ascending: false }).limit(10),
+    db(adminClient).from('profiles').select('id', { count: 'exact' }),
+    db(adminClient).from('projects').select('id', { count: 'exact' }).eq('status', 'pending'),
+    db(adminClient).from('deals').select('id', { count: 'exact' }).in('status', ['active', 'in_progress']),
+    db(adminClient).from('commissions').select('id', { count: 'exact' }).eq('status', 'pending'),
+    db(adminClient).from('commissions').select('id', { count: 'exact' }).eq('status', 'disputed'),
+    db(adminClient).from('verification_documents').select('id', { count: 'exact' }).eq('status', 'pending'),
+    db(adminClient).from('commissions').select('id', { count: 'exact' }).eq('status', 'paid'),
+    db(adminClient).from('admin_audit_log').select('id, action, target_type, created_at').order('created_at', { ascending: false }).limit(10),
   ]);
 
   const stats = [

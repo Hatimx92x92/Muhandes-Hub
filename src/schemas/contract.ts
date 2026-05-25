@@ -8,14 +8,14 @@ import { z } from 'zod/v4';
 // Party Info (embedded JSON in contract)
 // ---------------------------------------------------------------------------
 const PartyInfoSchema = z.object({
-  name: z.string().min(2),
+  name: z.string().default(''),
   company_name_ar: z.string().optional(),
   company_name_en: z.string().optional(),
   cr_number: z.string().optional(),
   vat_number: z.string().optional(),
   address: z.string().optional(),
   phone: z.string().optional(),
-  email: z.email().optional(),
+  email: z.union([z.email(), z.literal('')]).optional(),
 });
 
 // ---------------------------------------------------------------------------

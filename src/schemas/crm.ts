@@ -8,11 +8,7 @@ import { z } from 'zod/v4';
 // Add / Update Client
 // ---------------------------------------------------------------------------
 export const CRMClientSchema = z.object({
-  name: z.string().min(2),
-  phone: z.string().optional(),
-  email: z.email().optional().or(z.literal('')),
-  company: z.string().optional(),
-  city_id: z.string().uuid().optional(),
+  linked_user_id: z.string().uuid(),
   source: z.enum([
     'bid_award', 'rfq_response', 'direct_hire', 'product_inquiry', 'manual_entry',
   ]).default('manual_entry'),
@@ -22,8 +18,11 @@ export const CRMClientSchema = z.object({
   tags: z.array(z.string().uuid()).default([]),
 });
 
-export const UpdateClientSchema = CRMClientSchema.partial().extend({
+export const UpdateClientSchema = z.object({
   client_id: z.string().uuid(),
+  pipeline_stage: z.enum([
+    'lead', 'in_negotiation', 'active_deal', 'completed', 'repeat',
+  ]).optional(),
 });
 
 // ---------------------------------------------------------------------------

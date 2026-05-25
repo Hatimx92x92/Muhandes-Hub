@@ -1,21 +1,23 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Tag, Megaphone } from 'lucide-react';
+import { Settings, Tag, Megaphone, Search } from 'lucide-react';
 import { SettingsForm } from '@/components/features/admin/settings-form';
 import { CouponForm } from '@/components/features/admin/coupon-form';
 import { AnnouncementForm } from '@/components/features/admin/announcement-form';
+import { ReindexButton } from '@/components/features/admin/reindex-button';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: any): any {
   return supabase;
 }
 
-export default async function AdminSettingsPage() {
+export default async function AdminSettingsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('admin');
-  const locale = await getLocale();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -149,6 +151,23 @@ export default async function AdminSettingsPage() {
                 )?.value as { message_ar?: string; message_en?: string; is_active?: boolean } | undefined
               }
             />
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Search Index */}
+      <section className="space-y-4">
+        <h2 className="flex items-center gap-2 text-lg font-semibold">
+          <Search className="h-5 w-5" />
+          {t('settingsPage.searchIndex')}
+        </h2>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t('settingsPage.reindexTitle')}</CardTitle>
+            <p className="text-sm text-muted-foreground">{t('settingsPage.reindexDesc')}</p>
+          </CardHeader>
+          <CardContent>
+            <ReindexButton />
           </CardContent>
         </Card>
       </section>

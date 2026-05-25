@@ -36,6 +36,7 @@ export function ProfileStep({ data, updateData, fieldErrors, onNext, onBack }: P
       company_name_ar: data.company_name_ar || undefined,
       company_name_en: data.company_name_en || undefined,
       cr_number: data.cr_number || undefined,
+      vat_number: data.vat_number || undefined,
       website: data.website || undefined,
       city: data.city,
     });
@@ -105,7 +106,7 @@ export function ProfileStep({ data, updateData, fieldErrors, onNext, onBack }: P
             value={data.company_name_ar}
             onChange={(e) => updateData({ company_name_ar: e.target.value })}
             error={getError('company_name_ar')}
-            placeholder="اسم الشركة بالعربية"
+            placeholder={t('companyNameArPlaceholder')}
           />
 
           <Input
@@ -115,17 +116,35 @@ export function ProfileStep({ data, updateData, fieldErrors, onNext, onBack }: P
             value={data.company_name_en}
             onChange={(e) => updateData({ company_name_en: e.target.value })}
             error={getError('company_name_en')}
-            placeholder="Company name in English"
+            placeholder={t('companyNameEnPlaceholder')}
           />
 
           <Input
             label={t('crNumber')}
             name="cr_number"
             dir="ltr"
+            maxLength={10}
             value={data.cr_number}
-            onChange={(e) => updateData({ cr_number: e.target.value })}
+            onChange={(e) => {
+              const v = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+              updateData({ cr_number: v });
+            }}
             error={getError('cr_number')}
-            placeholder="مثال: 1010XXXXXX"
+            placeholder={t('crNumberPlaceholder')}
+          />
+
+          <Input
+            label={t('vatNumber')}
+            name="vat_number"
+            dir="ltr"
+            maxLength={15}
+            value={data.vat_number}
+            onChange={(e) => {
+              const v = e.target.value.replace(/[^0-9]/g, '').slice(0, 15);
+              updateData({ vat_number: v });
+            }}
+            error={getError('vat_number')}
+            placeholder={t('vatNumberPlaceholder')}
           />
 
           <Input
@@ -136,7 +155,7 @@ export function ProfileStep({ data, updateData, fieldErrors, onNext, onBack }: P
             value={data.website}
             onChange={(e) => updateData({ website: e.target.value })}
             error={getError('website')}
-            placeholder="https://example.com"
+            placeholder={t('websitePlaceholder')}
           />
         </>
       )}
@@ -146,7 +165,7 @@ export function ProfileStep({ data, updateData, fieldErrors, onNext, onBack }: P
         name="city"
         value={data.city}
         onValueChange={(val) => updateData({ city: val ?? undefined })}
-        placeholder="اختر المدينة"
+        placeholder={t('cityPlaceholder')}
         error={getError('city')}
       />
 

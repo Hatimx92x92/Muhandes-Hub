@@ -13,6 +13,25 @@ export type ActionResult<T = void> =
   | { data: null; error: string; fieldErrors?: Record<string, string[]> };
 
 // ---------------------------------------------------------------------------
+// Paginated result — standard return type for list queries
+// ---------------------------------------------------------------------------
+export interface PaginatedResult<T> {
+  data: T[];
+  totalCount: number;
+  page: number;
+  perPage: number;
+  totalPages: number;
+}
+
+export interface PaginationParams {
+  page?: number;
+  perPage?: number;
+  search?: string;
+  sort?: string;
+  [key: string]: string | number | undefined;
+}
+
+// ---------------------------------------------------------------------------
 // Locale
 // ---------------------------------------------------------------------------
 export type Locale = 'ar' | 'en';
@@ -118,3 +137,35 @@ export const DURATION_DISCOUNTS = {
 
 /** Saudi VAT rate */
 export const VAT_RATE = 0.15;
+
+// ---------------------------------------------------------------------------
+// Free-role helpers — Project Owner & Buyer are permanently free (no tiers)
+// ---------------------------------------------------------------------------
+
+const FREE_ROLES = new Set(['project_owner', 'buyer']);
+
+/** Returns true for roles that are permanently free (no subscription tiers). */
+export function isFreeRole(role: string): boolean {
+  return FREE_ROLES.has(role);
+}
+
+/** Limits for free roles per FEATURES.md — unlimited access, 0% commission. */
+export const FREE_ROLE_LIMITS: TierLimits = {
+  bidsPerMonth: Infinity,
+  productPosts: Infinity,
+  crmClients: Infinity,
+  quotationsPerMonth: Infinity,
+  contractsPerMonth: Infinity,
+  commissionRate: 0,
+  hasKanban: 'full',
+  hasAnalytics: 'full',
+  hasBulkUpload: false,
+  hasClauseLibrary: true,
+  hasCustomContracts: true,
+};
+
+/** Returns the effective tier limits for a user — free roles always get FREE_ROLE_LIMITS. */
+export function getEffectiveLimits(role: string, tier: string): TierLimits {
+  if (isFreeRole(role)) return FREE_ROLE_LIMITS;
+  return TIER_LIMITS[tier] ?? TIER_LIMITS.starter;
+}

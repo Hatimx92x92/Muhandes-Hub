@@ -45,7 +45,7 @@ export function ConfirmStep({ data, submitting, isOAuthMode = false, onSubmit, o
         type="button"
         onClick={() => onGoToStep(step)}
         className="text-muted-foreground hover:text-primary transition-colors ms-2"
-        aria-label="Edit"
+        aria-label={t('editLabel')}
       >
         <Pencil className="h-3.5 w-3.5" />
       </button>

@@ -1,13 +1,14 @@
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 /* ==========================================================================
-   Logo — Muhandes HUB brand mark (inline SVG monogram + text)
+   Logo — Muhandes HUB brand mark (image + text)
    ========================================================================== */
 
 const sizes = {
-  sm: { box: 32, text: 'text-base', sub: 'text-[9px]' },
-  md: { box: 36, text: 'text-lg', sub: 'text-[10px]' },
-  lg: { box: 44, text: 'text-xl', sub: 'text-[11px]' },
+  sm: { box: 40, text: 'text-lg', sub: 'text-[10px]' },
+  md: { box: 48, text: 'text-xl', sub: 'text-[11px]' },
+  lg: { box: 56, text: 'text-2xl', sub: 'text-xs' },
 } as const;
 
 interface LogoProps {
@@ -19,40 +20,14 @@ interface LogoProps {
 
 function LogoMark({ size }: { size: number }) {
   return (
-    <svg
+    <Image
+      src="/android-chrome-192x192.png"
+      alt="Muhandes HUB"
       width={size}
       height={size}
-      viewBox="0 0 48 48"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
       className="shrink-0"
-      aria-hidden="true"
-    >
-      <rect width="48" height="48" rx="12" fill="url(#logo-grad)" />
-      {/* M */}
-      <path
-        d="M10 36V16l7 10 7-10v20"
-        stroke="white"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      {/* H */}
-      <path
-        d="M30 16v20M38 16v20M30 26h8"
-        stroke="white"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <defs>
-        <linearGradient id="logo-grad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-          <stop stopColor="var(--primary)" />
-          <stop offset="1" stopColor="var(--primary-dark)" />
-        </linearGradient>
-      </defs>
-    </svg>
+      priority
+    />
   );
 }
 

@@ -10,11 +10,13 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { LocaleDate } from '@/components/ui/locale-date';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { uploadDealDocument } from '@/actions/uploads';
 import {
-  Upload, FileText, Image, File, Download, FolderOpen, X,
+  Upload, FileText, Image, File, FolderOpen, X,
 } from 'lucide-react';
+import { FileActions } from '@/components/features/file-actions';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -212,23 +214,14 @@ export function DocumentVault({ dealId, documents }: DocumentVaultProps) {
                       {formatFileSize(doc.file_size)}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(doc.created_at).toLocaleDateString()}
+                      <LocaleDate date={doc.created_at} />
                     </span>
                   </div>
                   {doc.notes && (
                     <p className="text-xs text-muted-foreground mt-1 truncate">{doc.notes}</p>
                   )}
                 </div>
-                <a
-                  href={doc.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0"
-                >
-                  <Button variant="ghost" size="icon">
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </a>
+                <FileActions url={doc.file_url} fileName={doc.file_name} compact />
               </Card>
             );
           })}

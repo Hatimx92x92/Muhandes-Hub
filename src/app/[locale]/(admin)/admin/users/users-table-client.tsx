@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useTransition } from 'react';
+import { useLocale } from 'next-intl';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { AdminTableShell, type FilterGroup } from '@/components/features/admin/admin-table-shell';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
@@ -8,6 +9,7 @@ import { EmptyState } from '@/components/features/empty-state';
 import { AdminUserActions } from '@/components/features/admin/user-actions';
 import { useRouter } from '@/i18n/navigation';
 import { Users, Shield, ShieldBan, ShieldAlert, CheckCircle } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 import type { AdminUserRow } from '@/actions/admin/queries';
 import type { BulkAction } from '@/components/features/bulk-action-bar';
 import { bulkUserAction } from '@/actions/admin/users';
@@ -36,6 +38,7 @@ interface UsersTableClientProps {
 
 export function UsersTableClient({ data, totalCount, currentPage, totalPages, translations: t }: UsersTableClientProps) {
   const router = useRouter();
+  const locale = useLocale();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [, startTransition] = useTransition();
 
@@ -97,7 +100,7 @@ export function UsersTableClient({ data, totalCount, currentPage, totalPages, tr
         hiddenOnMobile: true,
         cell: (row) => (
           <span className="text-xs text-muted-foreground">
-            {new Date(row.created_at).toLocaleDateString()}
+            {formatDate(row.created_at, locale)}
           </span>
         ),
       },
@@ -233,7 +236,7 @@ export function UsersTableClient({ data, totalCount, currentPage, totalPages, tr
           company: row.company_name_ar ?? row.company_name_en ?? '',
           role: t[`role_${row.role}`] ?? row.role,
           verification_status: t[`status_${row.verification_status}`] ?? row.verification_status,
-          created_at: new Date(row.created_at).toLocaleDateString(),
+          created_at: new Date(row.created_at).toLocaleDateString('en-GB'),
         })),
       }}
     >

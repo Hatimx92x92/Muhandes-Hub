@@ -17,8 +17,7 @@ import {
   MergeClientsSchema,
 } from '@/schemas/crm';
 import type { ActionResult } from '@/types';
-import { TIER_LIMITS } from '@/types';
-import { generateUniqueSlug } from '@/lib/utils';
+import { getEffectiveLimits } from '@/types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function db(supabase: Awaited<ReturnType<typeof createClient>>): any {
@@ -38,7 +37,62 @@ function toFieldErrors(issues: { path: PropertyKey[]; message: string }[]): Reco
 const CRM_PATH = '/dashboard/crm';
 
 // ---------------------------------------------------------------------------
-// addClient — Add a new CRM client
+// searchUsersForCRM — Search existing platform users for CRM contact creation
+// ---------------------------------------------------------------------------
+export interface CRMUserResult {
+  id: string;
+  full_name_ar: string | null;
+  full_name_en: string | null;
+  company_name_ar: string | null;
+  company_name_en: string | null;
+  phone: string | null;
+  email: string | null;
+}
+
+export async function searchUsersForCRM(
+  query: string,
+): Promise<ActionResult<CRMUserResult[]>> {
+  const t = await getTranslations('actions.crm');
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: t('mustLogin') };
+
+  if (!query || query.trim().length < 2) return { data: [], error: null };
+
+  const q = `%${query.trim()}%`;
+
+  // Fetch already-linked user IDs for this owner so we can exclude them
+  const { data: existing } = await db(supabase)
+    .from('crm_clients')
+    .select('linked_user_id')
+    .eq('owner_id', user.id)
+    .not('linked_user_id', 'is', null);
+
+  const excludedIds: string[] = (existing ?? [])
+    .map((r: { linked_user_id: string | null }) => r.linked_user_id)
+    .filter(Boolean);
+
+  let queryBuilder = db(supabase)
+    .from('profiles')
+    .select('id, full_name_ar, full_name_en, company_name_ar, company_name_en, phone, email')
+    .neq('id', user.id)
+    .or(
+      `full_name_ar.ilike.${q},full_name_en.ilike.${q},company_name_ar.ilike.${q},company_name_en.ilike.${q},email.ilike.${q}`,
+    )
+    .limit(10);
+
+  if (excludedIds.length > 0) {
+    queryBuilder = queryBuilder.not('id', 'in', `(${excludedIds.join(',')})`);
+  }
+
+  const { data, error } = await queryBuilder;
+  if (error) return { data: null, error: t('searchError') };
+
+  return { data: data ?? [], error: null };
+}
+
+// ---------------------------------------------------------------------------
+// addClient — Add a new CRM client from an existing platform user
 // ---------------------------------------------------------------------------
 export async function addClient(
   _prev: ActionResult<{ id: string }> | null,
@@ -57,11 +111,7 @@ export async function addClient(
   }
 
   const rawData = {
-    name: formData.get('name') as string,
-    phone: formData.get('phone') as string || undefined,
-    email: formData.get('email') as string || undefined,
-    company: formData.get('company') as string || undefined,
-    city_id: formData.get('city_id') as string || undefined,
+    linked_user_id: formData.get('linked_user_id') as string,
     source: formData.get('source') as string || 'manual_entry',
     pipeline_stage: formData.get('pipeline_stage') as string || 'lead',
     tags: parsedTags,
@@ -91,11 +141,11 @@ export async function addClient(
     .eq('is_active', true)
     .single();
   const tier = (sub?.tier as string) || 'starter';
-  const limits = TIER_LIMITS[tier as keyof typeof TIER_LIMITS];
+  const limits = getEffectiveLimits(profile.role, tier);
   if (limits && limits.crmClients !== Infinity) {
     const { count } = await db(supabase)
       .from('crm_clients')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .eq('owner_id', user.id)
       .eq('is_archived', false);
 
@@ -104,16 +154,42 @@ export async function addClient(
     }
   }
 
-  const { tags, ...clientData } = parsed.data;
+  // Duplicate check — same user already linked to this owner
+  const { count: dupCount } = await db(supabase)
+    .from('crm_clients')
+    .select('id', { count: 'exact' })
+    .eq('owner_id', user.id)
+    .eq('linked_user_id', parsed.data.linked_user_id);
 
-  const slug = await generateUniqueSlug(clientData.name, 'crm_clients', 'slug', db(supabase));
+  if ((dupCount ?? 0) > 0) {
+    return { data: null, error: t('clientAlreadyExists') };
+  }
+
+  // Fetch profile data to populate contact fields
+  const { data: targetProfile, error: profileError } = await db(supabase)
+    .from('profiles')
+    .select('full_name_ar, full_name_en, company_name_ar, phone, email')
+    .eq('id', parsed.data.linked_user_id)
+    .single();
+
+  if (profileError || !targetProfile) {
+    return { data: null, error: t('userNotFound') };
+  }
+
+  const name = targetProfile.full_name_ar || targetProfile.full_name_en || '';
+  const company = targetProfile.company_name_ar || undefined;
+
+  const { tags, ...clientData } = parsed.data;
 
   const { data: client, error } = await db(supabase)
     .from('crm_clients')
     .insert({
       owner_id: user.id,
+      name,
+      phone: targetProfile.phone || undefined,
+      email: targetProfile.email || undefined,
+      company,
       ...clientData,
-      slug,
     })
     .select('id')
     .single();
@@ -148,10 +224,6 @@ export async function updateClient(
 
   const rawData = {
     client_id: formData.get('client_id') as string,
-    name: formData.get('name') as string || undefined,
-    phone: formData.get('phone') as string || undefined,
-    email: formData.get('email') as string || undefined,
-    company: formData.get('company') as string || undefined,
     pipeline_stage: formData.get('pipeline_stage') as string || undefined,
   };
 
@@ -162,15 +234,9 @@ export async function updateClient(
 
   const { client_id, ...updates } = parsed.data;
 
-  // Regenerate slug if name changed
-  let slug: string | undefined;
-  if (updates.name) {
-    slug = await generateUniqueSlug(updates.name, 'crm_clients', 'slug', db(supabase), client_id);
-  }
-
   const { error } = await db(supabase)
     .from('crm_clients')
-    .update({ ...updates, ...(slug ? { slug } : {}) })
+    .update(updates)
     .eq('id', client_id)
     .eq('owner_id', user.id);
 

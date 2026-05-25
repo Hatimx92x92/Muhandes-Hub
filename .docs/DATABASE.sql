@@ -139,7 +139,11 @@ CREATE TYPE notification_type AS ENUM (
     'rfq_response_rejected',
     'supplier_hire_request_received',
     'supplier_hire_quotation_received',
-    'deal_flagged_review'
+    'deal_flagged_review',
+    'subscription_upgraded',
+    'subscription_renewed',
+    'subscription_payment_approved',
+    'subscription_payment_rejected'
 );
 
 CREATE TYPE kanban_priority AS ENUM (
@@ -1554,12 +1558,7 @@ CREATE TABLE conversations (
         last_message_preview TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-        -- At least one context must be set
-        CONSTRAINT conversation_has_context CHECK (
-            project_id IS NOT NULL
-            OR product_id IS NOT NULL
-            OR deal_id IS NOT NULL
-        )
+        -- Context constraint dropped by migration 002 — direct messages now allowed without entity
 );
 
 CREATE INDEX idx_conversations_project ON conversations(project_id);
@@ -1599,6 +1598,9 @@ CREATE TABLE messages (
     file_url TEXT,
     file_name TEXT,
     file_size INT,
+    -- Added by migration 002: soft deletes + multi-file attachments
+    deleted_at TIMESTAMPTZ,
+    attachments JSONB NOT NULL DEFAULT '[]',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -2208,6 +2210,11 @@ SELECT
     USING (
         status = 'published'
         OR owner_id = auth.uid()
+        OR EXISTS (
+            SELECT 1 FROM deals
+            WHERE deals.project_id = projects.id
+              AND (deals.buyer_id = auth.uid() OR deals.seller_id = auth.uid())
+        )
     );
 
 CREATE POLICY "Owners can insert projects" ON projects FOR
@@ -2285,10 +2292,7 @@ CREATE POLICY "Suppliers can update own products" ON products FOR
 UPDATE
     USING (auth.uid() = supplier_id) WITH CHECK (auth.uid() = supplier_id);
 
-CREATE POLICY "Suppliers can delete own draft products" ON products FOR DELETE USING (
-    auth.uid() = supplier_id
-    AND status = 'draft'
-);
+CREATE POLICY "Suppliers can delete own products" ON products FOR DELETE USING (auth.uid() = supplier_id);
 
 -- Product sub-tables follow product access
 CREATE POLICY "Read product variants" ON product_variants FOR
@@ -3349,14 +3353,16 @@ VALUES
 -- Note: Run these in Supabase Dashboard → Database → Replication
 -- or use the Supabase Management API. Listed here for documentation:
 --
--- ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+-- Applied by migration 002:
+ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+ALTER PUBLICATION supabase_realtime ADD TABLE conversation_participants;
+-- Uncomment remaining tables when needed:
 -- ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
 -- ALTER PUBLICATION supabase_realtime ADD TABLE deals;
 -- ALTER PUBLICATION supabase_realtime ADD TABLE deal_milestones;
 -- ALTER PUBLICATION supabase_realtime ADD TABLE deal_proofs;
 -- ALTER PUBLICATION supabase_realtime ADD TABLE kanban_columns;
 -- ALTER PUBLICATION supabase_realtime ADD TABLE kanban_cards;
--- ALTER PUBLICATION supabase_realtime ADD TABLE conversation_participants;
 -- ============================================================================
 -- SECTION 34: Storage Buckets (documentation)
 -- Create via Supabase Dashboard or Management API

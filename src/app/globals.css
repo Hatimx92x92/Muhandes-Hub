@@ -76,14 +76,14 @@
   --role-buyer-foreground: #5b21b6;
 
   /* --- Tier Colors --- */
-  --tier-starter: #f3f4f6;
-  --tier-starter-foreground: #374151;
-  --tier-pro: #dbeafe;
-  --tier-pro-foreground: #1e40af;
-  --tier-business: #e0e7ff;
-  --tier-business-foreground: #3730a3;
-  --tier-enterprise: #fef3c7;
-  --tier-enterprise-foreground: #92400e;
+  --tier-starter: #e5e7eb;
+  --tier-starter-foreground: #1f2937;
+  --tier-pro: #2563eb;
+  --tier-pro-foreground: #ffffff;
+  --tier-business: #7c3aed;
+  --tier-business-foreground: #ffffff;
+  --tier-enterprise: #d97706;
+  --tier-enterprise-foreground: #ffffff;
 
   /* --- Status Colors --- */
   --status-draft: #f3f4f6;
@@ -181,14 +181,14 @@
     --role-buyer-foreground: #c4b5fd;
 
     /* --- Tier Colors (dark) --- */
-    --tier-starter: #1f2937;
-    --tier-starter-foreground: #d1d5db;
-    --tier-pro: #1e3a5f;
-    --tier-pro-foreground: #93c5fd;
-    --tier-business: #1e1b4b;
-    --tier-business-foreground: #a5b4fc;
-    --tier-enterprise: #78350f;
-    --tier-enterprise-foreground: #fde68a;
+    --tier-starter: #374151;
+    --tier-starter-foreground: #e5e7eb;
+    --tier-pro: #1d4ed8;
+    --tier-pro-foreground: #dbeafe;
+    --tier-business: #6d28d9;
+    --tier-business-foreground: #ede9fe;
+    --tier-enterprise: #b45309;
+    --tier-enterprise-foreground: #fef3c7;
 
     /* --- Status Colors (dark) --- */
     --status-draft: #1f2937;
@@ -486,6 +486,15 @@
 
 .animate-blink-cursor {
   animation: blink-cursor 0.7s step-end infinite;
+}
+
+@keyframes typing-dot {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+.typing-dot {
+  animation: typing-dot 1.4s ease-in-out infinite;
 }
 
 /* Stagger delay utilities */

@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { formatSAR, formatDate, getLocaleField, getEntitySlug } from '@/lib/utils';
-import { Receipt, User, Calendar, FileText, Download, ShoppingCart, Package } from 'lucide-react';
+import { Receipt, User, Calendar, FileText, Download, ShoppingCart, Package, Pencil, ExternalLink, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   SendQuotationButton,
@@ -16,7 +16,7 @@ import {
   RejectQuotationButton,
   DuplicateQuotationButton,
 } from '@/components/features/quotation-actions';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { BreadcrumbOverride } from '@/components/layout/breadcrumb-provider';
 import { Link } from '@/i18n/navigation';
 
@@ -45,16 +45,16 @@ interface LineItem {
 export default async function QuotationDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ locale: string; id: string }>;
 }) {
-  const { id } = await params;
+  const { locale, id } = await params;
+  setRequestLocale(locale);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
   const t = await getTranslations('dashboard.quotations');
   const tCommon = await getTranslations('dashboard.common');
-  const locale = await getLocale();
 
   const { data: quotation } = await db(supabase)
     .from('quotations')
@@ -115,9 +115,20 @@ export default async function QuotationDetailPage({
       sourceInfo = {
         type: 'inquiry',
         label: getLocaleField(prodData, 'name', locale),
-        href: '/dashboard/inquiries',
+        href: `/dashboard/inquiries/${quotation.inquiry_id}`,
       };
     }
+  }
+
+  // Fetch linked deal for accepted quotations
+  let linkedDeal: { id: string; title_slug: string | null; title_ar: string | null; title_en: string | null } | null = null;
+  if (quotation.status === 'accepted') {
+    const { data: dealData } = await db(supabase)
+      .from('deals')
+      .select('id, title_slug, title_ar, title_en')
+      .eq('quotation_id', quotation.id)
+      .maybeSingle();
+    linkedDeal = dealData;
   }
 
   const lineItems: LineItem[] = Array.isArray(quotation.line_items)
@@ -126,7 +137,7 @@ export default async function QuotationDetailPage({
 
   return (
     <div className="space-y-6">
-      <BreadcrumbOverride segment={id} label={`#${id.slice(0, 8)}`} />
+      <BreadcrumbOverride segment={id} label={quotation.number} />
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -140,18 +151,39 @@ export default async function QuotationDetailPage({
             </Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t('createdOn')} {formatDate(quotation.created_at)}
+            {t('createdOn')} {formatDate(quotation.created_at, locale)}
           </p>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {linkedDeal && (() => {
+            const dealTitle = locale === 'ar'
+              ? (linkedDeal.title_ar || linkedDeal.title_en)
+              : (linkedDeal.title_en || linkedDeal.title_ar);
+            return (
+              <Link href={`/dashboard/deals/${linkedDeal.title_slug || linkedDeal.id}`}>
+                <Button variant="primary" size="sm" className="gap-1.5">
+                  <ExternalLink className="h-4 w-4" />
+                  {dealTitle || t('viewDeal')}
+                </Button>
+              </Link>
+            );
+          })()}
           <a href={`/api/pdf/quotation/${quotation.id}`} target="_blank" rel="noopener noreferrer">
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4" />
               {t('downloadPdf')}
             </Button>
           </a>
+          {isSender && quotation.status !== 'accepted' && (
+            <Link href={`/dashboard/quotations/${quotation.id}/edit`}>
+              <Button variant="outline" size="sm">
+                <Pencil className="h-4 w-4 me-1" />
+                {tCommon('edit')}
+              </Button>
+            </Link>
+          )}
           {isSender && quotation.status === 'draft' && (
             <SendQuotationButton quotationId={quotation.id} />
           )}
@@ -166,6 +198,14 @@ export default async function QuotationDetailPage({
           )}
         </div>
       </div>
+
+      {/* Accepted-state banner linking to deal */}
+      {linkedDeal && (
+        <Card className="flex items-center gap-3 p-4 border-success/30 bg-success/5">
+          <CheckCircle className="h-4 w-4 text-success shrink-0" />
+          <span className="text-sm text-muted-foreground flex-1">{t('dealCreated')}</span>
+        </Card>
+      )}
 
       {/* Source Info (RFQ or Inquiry) */}
       {sourceInfo && (

@@ -46,7 +46,7 @@ export async function GET(request: Request) {
   const { data: expiring7Day } = await supabase
     .from('subscriptions')
     .select('user_id, tier, expires_at')
-    .eq('status', 'active')
+    .eq('is_active', true)
     .gte('expires_at', sevenDayStart.toISOString())
     .lte('expires_at', sevenDayEnd.toISOString());
 
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
   const { data: expiring1Day } = await supabase
     .from('subscriptions')
     .select('user_id, tier, expires_at')
-    .eq('status', 'active')
+    .eq('is_active', true)
     .gte('expires_at', oneDayStart.toISOString())
     .lte('expires_at', oneDayEnd.toISOString());
 
@@ -83,21 +83,15 @@ export async function GET(request: Request) {
   const { data: expiredSubs } = await supabase
     .from('subscriptions')
     .select('id, user_id, tier')
-    .eq('status', 'active')
+    .eq('is_active', true)
     .lt('expires_at', now.toISOString());
 
   for (const sub of expiredSubs || []) {
-    // Mark subscription as expired
+    // Mark subscription as inactive (expired)
     await supabase
       .from('subscriptions')
-      .update({ status: 'expired' })
+      .update({ is_active: false })
       .eq('id', sub.id);
-
-    // Downgrade profile to starter
-    await supabase
-      .from('profiles')
-      .update({ subscription_tier: 'starter' })
-      .eq('id', sub.user_id);
 
     // Notify user
     await notifySubscriptionExpired({
